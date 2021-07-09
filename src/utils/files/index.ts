@@ -1,6 +1,6 @@
 import PATH from 'path';
 
-import { BaseEncodingOptions, promises as FS, Stats, lstatSync, rmdirSync, statSync } from 'fs';
+import { ObjectEncodingOptions, promises as FS, Stats, lstatSync, rmdirSync, statSync } from 'fs';
 import { FileSystemError, FileSystemErrorType as ErrorType } from '../../types/errors/fileSystemError';
 import { PathInfo } from '../../types/dtos/fileDto';
 import { config } from '../../config/config';
@@ -87,7 +87,7 @@ export const createDir = async (path: Path): Promise<PathInfo> => {
     return await getFormattedDetails(path);
 };
 
-export const readDir = async (path: Path, options: BaseEncodingOptions & { withFileTypes: true }): Promise<PathInfo[]> => {
+export const readDir = async (path: Path, options: ObjectEncodingOptions & { withFileTypes: true }): Promise<PathInfo[]> => {
     const exists = await pathExists(path);
     if (!exists) return [];
     const content = await readDirectory(path, options);
@@ -223,7 +223,7 @@ const createDirectory = (path: Path) => {
     return FS.mkdir(path.securedPath, { recursive: true });
 };
 
-const readDirectory = async (path: Path, options: BaseEncodingOptions & { withFileTypes: true }) => {
+const readDirectory = async (path: Path, options: ObjectEncodingOptions & { withFileTypes: true }) => {
     return await FS.readdir(path.securedPath, options);
 };
 

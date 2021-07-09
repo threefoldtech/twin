@@ -1,7 +1,7 @@
 {
     "main": "dist/src/index.js",
     "name": "@threefoldjimber/digitaltwin-backend",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "Digitaltwin backend",
     "scripts": {
         "prepublish": "tsc -d --declarationDir dist/lib --declarationMap ",
