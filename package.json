@@ -1,11 +1,10 @@
 {
     "main": "dist/src/index.js",
     "name": "@threefoldjimber/digitaltwin-backend",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "Digitaltwin backend",
     "scripts": {
         "prepublish": "tsc -d --declarationDir dist/lib --declarationMap ",
-        "prepack": "tsc -d --declarationDir dist/lib --declarationMap ",
         "dev": "concurrently \"tsc --watch\" \"nodemon dist/src/server.js\"",
         "serve": "concurrently \"tsc --watch\" \"nodemon dist/src/server.js\"",
         "build": "tsc",
