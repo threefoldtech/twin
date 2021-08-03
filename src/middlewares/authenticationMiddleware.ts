@@ -1,6 +1,7 @@
 import express from 'express';
 import { HttpError } from '../types/errors/httpError';
 import { StatusCodes } from 'http-status-codes';
+import {yggdrasilIsInitialized} from "../index";
 
 /**
  * Handles authentication check
@@ -16,7 +17,9 @@ export const requiresAuthentication  = (
     response: express.Response,
     next: express.NextFunction
 ): express.Response | void => {
-    if (!request?.session?.userId && process.env.ENVIRONMENT !== 'development') {
+    const hasSession = !!request?.session?.userId;
+    const isDevelopmentMode =  process.env.ENVIRONMENT === 'development';
+    if (!hasSession && (!isDevelopmentMode || !yggdrasilIsInitialized)) {
         throw new HttpError(StatusCodes.UNAUTHORIZED)
     }
 
