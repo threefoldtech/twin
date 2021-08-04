@@ -39,10 +39,10 @@ router.get('/authenticated', async (request, response) => {
     const hasSession = !!request?.session?.userId;
     const isDevelopmentMode =  process.env.ENVIRONMENT === 'development';
     if (!hasSession && (!isDevelopmentMode || !yggdrasilIsInitialized)) {
-        response.send('true');
+        response.send('false');
         return;
     }
-    response.send('false');
+    response.send('true');
 });
 
 export default router;
