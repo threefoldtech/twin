@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import { appCallback, getAppLoginUrl } from '../service/authService';
+import {yggdrasilIsInitialized} from "../index";
+import {HttpError} from "../types/errors/httpError";
+import {StatusCodes} from "http-status-codes";
 const router = Router();
 
 router.get('/', async (request, response) => {
@@ -33,9 +36,11 @@ router.get('/callback', async (request, response) => {
 });
 
 router.get('/authenticated', async (request, response) => {
-    if (request.session.userId || process.env.ENVIRONMENT === 'development') {
+    const hasSession = !!request?.session?.userId;
+    const isDevelopmentMode =  process.env.ENVIRONMENT === 'development';
+    if (!hasSession && (!isDevelopmentMode || !yggdrasilIsInitialized)) {
         response.send('true');
-        return;
+        return;git add
     }
     response.send('false');
 });
