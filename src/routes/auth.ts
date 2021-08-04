@@ -40,7 +40,7 @@ router.get('/authenticated', async (request, response) => {
     const isDevelopmentMode =  process.env.ENVIRONMENT === 'development';
     if (!hasSession && (!isDevelopmentMode || !yggdrasilIsInitialized)) {
         response.send('true');
-        return;git add
+        return;
     }
     response.send('false');
 });
