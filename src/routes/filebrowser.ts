@@ -29,7 +29,6 @@ import AdmZip from 'adm-zip';
 import {
     appendShare,
     createShare,
-    getShare,
     getSharesWithme, getShareWithId, removeShare,
     SharePermission,
     SharePermissionInterface,
@@ -313,20 +312,18 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
         throw new HttpError(StatusCodes.BAD_REQUEST, 'No chat specified');
 
     const chat = getChat(chatId, 0)
-    const contacts = chat.contacts.filter(c=>c.id !== config.userid)
     const itemStats =await  getStats(new Path(path))
-    
-    const sharePermissions :SharePermissionInterface[]=[]
     
     const types = <SharePermission[]> [SharePermission.Read]
     if(writable) types.push(SharePermission.Write)
-    contacts.forEach((contact )=>sharePermissions.push({
-        userId:contact.id,
+    
+    const sharePermissions :SharePermissionInterface[]=[{
+        chatId:chatId,
         types
-    }))
-
-    const share = createShare(path, filename, !itemStats.isFile(), itemStats.size, itemStats.mtime.getTime(), contacts[0].id, writable, ShareStatus.Shared, sharePermissions);
-
+    }]
+    
+    const share = createShare(path, filename, !itemStats.isFile(), itemStats.size, itemStats.mtime.getTime(), ShareStatus.Shared, sharePermissions);
+    
     let msg: Message<FileShareMessageType> = {
         id: uuidv4(),
         body: share,
@@ -341,6 +338,7 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
     console.log(msg)
     const parsedmsg = parseMessage(msg)
     appendSignatureToMessage(parsedmsg)
+    const contacts = chat.contacts.filter(c=>c.id !== config.userid)
     contacts.forEach(contact => sendMessageToApi(contact.location, parsedmsg))    
     persistMessage(chat.chatId, parsedmsg);
     sendEventToConnectedSockets('message', parsedmsg);
