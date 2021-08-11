@@ -1,5 +1,6 @@
 import messages from '../routes/messages';
 import Message from '../models/message';
+import { SharedFileInterface } from '../service/fileShareService';
 
 export interface UserInterface extends AnonymousContactInterface {
     image: string;
@@ -28,6 +29,7 @@ export enum MessageTypes {
     MESSAGE = 'MESSAGE',
     FILE = 'FILE',
     FILE_UPLOAD = 'FILE_UPLOAD',
+    FILE_SHARE = 'FILE_SHARE',
     EDIT = 'EDIT',
     READ = 'READ',
     CONTACT_REQUEST = 'CONTACT_REQUEST',
@@ -78,6 +80,9 @@ export interface FileMessageType extends MessageBodyTypeInterface {
     type: FileTypes;
     filename: string;
     url: string;
+}
+
+export interface FileShareMessageType extends MessageBodyTypeInterface, SharedFileInterface {
 }
 
 export interface SystemMessageInterface extends MessageBodyTypeInterface {

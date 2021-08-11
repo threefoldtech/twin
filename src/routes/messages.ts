@@ -6,6 +6,7 @@ import { sendEventToConnectedSockets } from '../service/socketService';
 import {
     ContactRequest,
     DtIdInterface,
+    FileShareMessageType,
     GroupUpdateType,
     MessageBodyTypeInterface,
     MessageTypes,
@@ -22,6 +23,7 @@ import { uuidv4 } from '../common';
 import { handleSystemMessage } from '../service/systemService';
 import { getMyLocation } from '../service/locationService';
 import { appendSignatureToMessage, verifyMessageSignature } from '../service/keyService';
+import { handleIncommingFileShare } from '../service/fileShareService';
 
 const router = Router();
 
@@ -246,6 +248,15 @@ router.put('/', async (req, res) => {
         return;
     }
 
+    if (message.type === <string>MessageTypes.FILE_SHARE) {
+        if(message.from == config.userid){
+        res.json({ status: 'cannot share with yourself' });
+            return
+        }
+        handleIncommingFileShare(message as Message<FileShareMessageType>)
+        res.json({ status: 'success' });
+        return
+    }
     // const message = new Message(msg.from, msg.to, msg.body);
     console.log(`received new message from ${message.from}`);
     //

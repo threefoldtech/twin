@@ -191,7 +191,7 @@ export const move = async (
     destination: Path,
 ) => {
     let config = getShareConfig()
-    updateSharePath(config, source.path, destination.path)
+    updateSharePath(source.path, destination.path)
     fse.moveSync(source.securedPath, destination.securedPath, { overwrite: false });
     return await getFormattedDetails(destination);
 };
