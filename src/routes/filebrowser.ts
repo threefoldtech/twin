@@ -31,6 +31,7 @@ import {
     createShare,
     getShare,
     getSharesWithme, getShareWithId, removeShare,
+    SharePermission,
     SharePermissionInterface,
     ShareStatus,
     updateSharePath,
@@ -317,8 +318,14 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
     
     const sharePermissions :SharePermissionInterface[]=[]
     
-    const share = createShare(path, filename, !itemStats.isFile(), itemStats.size, itemStats.mtime.getTime(), contacts[0].id, writable, ShareStatus.Shared, sharePermissions);
+    const types = <SharePermission[]> [SharePermission.Read]
+    if(writable) types.push(SharePermission.Write)
+    contacts.forEach((contact )=>sharePermissions.push({
+        userId:contact.id,
+        types
+    }))
 
+    const share = createShare(path, filename, !itemStats.isFile(), itemStats.size, itemStats.mtime.getTime(), contacts[0].id, writable, ShareStatus.Shared, sharePermissions);
 
     let msg: Message<FileShareMessageType> = {
         id: uuidv4(),
@@ -333,14 +340,10 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
     }
     console.log(msg)
     const parsedmsg = parseMessage(msg)
-    //@todo group chats
     appendSignatureToMessage(parsedmsg)
-    sendMessageToApi(contacts[0].location, parsedmsg);
+    contacts.forEach(contact => sendMessageToApi(contact.location, parsedmsg))    
     persistMessage(chat.chatId, parsedmsg);
     sendEventToConnectedSockets('message', parsedmsg);
-
-    console.log("share created")
-
     return res.status(StatusCodes.OK);
 });
 
@@ -366,24 +369,24 @@ router.get('/files/share', async (req: express.Request, resp: express.Response) 
 
     // const share = getShareFromToken(payload.data);
 });
-router.post('/files/insertToken', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const token = req.body.token;
-    const filename = req.body.filename;
-    const size = req.body.size;
-    // @todo how to get lastmodified? Why is size comming from fe???
-    const lastModified = 123
-    let tokenData = parseJwt(token);
+// router.post('/files/insertToken', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+//     const token = req.body.token;
+//     const filename = req.body.filename;
+//     const size = req.body.size;
+//     // @todo how to get lastmodified? Why is size comming from fe???
+//     const lastModified = 123
+//     let tokenData = parseJwt(token);
 
-    // @todo heree
-    // await appendShare(undefined, filename, size, lastModified, shareStatus.SharedWithMe, tokenData.data.id, {
-    //     // isPublic: undefined,
-    //     // token: token,
-    //     // expiration: tokenData.exp,
-    //     // userId: undefined,
-    //     userId: '123',
-    //     types: []
-    // });
-});
+//     // @todo heree
+//     // await appendShare(undefined, filename, size, lastModified, shareStatus.SharedWithMe, tokenData.data.id, {
+//     //     // isPublic: undefined,
+//     //     // token: token,
+//     //     // expiration: tokenData.exp,
+//     //     // userId: undefined,
+//     //     userId: '123',
+//     //     types: []
+//     // });
+// });
 
 router.get('/files/getShares', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let shareStatus = req.query.shareStatus as ShareStatus;

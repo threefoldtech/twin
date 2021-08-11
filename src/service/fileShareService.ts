@@ -12,7 +12,7 @@ export enum ShareStatus {
     SharedWithMe = 'SharedWithMe'
 }
 
-enum SharePermission {
+export enum SharePermission {
     Read = 'r',
     Write = 'w'
 }
@@ -72,8 +72,7 @@ export const removeShare = (path: string) => {
 //     persistShareConfig(config);
 // };
 
-export const getShareByPath = (path: string, shareStatus: ShareStatus): SharedFileInterface => {
-    const allShares = getShareConfig()
+export const getShareByPath = (allShares:SharesInterface,path: string, shareStatus: ShareStatus): SharedFileInterface => {
     const share = allShares[shareStatus].find(share => share.path === path);
     return share
 };
@@ -99,7 +98,7 @@ export const appendShare = (status: ShareStatus, path: string,
     permissions: SharePermissionInterface[]):SharedFileInterface => {
     
     const allShares = getShareConfig()
-    let share = getShareByPath(path, status);
+    let share = getShareByPath(allShares, path, status);
     if (!share) {
         allShares[status].push({
             id: uuidv4(),
@@ -120,7 +119,6 @@ export const appendShare = (status: ShareStatus, path: string,
     share.size = size
     share.lastModified = lastModified
     share.permissions = permissions
-    
     persistShareConfig(allShares)
     return share
 };
