@@ -109,7 +109,7 @@ router.get('/files/info', requiresAuthentication, async (req: express.Request, r
     const path = new Path(p);
     res.json({
         ...(await getFormattedDetails(path)),
-        key: `${config.userid}.${Buffer.from(path.path).toString('base64')}`,
+        key:  getDocumentBrowserKey(true, p),
         readToken: createJwtToken({
             file: p,
             permissions: [Permission.FileBrowserRead],
@@ -436,6 +436,7 @@ router.get('/files/getShareFileAccessDetails', async (req: express.Request, res:
 
     const key =  getDocumentBrowserKey(userCanWrite, share.path)
     const response = {
+        ...(await getFormattedDetails(new Path(share.path))),
         key: key,
         readToken: createJwtToken({
             file: share.path,
