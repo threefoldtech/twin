@@ -27,7 +27,6 @@ import { uuidv4 } from '../common';
 import * as fs from 'fs';
 import AdmZip from 'adm-zip';
 import {
-    appendShare,
     createShare,
     getSharesWithme, getShareWithId, removeShare,
     SharePermission,
@@ -43,6 +42,8 @@ import { sendMessageToApi } from '../service/apiService';
 import { sendEventToConnectedSockets } from '../service/socketService';
 import { persistMessage } from '../service/chatService';
 import { parseMessage } from '../service/messageService';
+import crypto from 'crypto'
+import { getDocumentBrowserKey } from '../service/fileService';
 
 const router = Router();
 
@@ -322,7 +323,7 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
         types
     }]
     
-    const share = createShare(path, filename, !itemStats.isFile(), itemStats.size, itemStats.mtime.getTime(), ShareStatus.Shared, sharePermissions);
+    const share = await createShare(path, filename, !itemStats.isFile(), itemStats.size, itemStats.mtime.getTime(), ShareStatus.Shared, sharePermissions);
     
     let msg: Message<FileShareMessageType> = {
         id: uuidv4(),
@@ -427,5 +428,29 @@ router.get('/files/getSharedFileDownload', requiresAuthentication, async (req: e
 
 });
 
+router.get('/files/getShareFileAccessDetails', async (req: express.Request, res: express.Response) => {
+    const shareId =<string>req.query.shareId
+    const share = getShareWithId(shareId,ShareStatus.Shared)
+
+    const userCanWrite = true
+
+    const key =  getDocumentBrowserKey(userCanWrite, share.path)
+    const response = {
+        key: key,
+        readToken: createJwtToken({
+            file: share.path,
+            permissions: [Permission.FileBrowserRead],
+        } as FileToken, 5 * 60),
+        writeToken :<string>undefined
+    }
+    if(userCanWrite){
+        response['writeToken'] =  createJwtToken({
+            file: share.path,
+            permissions: [Permission.FileBrowserWrite],
+        } as FileToken, 24 * 60 * 60)
+    }
+    res.json(response);
+    res.status(StatusCodes.OK);
+});
 
 export default router;

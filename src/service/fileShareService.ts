@@ -4,9 +4,10 @@ import { createJwtToken } from './jwtService';
 import { Permission, TokenData } from '../store/tokenStore';
 import { ShareError, ShareErrorType } from '../types/errors/shareError';
 import { log } from 'winston';
-import { FileShareMessageType } from '../types';
+import { ContactInterface, FileShareMessageType } from '../types';
 import Message from '../models/message';
 import { config } from '../config/config';
+import { getMyLocation } from './locationService';
 
 export enum ShareStatus {
     Shared = 'Shared',
@@ -25,7 +26,7 @@ export interface SharePermissionInterface {
 export interface SharedFileInterface {
     id: string
     path: string;
-    owner: string;
+    owner: ContactInterface;
     name:string | undefined
     isFolder: Boolean;
     size: number | undefined;
@@ -92,9 +93,9 @@ export const getShareWithId = (id: string, shareStatus: ShareStatus): SharedFile
     return allShares[shareStatus].find(share => share.id === id);
 };
 
-export const appendShare = (status: ShareStatus, path: string,
+export const appendShare = (status: ShareStatus, shareId:string, path: string,
     name:string | undefined,
-    owner: string,
+    owner: ContactInterface,
     isFolder: Boolean,
     size: number | undefined,
     lastModified: number | undefined,
@@ -104,7 +105,7 @@ export const appendShare = (status: ShareStatus, path: string,
     let share = getShareByPath(allShares, path, status);
     if (!share) {
         allShares[status].push({
-            id: uuidv4(),
+            id: shareId,
             path,
             name,
             owner,
@@ -153,8 +154,13 @@ export const appendShare = (status: ShareStatus, path: string,
 //     config[index].shares = config[index].shares.filter(x => !userId ? !x.isPublic : x.userId !== userId);
 // };
 
-export const createShare = (path: string, name: string | undefined, isFolder: boolean, size: number | undefined, lastModified: number | undefined, shareStatus: ShareStatus, sharePermissions: SharePermissionInterface[]) => {  
-    const share = appendShare(shareStatus, path,name, config.userid, isFolder, size, lastModified, sharePermissions)
+export const createShare = async (path: string, name: string | undefined, isFolder: boolean, size: number | undefined, lastModified: number | undefined, shareStatus: ShareStatus, sharePermissions: SharePermissionInterface[]) => {  
+    const mylocation = await getMyLocation()
+    const myuser = <ContactInterface>{ 
+        id:config.userid,
+        location:mylocation
+    }
+    const share = appendShare(shareStatus,uuidv4(), path,name, myuser, isFolder, size, lastModified, sharePermissions)
     return share
 };
 
@@ -183,5 +189,5 @@ export const getSharesWithme = (status: ShareStatus) => {
 
 export const handleIncommingFileShare = (message: Message<FileShareMessageType>) => {
     const shareConfig = message.body
-    appendShare(ShareStatus.SharedWithMe,shareConfig.path,shareConfig.name,shareConfig.owner,shareConfig.isFolder,shareConfig.size,shareConfig.lastModified,shareConfig.permissions)
+    appendShare(ShareStatus.SharedWithMe,shareConfig.id,shareConfig.path,shareConfig.name,shareConfig.owner,shareConfig.isFolder,shareConfig.size,shareConfig.lastModified,shareConfig.permissions)
 }
