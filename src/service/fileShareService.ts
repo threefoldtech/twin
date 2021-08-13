@@ -99,7 +99,7 @@ export const appendShare = (status: ShareStatus, shareId:string, path: string,
     isFolder: Boolean,
     size: number | undefined,
     lastModified: number | undefined,
-    permissions: SharePermissionInterface[]):SharedFileInterface => {
+    newSharePermissions: SharePermissionInterface[]):SharedFileInterface => {
     
     const allShares = getShareConfig()
     let share = getShareByPath(allShares, path, status);
@@ -112,18 +112,25 @@ export const appendShare = (status: ShareStatus, shareId:string, path: string,
             size,
             lastModified,
             isFolder,
-            permissions,
+            permissions:newSharePermissions,
         });
         persistShareConfig(allShares)
         return share
-    }  
-
+    }
     share.path = path
     share.name = name
     share.isFolder = isFolder
     share.size = size
     share.lastModified = lastModified
-    share.permissions = permissions
+
+    newSharePermissions.forEach(newShare => {
+        const existing = share.permissions.find(existingShare => existingShare.chatId == newShare.chatId) 
+        if(existing){
+            existing.types = newShare.types
+            return
+        }
+        share.permissions.push(newShare)
+    })
     persistShareConfig(allShares)
     return share
 };
@@ -154,13 +161,13 @@ export const appendShare = (status: ShareStatus, shareId:string, path: string,
 //     config[index].shares = config[index].shares.filter(x => !userId ? !x.isPublic : x.userId !== userId);
 // };
 
-export const createShare = async (path: string, name: string | undefined, isFolder: boolean, size: number | undefined, lastModified: number | undefined, shareStatus: ShareStatus, sharePermissions: SharePermissionInterface[]) => {  
+export const createShare = async (path: string, name: string | undefined, isFolder: boolean, size: number | undefined, lastModified: number | undefined, shareStatus: ShareStatus, newSharePermissions: SharePermissionInterface[]) => {  
     const mylocation = await getMyLocation()
     const myuser = <ContactInterface>{ 
         id:config.userid,
         location:mylocation
     }
-    const share = appendShare(shareStatus,uuidv4(), path,name, myuser, isFolder, size, lastModified, sharePermissions)
+    const share = appendShare(shareStatus,uuidv4(), path,name, myuser, isFolder, size, lastModified, newSharePermissions)
     return share
 };
 
