@@ -1,4 +1,4 @@
-import { getShareConfig, persistShareConfig } from './dataService';
+import { getChat, getShareConfig, persistShareConfig } from './dataService';
 import { uuidv4 } from '../common';
 import { createJwtToken } from './jwtService';
 import { Permission, TokenData } from '../store/tokenStore';
@@ -197,4 +197,20 @@ export const getSharesWithme = (status: ShareStatus) => {
 export const handleIncommingFileShare = (message: Message<FileShareMessageType>) => {
     const shareConfig = message.body
     appendShare(ShareStatus.SharedWithMe,shareConfig.id,shareConfig.path,shareConfig.name,shareConfig.owner,shareConfig.isFolder,shareConfig.size,shareConfig.lastModified,shareConfig.permissions)
+}
+
+export const getSharePermissionForUser = (shareId:string, userId:string):SharePermission[] =>{
+    const share = getShareWithId(shareId,ShareStatus.Shared)
+    if(!share) return []
+    const permissions:SharePermission[] = []
+
+    share.permissions.forEach((permission)=>{
+        const chat= getChat(permission.chatId,0)
+        if (chat.contacts.find(c => c.id ===userId)){
+            permission.types.forEach(t => {if(!permissions.some(x=>x==t)) permissions.push(t)})
+            return
+        } 
+
+    })
+    return permissions
 }

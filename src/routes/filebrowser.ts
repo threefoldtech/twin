@@ -28,6 +28,7 @@ import * as fs from 'fs';
 import AdmZip from 'adm-zip';
 import {
     createShare,
+    getSharePermissionForUser,
     getSharesWithme, getShareWithId, removeShare,
     SharePermission,
     SharePermissionInterface,
@@ -431,10 +432,15 @@ router.get('/files/getSharedFileDownload', requiresAuthentication, async (req: e
 router.get('/files/getShareFileAccessDetails', async (req: express.Request, res: express.Response) => {
     const shareId =<string>req.query.shareId
     const share = getShareWithId(shareId,ShareStatus.Shared)
-
-    const userCanWrite = true
-
-    const key =  getDocumentBrowserKey(userCanWrite, share.path)
+    if(!share){
+        throw new HttpError(StatusCodes.UNAUTHORIZED, 'Share not found');
+    }
+    const userId = <string>req.query.userId
+    const userPermissions =  getSharePermissionForUser(shareId,userId)
+    const userCanWrite = !!userPermissions.find(x => x === SharePermission.Write)
+    
+     const key =  getDocumentBrowserKey(userCanWrite, share.path)
+    
     const response = {
         ...(await getFormattedDetails(new Path(share.path))),
         key: key,
