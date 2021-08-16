@@ -8,7 +8,7 @@ import im from 'imagemagick';
 import { ITokenFile } from '../store/tokenStore';
 import PATH from 'path';
 import { UploadedFile } from 'express-fileupload';
-import { FileSharesInterface } from './fileShareService';
+import { SharesInterface } from './fileShareService';
 
 const userDirectory = PATH.join(config.baseDir, '/user');
 const chatsDirectory = PATH.join(config.baseDir, '/chats');
@@ -64,6 +64,7 @@ export const getKey = (keyName: string): string => {
     try {
         return fs.readFileSync(PATH.join(userDirectory, keyName), 'utf8');
     } catch (ex) {
+        //@ts-ignore
         if (ex.code === 'ENOENT') {
             console.log(keyName + ' not found!');
         }
@@ -180,16 +181,17 @@ export const getBlocklist = (): string[] => {
     }
 };
 
-export const getShareConfig = (): FileSharesInterface => {
+export const getShareConfig = (): SharesInterface => {
     const location = PATH.join(userDirectory, "shares.json");
     try {
         return JSON.parse(fs.readFileSync(location, 'utf8'));
     } catch (ex) {
+        //@ts-ignore
         if (ex.code === 'ENOENT') {
             console.log('Shares.json not found!');
-            let obj={
-            Shared: {},
-            SharedWithMe:{}
+            let obj=<SharesInterface>{
+            Shared: [],
+            SharedWithMe:[]
             }
             let json = JSON.stringify(obj);
             fs.writeFileSync(location, json);
@@ -198,7 +200,7 @@ export const getShareConfig = (): FileSharesInterface => {
     }
 }
 
-export const persistShareConfig = (config: FileSharesInterface) => {
+export const persistShareConfig = (config: SharesInterface) => {
     const location = PATH.join(userDirectory, "shares.json");
     fs.writeFileSync(location, JSON.stringify(config, null, 2), {
         flag: 'w',

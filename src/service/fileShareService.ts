@@ -1,44 +1,42 @@
-import { getShareConfig, persistShareConfig } from './dataService';
+import { getChat, getShareConfig, persistShareConfig } from './dataService';
 import { uuidv4 } from '../common';
 import { createJwtToken } from './jwtService';
 import { Permission, TokenData } from '../store/tokenStore';
 import { ShareError, ShareErrorType } from '../types/errors/shareError';
-import { shareStatus } from '../routes/filebrowser';
 import { log } from 'winston';
+import { ContactInterface, FileShareMessageType } from '../types';
+import Message from '../models/message';
+import { config } from '../config/config';
+import { getMyLocation } from './locationService';
 
-interface ShareInterface {
-    isPublic: boolean;
-    userId: string | undefined;
-    token: string | undefined,
-    expiration?: number;
+export enum ShareStatus {
+    Shared = 'Shared',
+    SharedWithMe = 'SharedWithMe'
 }
 
-export interface FileSharesInterface {
-    Shared: {
-        [id: string]: {
-            path: string;
-            filename: string | undefined;
-            size: number | undefined;
-            shares: ShareInterface[];
-        }
-    }
-    SharedWithMe: {
-        [id: string]: {
-            path: string | undefined;
-            filename: string | undefined;
-            size: number | undefined;
-            shares: ShareInterface[];
-        }
-    }
+export enum SharePermission {
+    Read = 'r',
+    Write = 'w'
+}
+export interface SharePermissionInterface {
+    chatId: string | undefined;
+    types: SharePermission[]
 }
 
-export interface ShareTokenData extends TokenData {
-    id: string;
-    userId: string;
+export interface SharedFileInterface {
+    id: string
+    path: string;
+    owner: ContactInterface;
+    name:string | undefined
+    isFolder: Boolean;
+    size: number | undefined;
+    lastModified: number | undefined;
+    permissions: SharePermissionInterface[];
 }
 
-export interface ShareWithIdInterface extends ShareInterface {
-    id: string;
+export interface SharesInterface {
+    Shared: SharedFileInterface[]
+    SharedWithMe: SharedFileInterface[]
 }
 
 function epoch(date: Date = new Date()) {
@@ -52,94 +50,92 @@ function epochToDate(epoch: number) {
     return new Date(epoch);
 }
 
-export const removeExpiredShares = (config: FileSharesInterface) => {
-    for (const key in config[shareStatus.Shared]) {
-        const value = config[shareStatus.Shared][key];
-        value.shares = value.shares.filter(s => !s.expiration || (s.expiration && s.expiration < epoch()));
-    }
-    for (const key in config[shareStatus.SharedWithMe]) {
-        const value = config[shareStatus.SharedWithMe][key];
-        value.shares = value.shares.filter(s => !s.expiration || (s.expiration && s.expiration < epoch()));
-    }
+export const updateSharePath = (oldPath: string, newPath: string) => {
+    const allShares = getShareConfig()
+    const share = allShares.Shared.find(share => share.path == oldPath)
+    if (!share) throw new Error(`Share doesn't exist`);
+    console.log("check update", allShares)
+    share.path = newPath
+    console.log("has changed?", allShares)
+    persistShareConfig(allShares)
 };
-export const updateSharePath = (config: FileSharesInterface, path: string, newPath: string) => {
-    for (const key in config[shareStatus.Shared]) {
-        if (config[shareStatus.Shared][key].path === path) {
 
-            config[shareStatus.Shared][key].path = newPath;
-            persistShareConfig(config)
+export const removeShare = (path: string) => {
+    const allShares = getShareConfig()
+    const shareIndex = allShares.Shared.findIndex(share => share.path === path)
+    if (!shareIndex) throw new Error(`Share doesn't exist`);
+    allShares.Shared.splice(shareIndex,1)
+    persistShareConfig(allShares)
+};
+
+// NOT used anymore?
+// export const initFileShares = () => {
+//     let config = getShareConfig();
+//     // removeExpiredShares(config);
+//     persistShareConfig(config);
+// };
+
+export const getShareByPath = (allShares:SharesInterface,path: string, shareStatus: ShareStatus): SharedFileInterface => {
+    const share = allShares[shareStatus].find(share => share.path === path);
+    return share
+};
+
+// @todo rename to getShareByChatId
+export const getShare = (path: string, chatId: string, shareStatus: ShareStatus) => {
+    const allShares = getShareConfig()
+    const share = allShares[shareStatus].find(share => share.path === path);
+    if (!share) throw new Error(`Share doesn't exist`);
+    const userPermissions = share.permissions.find(permission => permission.chatId === chatId)
+    return userPermissions
+};
+export const getShareWithId = (id: string, shareStatus: ShareStatus): SharedFileInterface => {
+    const allShares = getShareConfig()
+    return allShares[shareStatus].find(share => share.id === id);
+};
+
+export const appendShare = (status: ShareStatus, shareId:string, path: string,
+    name:string | undefined,
+    owner: ContactInterface,
+    isFolder: Boolean,
+    size: number | undefined,
+    lastModified: number | undefined,
+    newSharePermissions: SharePermissionInterface[]):SharedFileInterface => {
+    
+    const allShares = getShareConfig()
+    let share = getShareByPath(allShares, path, status);
+    if (!share) {
+        allShares[status].push({
+            id: shareId,
+            path,
+            name,
+            owner,
+            size,
+            lastModified,
+            isFolder,
+            permissions:newSharePermissions,
+        });
+        persistShareConfig(allShares)
+        return share
+    }
+    share.path = path
+    share.name = name
+    share.isFolder = isFolder
+    share.size = size
+    share.lastModified = lastModified
+
+    newSharePermissions.forEach(newShare => {
+        const existing = share.permissions.find(existingShare => existingShare.chatId == newShare.chatId) 
+        if(existing){
+            existing.types = newShare.types
+            return
         }
-    }
+        share.permissions.push(newShare)
+    })
+    persistShareConfig(allShares)
+    return share
 };
 
-export const removeShare = (config: FileSharesInterface, path: string) => {
-    for (const key in config[shareStatus.Shared]) {
-        if(config[shareStatus.Shared][key].path === path){
-            delete config[shareStatus.Shared][key]
-            persistShareConfig(config)
-        }
-    }
-};
-
-export const initFileShares = () => {
-    let config = getShareConfig();
-    removeExpiredShares(config);
-    persistShareConfig(config);
-};
-
-export const getPathId = (config: FileSharesInterface, path: string, shareStatus: shareStatus): string => {
-    return Object.keys(config[shareStatus]).find(x => {
-        const share = config[shareStatus][x];
-        return share.path === path;
-    });
-};
-
-export const getShare = (config: FileSharesInterface, path: string, userId: string, shareStatus: shareStatus): ShareWithIdInterface => {
-    let index = getPathId(config, path, shareStatus);
-    if (!index) return;
-    return {
-        id: index,
-        ...config[shareStatus][index].shares.find(x => !userId ? x.isPublic : x.userId === userId),
-    } as ShareWithIdInterface;
-};
-export const getShareWithId = (config: FileSharesInterface, id: string, shareStatus: shareStatus): { path: string; shares: ShareInterface[] } => {
-    let index = id;
-    if (!config[shareStatus][index])
-        throw new Error(`Share no longer exists`);
-    return config[shareStatus][index];
-
-};
-export const shareExists = (config: FileSharesInterface, id: string, shareStatus: shareStatus): string => {
-    let index = id;
-    if (!config[shareStatus][index])
-        return;
-    return index;
-
-};
-
-export const appendShare = (config: FileSharesInterface, path: string, filename: string, size: number, shareStatus: shareStatus, givenIndex: string, share: ShareInterface): ShareWithIdInterface => {
-    let index = shareExists(config, path, shareStatus);
-    if (!index) {
-        givenIndex === undefined ? index = uuidv4() : index = givenIndex;
-        config[shareStatus][index] = {
-            path: path,
-            filename: filename,
-            size: size,
-            shares: [share],
-        };
-    } else {
-        const shares = config[shareStatus][index].shares;
-        const alreadyExists = shares.some(x => x.userId === share.userId);
-        if (alreadyExists)
-            throw new Error(`Share for user ${share.userId ?? 'public'} already exists`);
-    }
-    return {
-        id: index,
-        ...share,
-    } as ShareWithIdInterface;
-};
-
-// export const updateShare = (config: FileSharesInterface, path: string, userId: string | undefined, expiration?: number, writable?: boolean) => {
+// export const updateShare = (config: SharedFileInterface, path: string, userId: string | undefined, expiration?: number, writable?: boolean) => {
 //     let index = getPathId(config, path);
 //     if (!index)
 //         throw new Error(`Share for user ${userId ?? 'public'} does not exists`);
@@ -157,7 +153,7 @@ export const appendShare = (config: FileSharesInterface, path: string, filename:
 //     };
 // };
 
-// export const deleteShare = (config: FileSharesInterface, path: string, userId?: string) => {
+// export const deleteShare = (config: SharedFileInterface, path: string, userId?: string) => {
 //     let index = getPathId(config, path);
 //     if (!index)
 //         return;
@@ -165,56 +161,56 @@ export const appendShare = (config: FileSharesInterface, path: string, filename:
 //     config[index].shares = config[index].shares.filter(x => !userId ? !x.isPublic : x.userId !== userId);
 // };
 
-export const createShare = (path: string, filename: string | undefined, size: number | undefined, userId: string | undefined, token: string | undefined, isPublic: boolean, writable: boolean, shareStatus: shareStatus) => {
-    const config = getShareConfig();
-    let share = getShare(config, path, undefined, shareStatus);
-    if (!share)
-        share = appendShare(config, path, filename, size, shareStatus, undefined, {
-            isPublic: isPublic,
-            token: token,
-            expiration: isPublic ? epoch() + (15 * 60 * 1000) : undefined,
-            userId: userId,
-        });
-    if (share)
-        share = {
-            id: share.id,
-            isPublic: isPublic,
-            token: token,
-            expiration: isPublic ? epoch() + (15 * 60 * 1000) : undefined,
-            userId: userId,
-        };
-    const permissions = [Permission.FileBrowserRead];
-    if (writable)
-        permissions.push(Permission.FileBrowserWrite);
-    persistShareConfig(config);
-    return createJwtToken({
-        id: share.id,
-        userId: share.userId,
-        permissions: permissions,
-    } as ShareTokenData);
+export const createShare = async (path: string, name: string | undefined, isFolder: boolean, size: number | undefined, lastModified: number | undefined, shareStatus: ShareStatus, newSharePermissions: SharePermissionInterface[]) => {  
+    const mylocation = await getMyLocation()
+    const myuser = <ContactInterface>{ 
+        id:config.userid,
+        location:mylocation
+    }
+    const share = appendShare(shareStatus,uuidv4(), path,name, myuser, isFolder, size, lastModified, newSharePermissions)
+    return share
 };
 
-export const getShareFromToken = (tokenData: ShareTokenData) => {
+// @todo tokens are not used anymore 
+// export const getShareFromToken = (tokenData: ShareTokenData) => {
+//     const config = getShareConfig();
+//     const shareConfig = config['Shared'][tokenData.id];
+//     if (!shareConfig)
+//         throw new ShareError(ShareErrorType.ShareNotFound);
+
+//     const share = shareConfig.permissions.find(x => x.userId === tokenData.userId);
+//     if (!share)
+//         throw new ShareError(ShareErrorType.ShareNotFound);
+
+//     return {
+//         ...share,
+//         id: tokenData.id,
+//         path: shareConfig.path,
+//     };
+// };
+
+export const getSharesWithme = (status: ShareStatus) => {
     const config = getShareConfig();
-    const shareConfig = config['Shared'][tokenData.id];
-    if (!shareConfig)
-        throw new ShareError(ShareErrorType.ShareNotFound);
-
-    const share = shareConfig.shares.find(x => x.userId === tokenData.userId);
-    if (!share)
-        throw new ShareError(ShareErrorType.ShareNotFound);
-
-    if (share.expiration && share.expiration < epoch())
-        throw new ShareError(ShareErrorType.ShareExpired);
-
-    return {
-        ...share,
-        id: tokenData.id,
-        path: shareConfig.path,
-    };
+    return config[status];
 };
 
-export const getSharesWithme = (shareStatus: shareStatus) => {
-    const config = getShareConfig();
-    return config[shareStatus];
-};
+export const handleIncommingFileShare = (message: Message<FileShareMessageType>) => {
+    const shareConfig = message.body
+    appendShare(ShareStatus.SharedWithMe,shareConfig.id,shareConfig.path,shareConfig.name,shareConfig.owner,shareConfig.isFolder,shareConfig.size,shareConfig.lastModified,shareConfig.permissions)
+}
+
+export const getSharePermissionForUser = (shareId:string, userId:string):SharePermission[] =>{
+    const share = getShareWithId(shareId,ShareStatus.Shared)
+    if(!share) return []
+    const permissions:SharePermission[] = []
+
+    share.permissions.forEach((permission)=>{
+        const chat= getChat(permission.chatId,0)
+        if (chat.contacts.find(c => c.id ===userId)){
+            permission.types.forEach(t => {if(!permissions.some(x=>x==t)) permissions.push(t)})
+            return
+        } 
+
+    })
+    return permissions
+}

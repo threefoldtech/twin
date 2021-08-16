@@ -1,6 +1,7 @@
 import {
     ContactRequest,
     FileMessageType,
+    FileShareMessageType,
     IdInterface,
     MessageBodyTypeInterface,
     MessageInterface,
@@ -113,6 +114,21 @@ export const parseMessage = (
                 msg.from,
                 msg.to,
                 <FileMessageType>msg.body,
+                new Date(msg.timeStamp),
+                msg.id,
+                type,
+                msg.replies
+                    ? [...msg.replies?.map((r: any) => parseMessage(r))]
+                    : [],
+                msg?.subject,
+                msg?.signatures,
+                msg?.updated
+            );
+        case MessageTypes.FILE_SHARE:
+            return new Message<FileShareMessageType>(
+                msg.from,
+                msg.to,
+                <FileShareMessageType>msg.body,
                 new Date(msg.timeStamp),
                 msg.id,
                 type,
