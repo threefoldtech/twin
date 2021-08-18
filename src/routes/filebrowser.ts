@@ -45,6 +45,7 @@ import { persistMessage } from '../service/chatService';
 import { parseMessage } from '../service/messageService';
 import crypto from 'crypto'
 import { getDocumentBrowserKey } from '../service/fileService';
+import { isCallChain } from 'typescript';
 
 const router = Router();
 
@@ -347,47 +348,6 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
     return res.status(StatusCodes.OK);
 });
 
-
-router.get('/files/share', async (req: express.Request, resp: express.Response) => {
-    const token = req.query.token;
-    if (!token || typeof token !== 'string')
-        throw new HttpError(StatusCodes.UNAUTHORIZED, 'No valid token provided');
-
-    if (isBlocked(token))
-        throw new HttpError(StatusCodes.FORBIDDEN, 'Provided token is blocked');
-
-        // @todo reimplement tokens
-    // const [payload, error] = verifyJwtToken<Token<ShareTokenData>>(token);
-    // if (error)
-    //     throw new HttpError(StatusCodes.UNAUTHORIZED, error.message);
-
-    // if (!payload || !payload.data || payload.data.permissions.indexOf(Permission.FileBrowserRead) === -1)
-    //     throw new HttpError(StatusCodes.UNAUTHORIZED, 'No permission for reading file');
-
-    // if (!payload.data.userId || !payload.data.id)
-    //     throw new HttpError(StatusCodes.UNAUTHORIZED, 'Token does not contain file location');
-
-    // const share = getShareFromToken(payload.data);
-});
-// router.post('/files/insertToken', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-//     const token = req.body.token;
-//     const filename = req.body.filename;
-//     const size = req.body.size;
-//     // @todo how to get lastmodified? Why is size comming from fe???
-//     const lastModified = 123
-//     let tokenData = parseJwt(token);
-
-//     // @todo heree
-//     // await appendShare(undefined, filename, size, lastModified, shareStatus.SharedWithMe, tokenData.data.id, {
-//     //     // isPublic: undefined,
-//     //     // token: token,
-//     //     // expiration: tokenData.exp,
-//     //     // userId: undefined,
-//     //     userId: '123',
-//     //     types: []
-//     // });
-// });
-
 router.get('/files/getShares', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let shareStatus = req.query.shareStatus as ShareStatus;
     let results = await getSharesWithme(shareStatus);
@@ -436,27 +396,56 @@ router.get('/files/getShareFileAccessDetails', async (req: express.Request, res:
         throw new HttpError(StatusCodes.UNAUTHORIZED, 'Share not found');
     }
     const userId = <string>req.query.userId
+    const givenPath = req.query.path
     const userPermissions =  getSharePermissionForUser(shareId,userId)
     const userCanWrite = !!userPermissions.find(x => x === SharePermission.Write)
     
+    let realPath = share.path 
+    if(givenPath !== share.path) {
+        realPath = realPath + givenPath
+    }
     const key = getDocumentBrowserKey(userCanWrite, share.path)
 
     const response = {
-        ...(await getFormattedDetails(new Path(share.path))),
+        ...(await getFormattedDetails(new Path(realPath))),
         key: key,
         readToken: createJwtToken({
-            file: share.path,
+            file: realPath,
             permissions: [Permission.FileBrowserRead],
         } as FileToken, 5 * 60),
         writeToken :<string>undefined
     }
     if(userCanWrite){
         response['writeToken'] =  createJwtToken({
-            file: share.path,
+            file: realPath,
             permissions: [Permission.FileBrowserWrite],
         } as FileToken, 24 * 60 * 60)
     }
     res.json(response);
+    res.status(StatusCodes.OK);
+});
+
+router.get('/share/:shareId/folder', async (req: express.Request, res: express.Response) => {
+    const shareId = req.params.shareId
+    let p = req.query.path;
+
+    const share = getShareWithId(shareId,ShareStatus.Shared)
+
+    if(!share){
+        throw new HttpError(StatusCodes.BAD_REQUEST, 'Share doesn\'t exist');
+    }
+
+    // @todo verify if user can access this api call, atm security = 0
+
+    if (!p || typeof p !== 'string') p = '/';
+    const path = new Path(share.path + '/' + p);
+    const stats = await getStats(path);
+    if (!stats.isDirectory() || stats.isBlockDevice() || stats.isCharacterDevice() || stats.isSymbolicLink() || stats.isSocket())
+        throw new HttpError(StatusCodes.BAD_REQUEST, 'Path is not a directory');
+
+    const resultDirs = await readDir(path, { withFileTypes: true })
+    resultDirs.forEach((dir)=> dir.path = dir.path.substring(share.path.length))
+    res.json(resultDirs);
     res.status(StatusCodes.OK);
 });
 
