@@ -1,3 +1,4 @@
+import { SharedFileInterface } from './../service/fileShareService';
 import express, { Router } from 'express';
 import {
     copyWithRetry,
@@ -28,6 +29,7 @@ import * as fs from 'fs';
 import AdmZip from 'adm-zip';
 import {
     createShare,
+    getShareByPath,
     getSharePermissionForUser,
     getSharesWithme, getShareWithId, removeShare,
     SharePermission,
@@ -46,6 +48,7 @@ import { parseMessage } from '../service/messageService';
 import crypto from 'crypto'
 import { getDocumentBrowserKey } from '../service/fileService';
 import { isCallChain } from 'typescript';
+import Contact from '../models/contact';
 
 const router = Router();
 
@@ -338,14 +341,17 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
         signatures: [],
         subject: null
     }
-    console.log(msg)
     const parsedmsg = parseMessage(msg)
     appendSignatureToMessage(parsedmsg)
     const contacts = chat.contacts.filter(c=>c.id !== config.userid)
-    contacts.forEach(contact => sendMessageToApi(contact.location, parsedmsg))    
+    for (const contact of contacts){
+        await sendMessageToApi(contact.location, parsedmsg)
+    }
+      
     persistMessage(chat.chatId, parsedmsg);
     sendEventToConnectedSockets('message', parsedmsg);
-    return res.status(StatusCodes.OK);
+    res.json()
+    res.status(StatusCodes.OK);
 });
 
 router.get('/files/getShares', requiresAuthentication, async (req: express.Request, res: express.Response) => {
@@ -448,5 +454,13 @@ router.get('/share/:shareId/folder', async (req: express.Request, res: express.R
     res.json(resultDirs);
     res.status(StatusCodes.OK);
 });
+
+router.get('/share/path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const path = <string>req.query.path
+    const allShares = getShareConfig()
+    let share = getShareByPath(allShares, path, ShareStatus.Shared);
+    res.json(share);
+    res.status(StatusCodes.OK);
+})
 
 export default router;

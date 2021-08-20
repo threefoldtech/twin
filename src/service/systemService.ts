@@ -7,6 +7,8 @@ import { config } from '../config/config';
 import Contact from '../models/contact';
 import { sendEventToConnectedSockets } from './socketService';
 import { sendMessageToApi } from './apiService';
+import { getFullIPv6ApiLocation } from './urlService';
+import axios from 'axios';
 
 export const handleSystemMessage = (
     message: Message<{ contact: Contact; type: string }>,
@@ -19,8 +21,19 @@ export const handleSystemMessage = (
     switch (message.body.type) {
         case SystemMessageType.ADDUSER:
             chat.contacts.push(message.body.contact);
-            sendEventToConnectedSockets('chat_updated', chat);
-            sendMessageToApi(message.body.contact.location, message);
+            //@todo send message request to invited 3 bot
+            const path = getFullIPv6ApiLocation(message.body.contact.location, '/group/invite');
+            try {
+                axios.put(path, chat).then(()=>{
+                    sendEventToConnectedSockets('chat_updated', chat);
+                    sendMessageToApi(message.body.contact.location, message);
+                }).catch(e => {
+                    console.log('failed to send group request');
+                })
+            } catch (e) {
+                console.log('failed to send group request');
+            }
+           
             break;
         case SystemMessageType.REMOVEUSER:
             if (message.body.contact.id === config.userid) {
