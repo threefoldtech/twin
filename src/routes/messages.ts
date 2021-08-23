@@ -253,7 +253,7 @@ router.put('/', async (req, res) => {
         res.json({ status: 'cannot share with yourself' });
             return
         }
-        handleIncommingFileShare(message as Message<FileShareMessageType>)
+        handleIncommingFileShare(message as Message<FileShareMessageType>, chat)
         res.json({ status: 'success' });
         return
     }

@@ -8,6 +8,8 @@ import { ContactInterface, FileShareMessageType } from '../types';
 import Message from '../models/message';
 import { config } from '../config/config';
 import { getMyLocation } from './locationService';
+import Chat from '../models/chat';
+import { persistMessage } from './chatService';
 
 export enum ShareStatus {
     Shared = 'Shared',
@@ -194,9 +196,10 @@ export const getSharesWithme = (status: ShareStatus) => {
     return config[status];
 };
 
-export const handleIncommingFileShare = (message: Message<FileShareMessageType>) => {
+export const handleIncommingFileShare = (message: Message<FileShareMessageType>, chat: Chat) => {
     const shareConfig = message.body
     appendShare(ShareStatus.SharedWithMe,shareConfig.id,shareConfig.path,shareConfig.name,shareConfig.owner,shareConfig.isFolder,shareConfig.size,shareConfig.lastModified,shareConfig.permissions)
+    persistMessage(chat.chatId, message);
 }
 
 export const getSharePermissionForUser = (shareId:string, userId:string):SharePermission[] =>{
