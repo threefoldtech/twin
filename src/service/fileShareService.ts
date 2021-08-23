@@ -198,6 +198,7 @@ export const getSharesWithme = (status: ShareStatus) => {
 
 export const handleIncommingFileShare = (message: Message<FileShareMessageType>, chat: Chat) => {
     const shareConfig = message.body
+    if(!shareConfig.name || !shareConfig.owner) return //@todo investigated why we are comming in here twice
     appendShare(ShareStatus.SharedWithMe,shareConfig.id,shareConfig.path,shareConfig.name,shareConfig.owner,shareConfig.isFolder,shareConfig.size,shareConfig.lastModified,shareConfig.permissions)
     persistMessage(chat.chatId, message);
 }
