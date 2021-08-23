@@ -33,7 +33,7 @@ export const handleSystemMessage = (
             } catch (e) {
                 console.log('failed to send group request');
             }
-           
+
             break;
         case SystemMessageType.REMOVEUSER:
             if (message.body.contact.id === config.userid) {
@@ -44,6 +44,8 @@ export const handleSystemMessage = (
             chat.contacts = chat.contacts.filter(
                 c => c.id !== message.body.contact.id
             );
+
+            sendEventToConnectedSockets('chat_updated', chat);
             sendMessageToApi(message.body.contact.location, message);
             break;
         case SystemMessageType.JOINED_VIDEOROOM: {
