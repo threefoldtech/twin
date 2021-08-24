@@ -100,7 +100,10 @@ router.put('/', async (req, res) => {
 
     try {
         message = parseMessage(msg);
+        console.log({message})
+
     } catch (e) {
+        console.log('message failed to parse')
         res.status(500).json({ status: 'failed', reason: 'validation failed' });
         return;
     }
