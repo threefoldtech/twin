@@ -102,7 +102,7 @@ export const appendShare = (status: ShareStatus, shareId:string, path: string,
     size: number | undefined,
     lastModified: number | undefined,
     newSharePermissions: SharePermissionInterface[]):SharedFileInterface => {
-    
+
     const allShares = getShareConfig()
     let share = getShareByPath(allShares, path, status);
     if (!share) {
@@ -126,7 +126,7 @@ export const appendShare = (status: ShareStatus, shareId:string, path: string,
     share.lastModified = lastModified
 
     newSharePermissions.forEach(newShare => {
-        const existing = share.permissions.find(existingShare => existingShare.chatId == newShare.chatId) 
+        const existing = share.permissions.find(existingShare => existingShare.chatId == newShare.chatId)
         if(existing){
             existing.types = newShare.types
             return
@@ -163,9 +163,9 @@ export const appendShare = (status: ShareStatus, shareId:string, path: string,
 //     config[index].shares = config[index].shares.filter(x => !userId ? !x.isPublic : x.userId !== userId);
 // };
 
-export const createShare = async (path: string, name: string | undefined, isFolder: boolean, size: number | undefined, lastModified: number | undefined, shareStatus: ShareStatus, newSharePermissions: SharePermissionInterface[]) => {  
+export const createShare = async (path: string, name: string | undefined, isFolder: boolean, size: number | undefined, lastModified: number | undefined, shareStatus: ShareStatus, newSharePermissions: SharePermissionInterface[]) => {
     const mylocation = await getMyLocation()
-    const myuser = <ContactInterface>{ 
+    const myuser = <ContactInterface>{
         id:config.userid,
         location:mylocation
     }
@@ -173,7 +173,7 @@ export const createShare = async (path: string, name: string | undefined, isFold
     return share
 };
 
-// @todo tokens are not used anymore 
+// @todo tokens are not used anymore
 // export const getShareFromToken = (tokenData: ShareTokenData) => {
 //     const config = getShareConfig();
 //     const shareConfig = config['Shared'][tokenData.id];
@@ -198,7 +198,7 @@ export const getSharesWithme = (status: ShareStatus) => {
 
 export const handleIncommingFileShare = (message: Message<FileShareMessageType>, chat: Chat) => {
     const shareConfig = message.body
-    if(!shareConfig.name || !shareConfig.owner) return //@todo investigated why we are comming in here twice
+    if(!shareConfig.name || !shareConfig.owner) return
     appendShare(ShareStatus.SharedWithMe,shareConfig.id,shareConfig.path,shareConfig.name,shareConfig.owner,shareConfig.isFolder,shareConfig.size,shareConfig.lastModified,shareConfig.permissions)
     persistMessage(chat.chatId, message);
 }
@@ -213,7 +213,7 @@ export const getSharePermissionForUser = (shareId:string, userId:string):SharePe
         if (chat.contacts.find(c => c.id ===userId)){
             permission.types.forEach(t => {if(!permissions.some(x=>x==t)) permissions.push(t)})
             return
-        } 
+        }
 
     })
     return permissions

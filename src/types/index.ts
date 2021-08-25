@@ -30,6 +30,7 @@ export enum MessageTypes {
     FILE = 'FILE',
     FILE_UPLOAD = 'FILE_UPLOAD',
     FILE_SHARE = 'FILE_SHARE',
+    FILE_SHARE_REQUEST = 'FILE_SHARE_REQUEST',
     EDIT = 'EDIT',
     READ = 'READ',
     CONTACT_REQUEST = 'CONTACT_REQUEST',
