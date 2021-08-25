@@ -1,9 +1,10 @@
 import nacl from 'tweetnacl';
-import { encodeHex } from './encryptionService';
-import { execSync, spawn } from 'child_process';
+import {encodeHex} from './encryptionService';
+import {execSync, spawn} from 'child_process';
 import fs from 'fs';
 import PATH from 'path';
-import { config } from '../config/config';
+import {config} from '../config/config';
+import {getMyLocation} from "./locationService";
 
 export interface YggdrasilConfig {
     signingPrivateKey: string;
@@ -53,14 +54,31 @@ const saveConfigs = (conf: string, replacements: YggdrasilConfig) => {
     fs.writeFileSync(jsonPath, JSON.stringify(replacements));
 };
 
-const runYggdrasil = () => {
+const runYggdrasil: () => Promise<void> = () => {
     const out = fs.openSync('/var/log/yggdrasil/out.log', 'a');
     const err = fs.openSync('/var/log/yggdrasil/err.log', 'a');
     const p = spawn('yggdrasil', ["-useconffile", configPath, "-logto", "/var/log/yggdrasil/yggdrasil.log"], {
         detached: true,
-        stdio: [ 'ignore', out, err ]
+        stdio: ['ignore', out, err]
     });
     p.unref();
+
+    return new Promise<void>(async (resolve, reject) => {
+        let done = false;
+        setTimeout(() => {
+            if (done) return;
+            reject();
+            done = true;
+        }, 30000)
+        while (!done) {
+            const address = await getMyLocation();
+            if (address) {
+                resolve();
+                done = true;
+                break;
+            }
+        }
+    })
 };
 
 export const initYggdrasil = () => {
@@ -77,5 +95,5 @@ export const setupYggdrasil = async (seed: string) => {
     const generatedConfig = generateConfig();
     const config = replaceValues(generatedConfig, replacements);
     saveConfigs(config, replacements);
-    runYggdrasil();
+    await runYggdrasil();
 };

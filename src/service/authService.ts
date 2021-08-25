@@ -1,10 +1,11 @@
-import { Request } from 'express';
-import { config } from '../config/config';
-import { ThreefoldLogin } from '@threefoldjimber/threefold_login';
-import { generateRandomString } from '@threefoldjimber/threefold_login/dist';
-import { getKeyPair } from './encryptionService';
-import { updatePrivateKey, updatePublicKey } from '../store/keyStore';
-import { isInitialized as yggdrasilIsInitialized, setupYggdrasil } from './yggdrasilService';
+import {Request} from 'express';
+import {config} from '../config/config';
+import {ThreefoldLogin} from '@threefoldjimber/threefold_login';
+import {generateRandomString} from '@threefoldjimber/threefold_login/dist';
+import {getKeyPair} from './encryptionService';
+import {updatePrivateKey, updatePublicKey} from '../store/keyStore';
+import {isInitialized as yggdrasilIsInitialized, setupYggdrasil} from './yggdrasilService';
+import {getMyLocation, registerDigitaltwin} from "./locationService";
 
 export const getAppLoginUrl = async (
     request: Request,
@@ -20,7 +21,7 @@ export const getAppLoginUrl = async (
     await login.init();
     const loginState = generateRandomString();
     request.session.state = loginState;
-    return login.generateLoginUrl(loginState, { scope: '{"email":true,"derivedSeed":true}' });
+    return login.generateLoginUrl(loginState, {scope: '{"email":true,"derivedSeed":true,"digitalTwin":true}'});
 };
 export const appCallback = async (request: Request): Promise<string> => {
     console.log('Going to login now ...');
@@ -50,14 +51,14 @@ export const appCallback = async (request: Request): Promise<string> => {
         delete request.session.state;
 
         const doubleName: string = <string>profileData.doubleName;
-        const derivedSeed: string =  <string>profileData.derivedSeed;
+        const derivedSeed: string = <string>profileData.derivedSeed;
         let userId = doubleName.replace('.3bot', '');
 
         if (userId !== config.userid || !derivedSeed)
             return '/unauthorized';
 
         const keyPair = getKeyPair(derivedSeed);
-        if(!keyPair) return '/unauthorized';
+        if (!keyPair) return '/unauthorized';
         console.log(keyPair.secretKey)
         try {
             updatePublicKey(keyPair.publicKey);
@@ -67,8 +68,12 @@ export const appCallback = async (request: Request): Promise<string> => {
             return '/unauthorized';
         }
 
-        if(!yggdrasilIsInitialized)
-            setupYggdrasil(derivedSeed)
+        if (!yggdrasilIsInitialized) {
+            await setupYggdrasil(derivedSeed)
+        }
+        const yggdrasilAddress = await getMyLocation();
+        await registerDigitaltwin(doubleName, derivedSeed, yggdrasilAddress);
+
         request.session.userId = userId;
         return '/callback';
     } catch (e) {
