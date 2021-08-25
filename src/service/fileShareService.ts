@@ -1,15 +1,15 @@
-import { getChat, getShareConfig, persistShareConfig } from './dataService';
-import { uuidv4 } from '../common';
-import { createJwtToken } from './jwtService';
-import { Permission, TokenData } from '../store/tokenStore';
-import { ShareError, ShareErrorType } from '../types/errors/shareError';
-import { log } from 'winston';
-import { ContactInterface, FileShareMessageType } from '../types';
+import {getChat, getShareConfig, persistShareConfig} from './dataService';
+import {uuidv4} from '../common';
+import {createJwtToken} from './jwtService';
+import {Permission, TokenData} from '../store/tokenStore';
+import {ShareError, ShareErrorType} from '../types/errors/shareError';
+import {log} from 'winston';
+import {ContactInterface, FileShareMessageType} from '../types';
 import Message from '../models/message';
-import { config } from '../config/config';
-import { getMyLocation } from './locationService';
+import {config} from '../config/config';
+import {getMyLocation} from './locationService';
 import Chat from '../models/chat';
-import { persistMessage } from './chatService';
+import {persistMessage} from './chatService';
 
 export enum ShareStatus {
     Shared = 'Shared',
@@ -20,6 +20,7 @@ export enum SharePermission {
     Read = 'r',
     Write = 'w'
 }
+
 export interface SharePermissionInterface {
     chatId: string | undefined;
     types: SharePermission[]
@@ -29,7 +30,7 @@ export interface SharedFileInterface {
     id: string
     path: string;
     owner: ContactInterface;
-    name:string | undefined
+    name: string | undefined
     isFolder: Boolean;
     size: number | undefined;
     lastModified: number | undefined;
@@ -66,7 +67,7 @@ export const removeShare = (path: string) => {
     const allShares = getShareConfig()
     const shareIndex = allShares.Shared.findIndex(share => share.path === path)
     if (!shareIndex) throw new Error(`Share doesn't exist`);
-    allShares.Shared.splice(shareIndex,1)
+    allShares.Shared.splice(shareIndex, 1)
     persistShareConfig(allShares)
 };
 
@@ -77,7 +78,7 @@ export const removeShare = (path: string) => {
 //     persistShareConfig(config);
 // };
 
-export const getShareByPath = (allShares:SharesInterface,path: string, shareStatus: ShareStatus): SharedFileInterface => {
+export const getShareByPath = (allShares: SharesInterface, path: string, shareStatus: ShareStatus): SharedFileInterface => {
     const share = allShares[shareStatus].find(share => share.path === path);
     return share
 };
@@ -95,18 +96,18 @@ export const getShareWithId = (id: string, shareStatus: ShareStatus): SharedFile
     return allShares[shareStatus].find(share => share.id === id);
 };
 
-export const appendShare = (status: ShareStatus, shareId:string, path: string,
-    name:string | undefined,
-    owner: ContactInterface,
-    isFolder: Boolean,
-    size: number | undefined,
-    lastModified: number | undefined,
-    newSharePermissions: SharePermissionInterface[]):SharedFileInterface => {
+export const appendShare = (status: ShareStatus, shareId: string, path: string,
+                            name: string | undefined,
+                            owner: ContactInterface,
+                            isFolder: Boolean,
+                            size: number | undefined,
+                            lastModified: number | undefined,
+                            newSharePermissions: SharePermissionInterface[]): SharedFileInterface => {
 
     const allShares = getShareConfig()
-    let share = getShareByPath(allShares, path, status);
+    const share: SharedFileInterface = getShareByPath(allShares, path, status);
     if (!share) {
-        allShares[status].push({
+        const initialShare: SharedFileInterface = {
             id: shareId,
             path,
             name,
@@ -114,10 +115,11 @@ export const appendShare = (status: ShareStatus, shareId:string, path: string,
             size,
             lastModified,
             isFolder,
-            permissions:newSharePermissions,
-        });
+            permissions: newSharePermissions,
+        };
+        allShares[status].push(initialShare);
         persistShareConfig(allShares)
-        return share
+        return initialShare
     }
     share.path = path
     share.name = name
@@ -127,7 +129,7 @@ export const appendShare = (status: ShareStatus, shareId:string, path: string,
 
     newSharePermissions.forEach(newShare => {
         const existing = share.permissions.find(existingShare => existingShare.chatId == newShare.chatId)
-        if(existing){
+        if (existing) {
             existing.types = newShare.types
             return
         }
@@ -166,10 +168,10 @@ export const appendShare = (status: ShareStatus, shareId:string, path: string,
 export const createShare = async (path: string, name: string | undefined, isFolder: boolean, size: number | undefined, lastModified: number | undefined, shareStatus: ShareStatus, newSharePermissions: SharePermissionInterface[]) => {
     const mylocation = await getMyLocation()
     const myuser = <ContactInterface>{
-        id:config.userid,
-        location:mylocation
+        id: config.userid,
+        location: mylocation
     }
-    const share = appendShare(shareStatus,uuidv4(), path,name, myuser, isFolder, size, lastModified, newSharePermissions)
+    const share = appendShare(shareStatus, uuidv4(), path, name, myuser, isFolder, size, lastModified, newSharePermissions)
     return share
 };
 
@@ -198,20 +200,22 @@ export const getSharesWithme = (status: ShareStatus) => {
 
 export const handleIncommingFileShare = (message: Message<FileShareMessageType>, chat: Chat) => {
     const shareConfig = message.body
-    if(!shareConfig.name || !shareConfig.owner) return
-    appendShare(ShareStatus.SharedWithMe,shareConfig.id,shareConfig.path,shareConfig.name,shareConfig.owner,shareConfig.isFolder,shareConfig.size,shareConfig.lastModified,shareConfig.permissions)
+    if (!shareConfig.name || !shareConfig.owner) return
+    appendShare(ShareStatus.SharedWithMe, shareConfig.id, shareConfig.path, shareConfig.name, shareConfig.owner, shareConfig.isFolder, shareConfig.size, shareConfig.lastModified, shareConfig.permissions)
     persistMessage(chat.chatId, message);
 }
 
-export const getSharePermissionForUser = (shareId:string, userId:string):SharePermission[] =>{
-    const share = getShareWithId(shareId,ShareStatus.Shared)
-    if(!share) return []
-    const permissions:SharePermission[] = []
+export const getSharePermissionForUser = (shareId: string, userId: string): SharePermission[] => {
+    const share = getShareWithId(shareId, ShareStatus.Shared)
+    if (!share) return []
+    const permissions: SharePermission[] = []
 
-    share.permissions.forEach((permission)=>{
-        const chat= getChat(permission.chatId,0)
-        if (chat.contacts.find(c => c.id ===userId)){
-            permission.types.forEach(t => {if(!permissions.some(x=>x==t)) permissions.push(t)})
+    share.permissions.forEach((permission) => {
+        const chat = getChat(permission.chatId, 0)
+        if (chat.contacts.find(c => c.id === userId)) {
+            permission.types.forEach(t => {
+                if (!permissions.some(x => x == t)) permissions.push(t)
+            })
             return
         }
 
