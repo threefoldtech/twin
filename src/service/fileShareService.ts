@@ -72,6 +72,17 @@ export const updateSharePath = (oldPath: string, newPath: string) => {
     persistShareConfig(allShares)
     notifySharedWithConsumers(share)
 };
+
+export const updateShareName = (id: string, name: string) => {
+    const allShares = getShareConfig()
+    const share = allShares.Shared.find(share => share.id == id)
+    if (!share) throw new Error(`Share doesn't exist`);
+    console.log("check update", allShares)
+    share.name = name
+    console.log("has changed?", allShares)
+    persistShareConfig(allShares)
+    notifySharedWithConsumers(share)
+};
 const notifySharedWithConsumers = (share: SharedFileInterface) => {
     share.permissions.map(async (permission: SharePermissionInterface) => {
 

@@ -1,4 +1,4 @@
-import {SharedFileInterface} from './../service/fileShareService';
+import {SharedFileInterface, updateShareName} from './../service/fileShareService';
 import express, {Router} from 'express';
 import {
     copyWithRetry,
@@ -284,7 +284,12 @@ router.put('/files/rename', requiresAuthentication, async (req: express.Request,
 
     console.log({share})
 
-    if (share) updateSharePath(oldPath.path, newPath.path);
+    if (share) {
+        updateSharePath(oldPath.path, newPath.path)
+        console.log({rename: newPath.path.split('/').pop()})
+        updateShareName(share.id, newPath.path.split('/').pop())
+    }
+    ;
 
     const result = await renameFile(oldPath, newPath);
 
