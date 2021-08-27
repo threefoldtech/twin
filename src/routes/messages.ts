@@ -23,7 +23,7 @@ import { uuidv4 } from '../common';
 import { handleSystemMessage } from '../service/systemService';
 import { getMyLocation } from '../service/locationService';
 import { appendSignatureToMessage, verifyMessageSignature } from '../service/keyService';
-import { handleIncommingFileShare } from '../service/fileShareService';
+import {handleIncommingFileShare, handleIncommingFileShareUpdate} from '../service/fileShareService';
 
 const router = Router();
 
@@ -253,13 +253,24 @@ router.put('/', async (req, res) => {
 
     if (message.type === <string>MessageTypes.FILE_SHARE) {
         if(message.from == config.userid){
-        res.json({ status: 'cannot share with yourself' });
+            res.json({ status: 'cannot share with yourself' });
             return
         }
         handleIncommingFileShare(message as Message<FileShareMessageType>, chat)
         res.json({ status: 'success' });
         return
     }
+
+    if (message.type === <string>MessageTypes.FILE_SHARE_UPDATE) {
+        if(message.from === config.userid){
+            res.json({ status: 'cannot update share with yourself' });
+            return
+        }
+        handleIncommingFileShareUpdate(message as Message<FileShareMessageType>)
+        res.json({ status: 'success' });
+        return
+    }
+
     // const message = new Message(msg.from, msg.to, msg.body);
     console.log(`received new message from ${message.from}`);
     //

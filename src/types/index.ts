@@ -30,6 +30,7 @@ export enum MessageTypes {
     FILE = 'FILE',
     FILE_UPLOAD = 'FILE_UPLOAD',
     FILE_SHARE = 'FILE_SHARE',
+    FILE_SHARE_UPDATE = 'FILE_SHARE_UPDATE',
     FILE_SHARE_REQUEST = 'FILE_SHARE_REQUEST',
     EDIT = 'EDIT',
     READ = 'READ',
@@ -84,6 +85,9 @@ export interface FileMessageType extends MessageBodyTypeInterface {
 }
 
 export interface FileShareMessageType extends MessageBodyTypeInterface, SharedFileInterface {
+}
+
+export interface FileShareUpdateMessageType extends MessageBodyTypeInterface, SharedFileInterface {
 }
 
 export interface SystemMessageInterface extends MessageBodyTypeInterface {

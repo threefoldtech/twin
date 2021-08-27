@@ -57,7 +57,7 @@ export const handleSystemMessage = (
             return;
         }
         default:
-            throw Error('not implemented');
+            throw Error(`not implemented type: ${message.body.type}`);
     }
 
     persistChat(chat);

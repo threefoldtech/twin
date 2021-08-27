@@ -4,12 +4,21 @@ import {createJwtToken} from './jwtService';
 import {Permission, TokenData} from '../store/tokenStore';
 import {ShareError, ShareErrorType} from '../types/errors/shareError';
 import {log} from 'winston';
-import {ContactInterface, FileShareMessageType} from '../types';
+import {
+    ContactInterface,
+    ContactRequest,
+    DtIdInterface,
+    FileShareMessageType,
+    FileShareUpdateMessageType,
+    MessageTypes
+} from '../types';
 import Message from '../models/message';
 import {config} from '../config/config';
 import {getMyLocation} from './locationService';
 import Chat from '../models/chat';
 import {persistMessage} from './chatService';
+import {sendMessageToApi} from "./apiService";
+import {appendSignatureToMessage} from "./keyService";
 
 export enum ShareStatus {
     Shared = 'Shared',
@@ -61,7 +70,43 @@ export const updateSharePath = (oldPath: string, newPath: string) => {
     share.path = newPath
     console.log("has changed?", allShares)
     persistShareConfig(allShares)
+    notifySharedWithConsumers(share)
 };
+const notifySharedWithConsumers = (share: SharedFileInterface) => {
+    share.permissions.map(async (permission: SharePermissionInterface) => {
+
+        const body: FileShareUpdateMessageType = {
+            id: share.id,
+            isFolder: share.isFolder,
+            lastModified: share.lastModified,
+            name: share.name,
+            owner: share.owner,
+            path: share.path,
+            permissions: [
+                permission
+            ],
+            size: share.size
+
+        };
+        const message: Message<FileShareUpdateMessageType> = {
+            id: uuidv4(),
+            to: permission.chatId,
+            body,
+            from: config.userid,
+            type: MessageTypes.FILE_SHARE_UPDATE,
+            timeStamp: new Date(),
+            replies: [],
+            signatures: [],
+            subject: null,
+        };
+        appendSignatureToMessage(message)
+        const chat = getChat(permission.chatId, 0)
+        chat.contacts.forEach(contact => {
+            sendMessageToApi(contact.location, message)
+        })
+    })
+
+}
 
 export const removeShare = (path: string) => {
     const allShares = getShareConfig()
@@ -203,6 +248,12 @@ export const handleIncommingFileShare = (message: Message<FileShareMessageType>,
     if (!shareConfig.name || !shareConfig.owner) return
     appendShare(ShareStatus.SharedWithMe, shareConfig.id, shareConfig.path, shareConfig.name, shareConfig.owner, shareConfig.isFolder, shareConfig.size, shareConfig.lastModified, shareConfig.permissions)
     persistMessage(chat.chatId, message);
+}
+
+export const handleIncommingFileShareUpdate = (message: Message<FileShareMessageType>) => {
+    const shareConfig = message.body
+    if (!shareConfig.name || !shareConfig.owner) return
+    appendShare(ShareStatus.SharedWithMe, shareConfig.id, shareConfig.path, shareConfig.name, shareConfig.owner, shareConfig.isFolder, shareConfig.size, shareConfig.lastModified, shareConfig.permissions)
 }
 
 export const getSharePermissionForUser = (shareId: string, userId: string): SharePermission[] => {
