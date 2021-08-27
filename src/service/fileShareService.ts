@@ -180,6 +180,10 @@ export const appendShare = (status: ShareStatus, shareId: string, path: string,
         }
         share.permissions.push(newShare)
     })
+
+    const shareIndex = allShares?.[status].findIndex((s) => s.id === shareId);
+    if (shareIndex) allShares?.[status].splice(shareIndex, 0, share);
+
     persistShareConfig(allShares)
     return share
 };
