@@ -1,8 +1,8 @@
-import { getBlocklist, persistChat } from './../service/dataService';
-import { Router } from 'express';
+import {getBlocklist, persistChat} from './../service/dataService';
+import {Router} from 'express';
 import Message from '../models/message';
-import { contactRequests } from '../store/contactRequests';
-import { sendEventToConnectedSockets } from '../service/socketService';
+import {contactRequests} from '../store/contactRequests';
+import {sendEventToConnectedSockets} from '../service/socketService';
 import {
     ContactRequest,
     DtIdInterface,
@@ -13,21 +13,21 @@ import {
     StringMessageTypeInterface,
 } from '../types';
 import Contact from '../models/contact';
-import { editMessage, handleRead, parseMessage } from '../service/messageService';
-import { persistMessage, syncNewChatWithAdmin } from '../service/chatService';
-import { getChat } from '../service/dataService';
-import { config } from '../config/config';
-import { sendMessageToApi } from '../service/apiService';
+import {editMessage, handleRead, parseMessage} from '../service/messageService';
+import {persistMessage, syncNewChatWithAdmin} from '../service/chatService';
+import {getChat} from '../service/dataService';
+import {config} from '../config/config';
+import {sendMessageToApi} from '../service/apiService';
 import Chat from '../models/chat';
-import { uuidv4 } from '../common';
-import { handleSystemMessage } from '../service/systemService';
-import { getMyLocation } from '../service/locationService';
-import { appendSignatureToMessage, verifyMessageSignature } from '../service/keyService';
+import {uuidv4} from '../common';
+import {handleSystemMessage} from '../service/systemService';
+import {getMyLocation} from '../service/locationService';
+import {appendSignatureToMessage, verifyMessageSignature} from '../service/keyService';
 import {handleIncommingFileShare, handleIncommingFileShareUpdate} from '../service/fileShareService';
 
 const router = Router();
 
-async function handleContactRequest(message: Message<ContactRequest>) {
+const handleContactRequest = async (message: Message<ContactRequest>) => {
     contactRequests.push(<Contact>(<unknown>message.body));
     const otherContact = new Contact(
         <string>message.from,
@@ -57,7 +57,7 @@ async function handleContactRequest(message: Message<ContactRequest>) {
     );
     sendEventToConnectedSockets('connectionRequest', newchat);
     persistChat(newchat);
-}
+};
 
 export const determineChatId = (message: Message<MessageBodyTypeInterface>): DtIdInterface => {
     if (message.to === config.userid) {
@@ -67,7 +67,7 @@ export const determineChatId = (message: Message<MessageBodyTypeInterface>): DtI
     return message.to;
 };
 
-export const verifySignedMessageByChat = async(chat: Chat, signedMessage: Message<MessageBodyTypeInterface>) => {
+export const verifySignedMessageByChat = async (chat: Chat, signedMessage: Message<MessageBodyTypeInterface>) => {
     const adminContact = chat.contacts.find(x => x.id === chat.adminId);
     const fromContact = chat.contacts.find(x => x.id === signedMessage.from);
     return verifySignedMessage(chat.isGroup, adminContact, fromContact, signedMessage);
@@ -75,9 +75,9 @@ export const verifySignedMessageByChat = async(chat: Chat, signedMessage: Messag
 
 export const verifySignedMessage = async (isGroup: boolean, adminContact: Contact, fromContact: Contact, signedMessage: Message<MessageBodyTypeInterface>): Promise<boolean> => {
     let signatureIndex = 0;
-    if(isGroup && adminContact?.id !== config.userid) {
+    if (isGroup && adminContact?.id !== config.userid) {
         const adminIsVerified = await verifyMessageSignature(adminContact, signedMessage, signedMessage.signatures[signatureIndex])
-        if(!adminIsVerified) {
+        if (!adminIsVerified) {
             console.log(`Admin signature is not correct`);
             return false;
         }
@@ -92,6 +92,53 @@ export const verifySignedMessage = async (isGroup: boolean, adminContact: Contac
     return await verifyMessageSignature(fromContact, signedMessage, signedMessage.signatures[signatureIndex])
 }
 
+const handleGroupAdmin = async <ResBody, Locals>(chat: Chat, message: Message<MessageBodyTypeInterface>, res: any, chatId: DtIdInterface) => {
+    const messageIsVerified = await verifySignedMessage(false, undefined, chat.contacts.find(x => x.id === message.from), message);
+    if (!messageIsVerified) {
+        res.sendStatus(500);
+        return;
+    }
+
+    appendSignatureToMessage(message)
+    chat.contacts
+        .filter(c => c.id !== config.userid)
+        .forEach(c => {
+            console.log(`group sendMessage to ${c.id}`);
+            sendMessageToApi(c.location, message);
+        });
+
+    if (message.type === <string>MessageTypes.SYSTEM) {
+        handleSystemMessage(<any>message, chat);
+        res.json({status: 'success'});
+        return;
+    }
+
+    console.log(`received new group message from ${message.from}`);
+    sendEventToConnectedSockets('message', message);
+
+    if (message.type === MessageTypes.READ) {
+        handleRead(message as Message<StringMessageTypeInterface>);
+
+        res.json({status: 'success'});
+        return;
+    }
+
+    if (
+        message.type === MessageTypes.EDIT ||
+        message.type === MessageTypes.DELETE
+    ) {
+        editMessage(chatId, message);
+        sendEventToConnectedSockets('message', message);
+        res.json({status: 'success'});
+        return;
+    }
+
+    console.log(`persistMessage:${chat.chatId}`);
+    persistMessage(chat.chatId, message);
+    res.json({status: 'success'});
+    return;
+};
+
 // Should be externally availble
 router.put('/', async (req, res) => {
     // @ TODO check if valid
@@ -104,7 +151,7 @@ router.put('/', async (req, res) => {
 
     } catch (e) {
         console.log('message failed to parse')
-        res.status(500).json({ status: 'failed', reason: 'validation failed' });
+        res.status(500).json({status: 'failed', reason: 'validation failed'});
         return;
     }
 
@@ -112,7 +159,7 @@ router.put('/', async (req, res) => {
     if (message.type === MessageTypes.CONTACT_REQUEST) {
         if (blockList.includes(<string>message.from)) {
             //@todo what should i return whenblocked
-            res.json({ status: 'blocked' });
+            res.json({status: 'blocked'});
             return;
         }
 
@@ -120,7 +167,7 @@ router.put('/', async (req, res) => {
         await verifySignedMessage(false, undefined, msg.body as Contact, message)
         await handleContactRequest(msg);
 
-        res.json({ status: 'success' });
+        res.json({status: 'success'});
         return;
     }
 
@@ -135,14 +182,15 @@ router.put('/', async (req, res) => {
     }
 
     const messageIsCorrectlySigned = await verifySignedMessageByChat(chat, message);
-    if(!messageIsCorrectlySigned) {
+    if (!messageIsCorrectlySigned) {
+        console.log('message failed to verify')
         res.sendStatus(500);
         return;
     }
 
     if (blockList.includes(<string>chatId)) {
         //@todo what should i return whenblocked
-        res.json({ status: 'blocked' });
+        res.json({status: 'blocked'});
         return;
     }
 
@@ -160,57 +208,14 @@ router.put('/', async (req, res) => {
                 groupUpdateMsg.body.adminLocation,
                 <string>groupUpdateMsg.to,
             );
-            res.json({ status: 'Successfully added chat' });
+            res.json({status: 'Successfully added chat'});
             return;
         }
     }
 
 
     if (chat.isGroup && chat.adminId == config.userid) {
-        const messageIsVerified = await verifySignedMessage(false, undefined, chat.contacts.find(x => x.id === message.from), message);
-        if(!messageIsVerified) {
-            res.sendStatus(500);
-            return;
-        }
-
-        appendSignatureToMessage(message)
-        chat.contacts
-            .filter(c => c.id !== config.userid)
-            .forEach(c => {
-                console.log(`group sendMessage to ${c.id}`);
-                sendMessageToApi(c.location, message);
-            });
-
-        if (message.type === <string>MessageTypes.SYSTEM) {
-            handleSystemMessage(<any>message, chat);
-            res.json({ status: 'success' });
-            return;
-        }
-
-        console.log(`received new group message from ${message.from}`);
-        sendEventToConnectedSockets('message', message);
-
-        if (message.type === MessageTypes.READ) {
-            handleRead(message as Message<StringMessageTypeInterface>);
-
-            res.json({ status: 'success' });
-            return;
-        }
-
-        if (
-            message.type === MessageTypes.EDIT ||
-            message.type === MessageTypes.DELETE
-        ) {
-            editMessage(chatId, message);
-            sendEventToConnectedSockets('message', message);
-            res.json({ status: 'success' });
-            return;
-        }
-
-        console.log(`persistMessage:${chat.chatId}`);
-        persistMessage(chat.chatId, message);
-        res.json({ status: 'success' });
-        return;
+        return await handleGroupAdmin(chat, message, res, chatId);
     }
 
     if (!chat && contactRequests.find(c => c.id == message.from)) {
@@ -223,52 +228,44 @@ router.put('/', async (req, res) => {
     }
 
     if (!chat) {
-        res.status(403).json({ status: 'Forbidden', reason: 'not in contact' });
+        res.status(403).json({status: 'Forbidden', reason: 'not in contact'});
         return;
     }
 
-    if (
-        message.type === MessageTypes.EDIT ||
-        message.type === MessageTypes.DELETE
-    ) {
-        editMessage(chatId, message);
-        sendEventToConnectedSockets('message', message);
-        res.json({ status: 'success' });
-        return;
-    }
+    switch (message.type) {
+        case MessageTypes.EDIT:
+        case MessageTypes.DELETE:
+            editMessage(chatId, message);
+            sendEventToConnectedSockets('message', message);
+            res.json({status: 'success'});
+            return;
+        case MessageTypes.READ:
+            handleRead(message as Message<StringMessageTypeInterface>);
 
-    if (message.type === MessageTypes.READ) {
-        handleRead(message as Message<StringMessageTypeInterface>);
+            res.json({status: 'success'});
+            return;
+        case MessageTypes.SYSTEM:
+            handleSystemMessage(<any>message, chat);
 
-        res.json({ status: 'success' });
-        return;
-    }
-
-    if (message.type === <string>MessageTypes.SYSTEM) {
-        handleSystemMessage(<any>message, chat);
-
-        res.json({ status: 'success' });
-        return;
-    }
-
-    if (message.type === <string>MessageTypes.FILE_SHARE) {
-        if(message.from == config.userid){
-            res.json({ status: 'cannot share with yourself' });
+            res.json({status: 'success'});
+            return;
+        case MessageTypes.FILE_SHARE:
+            if (message.from == config.userid) {
+                res.json({status: 'cannot share with yourself'});
+                return
+            }
+            handleIncommingFileShare(message as Message<FileShareMessageType>, chat)
+            res.json({status: 'success'});
             return
-        }
-        handleIncommingFileShare(message as Message<FileShareMessageType>, chat)
-        res.json({ status: 'success' });
-        return
-    }
-
-    if (message.type === <string>MessageTypes.FILE_SHARE_UPDATE) {
-        if(message.from === config.userid){
-            res.json({ status: 'cannot update share with yourself' });
+        case MessageTypes.FILE_SHARE_UPDATE:
+            console.log('share update')
+            if (message.from === config.userid) {
+                res.json({status: 'cannot update share with yourself'});
+                return
+            }
+            handleIncommingFileShareUpdate(message as Message<FileShareMessageType>)
+            res.json({status: 'success'});
             return
-        }
-        handleIncommingFileShareUpdate(message as Message<FileShareMessageType>)
-        res.json({ status: 'success' });
-        return
     }
 
     // const message = new Message(msg.from, msg.to, msg.body);

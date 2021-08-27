@@ -289,7 +289,6 @@ router.put('/files/rename', requiresAuthentication, async (req: express.Request,
         console.log({rename: newPath.path.split('/').pop()})
         updateShareName(share.id, newPath.path.split('/').pop())
     }
-    ;
 
     const result = await renameFile(oldPath, newPath);
 

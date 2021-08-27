@@ -9,7 +9,7 @@ import {
     ContactRequest,
     DtIdInterface,
     FileShareMessageType,
-    FileShareUpdateMessageType,
+    FileShareUpdateMessageType, MessageBodyTypeInterface,
     MessageTypes
 } from '../types';
 import Message from '../models/message';
@@ -19,6 +19,7 @@ import Chat from '../models/chat';
 import {persistMessage} from './chatService';
 import {sendMessageToApi} from "./apiService";
 import {appendSignatureToMessage} from "./keyService";
+import {parseMessage} from "./messageService";
 
 export enum ShareStatus {
     Shared = 'Shared',
@@ -99,7 +100,7 @@ const notifySharedWithConsumers = (share: SharedFileInterface) => {
             size: share.size
 
         };
-        const message: Message<FileShareUpdateMessageType> = {
+        const message: Message<MessageBodyTypeInterface> = parseMessage({
             id: uuidv4(),
             to: permission.chatId,
             body,
@@ -109,7 +110,7 @@ const notifySharedWithConsumers = (share: SharedFileInterface) => {
             replies: [],
             signatures: [],
             subject: null,
-        };
+        });
         appendSignatureToMessage(message)
         const chat = getChat(permission.chatId, 0)
         chat.contacts.forEach(contact => {
@@ -161,7 +162,8 @@ export const appendShare = (status: ShareStatus, shareId: string, path: string,
                             newSharePermissions: SharePermissionInterface[]): SharedFileInterface => {
 
     const allShares = getShareConfig()
-    const share: SharedFileInterface = getShareByPath(allShares, path, status);
+    const share: SharedFileInterface = getShareWithId(shareId, status);
+    console.log({share})
     if (!share) {
         const initialShare: SharedFileInterface = {
             id: shareId,
@@ -192,8 +194,18 @@ export const appendShare = (status: ShareStatus, shareId: string, path: string,
         share.permissions.push(newShare)
     })
 
-    const shareIndex = allShares?.[status].findIndex((s) => s.id === shareId);
-    if (shareIndex) allShares?.[status].splice(shareIndex, 0, share);
+    allShares.SharedWithMe = [...allShares.SharedWithMe.filter(s => s.id === shareId), share].sort((a, b) => {
+            const textA = a.name.toUpperCase();
+            const textB = b.name.toUpperCase();
+            return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+        }
+    )
+    allShares.Shared = [...allShares.Shared.filter(s => s.id === shareId), share].sort((a, b) => {
+            const textA = a.name.toUpperCase();
+            const textB = b.name.toUpperCase();
+            return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+        }
+    )
 
     persistShareConfig(allShares)
     return share
