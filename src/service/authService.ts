@@ -77,6 +77,6 @@ export const appCallback = async (request: Request): Promise<string> => {
         request.session.userId = userId;
         return '/callback';
     } catch (e) {
-        throw new Error(e.message);
+        throw e;
     }
 };
