@@ -339,7 +339,9 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
         types
     }]
 
-    const share = await createShare(path, filename, !itemStats.isFile(), itemStats.size, itemStats.mtime.getTime(), ShareStatus.Shared, sharePermissions);
+    const allShares = getShareConfig()
+    const existingShare = getShareByPath(allShares, path, ShareStatus.Shared)
+    const share = existingShare.permissions.find(p => p.chatId === chatId) ? existingShare : await createShare(path, filename, !itemStats.isFile(), itemStats.size, itemStats.mtime.getTime(), ShareStatus.Shared, sharePermissions);
 
     let msg: Message<FileShareMessageType> = {
         id: uuidv4(),
