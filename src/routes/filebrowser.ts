@@ -237,8 +237,8 @@ router.post('/internal/files', async (req: express.Request, res: express.Respons
     if (!payload.data.file || !body.url)
         throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
     const url = new URL(body.url);
-    url.hostname = 'onlyoffice-documentserver';
-    url.protocol = 'http:';
+    url.hostname = 'documentserver.digitaltwin-test.jimbertesting.be';
+    url.protocol = 'https:';
     const fileResponse = syncRequest('GET', url);
     const fileBuffer = <Buffer>fileResponse.body;
     await saveFile(new Path(payload.data.file), fileBuffer);

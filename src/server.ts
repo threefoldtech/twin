@@ -65,7 +65,6 @@ app.use(
 );
 
 app.use('/api/', routes);
-//Reading data
 
 initAll();
 
