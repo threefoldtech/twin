@@ -6,7 +6,7 @@ import { PathInfo } from '../../types/dtos/fileDto';
 import { config } from '../../config/config';
 import { UploadedFile } from 'express-fileupload';
 import * as fse from 'fs-extra';
-import { updateSharePath } from '../../service/fileShareService';
+import {updateShareName, updateSharePath} from '../../service/fileShareService';
 import { getShareConfig } from '../../service/dataService';
 
 const baseDir = PATH.join(config.baseDir, config.storage);
@@ -191,7 +191,11 @@ export const move = async (
     destination: Path,
 ) => {
     let config = getShareConfig()
-    updateSharePath(source.path, destination.path)
+    const share = config.Shared.find(share => share.path == source.path)
+
+    if (share) {
+        updateSharePath(source.path, destination.path)
+    }
     fse.moveSync(source.securedPath, destination.securedPath, { overwrite: false });
     return await getFormattedDetails(destination);
 };
