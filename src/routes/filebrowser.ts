@@ -79,6 +79,7 @@ router.get('/directories/info', requiresAuthentication, async (req: express.Requ
 
 router.post('/directories', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const dto = req.body as DirectoryDto;
+    dto.name =dto.name.replace(/\\|\//g,'');
     if (!dto.path) dto.path = '/';
     if (!dto.name) dto.name = 'New Folder';
     const path = new Path(dto.path);
