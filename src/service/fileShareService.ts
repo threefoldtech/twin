@@ -1,9 +1,9 @@
-import {getChat, getShareConfig, persistShareConfig} from './dataService';
-import {uuidv4} from '../common';
-import {createJwtToken} from './jwtService';
-import {Permission, TokenData} from '../store/tokenStore';
-import {ShareError, ShareErrorType} from '../types/errors/shareError';
-import {log} from 'winston';
+import { getChat, getShareConfig, persistShareConfig } from './dataService';
+import { uuidv4 } from '../common';
+import { createJwtToken } from './jwtService';
+import { Permission, TokenData } from '../store/tokenStore';
+import { ShareError, ShareErrorType } from '../types/errors/shareError';
+import { log } from 'winston';
 import {
     ContactInterface,
     ContactRequest,
@@ -13,13 +13,13 @@ import {
     MessageTypes
 } from '../types';
 import Message from '../models/message';
-import {config} from '../config/config';
-import {getMyLocation} from './locationService';
+import { config } from '../config/config';
+import { getMyLocation } from './locationService';
 import Chat from '../models/chat';
-import {persistMessage} from './chatService';
-import {sendMessageToApi} from "./apiService";
-import {appendSignatureToMessage} from "./keyService";
-import {parseMessage} from "./messageService";
+import { persistMessage } from './chatService';
+import { sendMessageToApi } from "./apiService";
+import { appendSignatureToMessage } from "./keyService";
+import { parseMessage } from "./messageService";
 
 export enum ShareStatus {
     Shared = 'Shared',
@@ -67,9 +67,7 @@ export const updateSharePath = (oldPath: string, newPath: string) => {
     const allShares = getShareConfig()
     const share = allShares.Shared.find(share => share.path == oldPath)
     if (!share) throw new Error(`Share doesn't exist`);
-    console.log("check update", allShares)
     share.path = newPath
-    console.log("has changed?", allShares)
     persistShareConfig(allShares)
     notifySharedWithConsumers(share)
 };
@@ -78,9 +76,7 @@ export const updateShareName = (id: string, name: string) => {
     const allShares = getShareConfig()
     const share = allShares.Shared.find(share => share.id == id)
     if (!share) throw new Error(`Share doesn't exist`);
-    console.log("check update", allShares)
     share.name = name
-    console.log("has changed?", allShares)
     persistShareConfig(allShares)
     notifySharedWithConsumers(share)
 };
@@ -123,8 +119,13 @@ const notifySharedWithConsumers = (share: SharedFileInterface) => {
 export const removeShare = (path: string) => {
     const allShares = getShareConfig()
     const shareIndex = allShares.Shared.findIndex(share => share.path === path)
-    if (!shareIndex) throw new Error(`Share doesn't exist`);
+    console.log(shareIndex);
+    console.log(allShares.Shared.find(share => share.path === path))
+    // if (!shareIndex) throw new Error(`Share doesn't exist`);
     allShares.Shared.splice(shareIndex, 1)
+    console.log(allShares.Shared.findIndex(share => share.path === path))
+    // ik kan enkel de eerste weg
+
     persistShareConfig(allShares)
 };
 
@@ -136,7 +137,11 @@ export const removeShare = (path: string) => {
 // };
 
 export const getShareByPath = (allShares: SharesInterface, path: string, shareStatus: ShareStatus): SharedFileInterface => {
-    const share = allShares[shareStatus].find(share => share.path === path);
+    // console.log(allShares[shareStatus].forEach(e => {
+    //     console.log("----------------------------------")
+    //     console.log(e)
+    // }))
+    const share = allShares[shareStatus].reverse().find(share => share.path === path);
     return share
 };
 
@@ -150,20 +155,20 @@ export const getShare = (path: string, chatId: string, shareStatus: ShareStatus)
 };
 export const getShareWithId = (id: string, shareStatus: ShareStatus): SharedFileInterface => {
     const allShares = getShareConfig()
-    return allShares[shareStatus].find(share => share.id === id);
+    return allShares[shareStatus].reverse().find(share => share.id === id);
 };
 
 export const appendShare = (status: ShareStatus, shareId: string, path: string,
-                            name: string | undefined,
-                            owner: ContactInterface,
-                            isFolder: Boolean,
-                            size: number | undefined,
-                            lastModified: number | undefined,
-                            newSharePermissions: SharePermissionInterface[]): SharedFileInterface => {
+    name: string | undefined,
+    owner: ContactInterface,
+    isFolder: Boolean,
+    size: number | undefined,
+    lastModified: number | undefined,
+    newSharePermissions: SharePermissionInterface[]): SharedFileInterface => {
 
     const allShares = getShareConfig()
     const share: SharedFileInterface = getShareWithId(shareId, status);
-    console.log({share})
+
     if (!share) {
         const initialShare: SharedFileInterface = {
             id: shareId,
@@ -185,28 +190,33 @@ export const appendShare = (status: ShareStatus, shareId: string, path: string,
     share.size = size
     share.lastModified = lastModified
 
+    console.log("p", share.permissions)
+
     newSharePermissions.forEach(newShare => {
         const existing = share.permissions.find(existingShare => existingShare.chatId == newShare.chatId)
+
         if (existing) {
+            console.log('has existing', existing)
             existing.types = newShare.types
+            console.log('updated types', existing.types)
             return
         }
+
         share.permissions.push(newShare)
+
     })
 
     allShares.SharedWithMe = [...allShares.SharedWithMe.filter(s => s.id === shareId), share].sort((a, b) => {
-            const textA = a.name.toUpperCase();
-            const textB = b.name.toUpperCase();
-            return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-        }
+        const textA = a.name.toUpperCase();
+        const textB = b.name.toUpperCase();
+        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+    }
     )
     allShares.Shared = [...allShares.Shared.filter(s => s.id === shareId), share].sort((a, b) => {
-            const textA = a.name.toUpperCase();
-            const textB = b.name.toUpperCase();
-            return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-        }
-    )
-
+        const textA = a.name.toUpperCase();
+        const textB = b.name.toUpperCase();
+        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+    })
     persistShareConfig(allShares)
     return share
 };
@@ -237,13 +247,14 @@ export const appendShare = (status: ShareStatus, shareId: string, path: string,
 //     config[index].shares = config[index].shares.filter(x => !userId ? !x.isPublic : x.userId !== userId);
 // };
 
-export const createShare = async (path: string, name: string | undefined, isFolder: boolean, size: number | undefined, lastModified: number | undefined, shareStatus: ShareStatus, newSharePermissions: SharePermissionInterface[]) => {
+export const createShare = async (path: string, name: string | undefined, isFolder: boolean, size: number | undefined, lastModified: number | undefined, shareStatus: ShareStatus, newSharePermissions: SharePermissionInterface[], id?: string) => {
     const mylocation = await getMyLocation()
     const myuser = <ContactInterface>{
         id: config.userid,
         location: mylocation
     }
-    const share = appendShare(shareStatus, uuidv4(), path, name, myuser, isFolder, size, lastModified, newSharePermissions)
+    if (!id) id = uuidv4();
+    const share = appendShare(shareStatus, id, path, name, myuser, isFolder, size, lastModified, newSharePermissions)
     return share
 };
 

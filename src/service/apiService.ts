@@ -9,7 +9,7 @@ export const sendMessageToApi = async (
     message: Message<MessageBodyTypeInterface>,
 ) => {
     console.log('Location: ', location);
-    if(message.type !== "READ") console.log('newMessage: ', message);
+    if (message.type !== "READ") console.log('newMessage: ', message);
     const url = getFullIPv6ApiLocation(location, '/messages');
     try {
         await axios.put(url, message);
@@ -18,7 +18,7 @@ export const sendMessageToApi = async (
     }
 };
 
-export const getPublicKey = async(location: string): Promise<string | undefined> => {
+export const getPublicKey = async (location: string): Promise<string | undefined> => {
     const url = getFullIPv6ApiLocation(location, '/user/publickey');
     try {
         const response = await axios.get(url);
