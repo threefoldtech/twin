@@ -38,6 +38,7 @@ export enum MessageTypes {
     DELETE = 'DELETE',
     GROUP_UPDATE = 'GROUP_UPDATE',
     QUOTE = 'QUOTE',
+    FILE_SHARE_DELETE = 'FILE_SHARE_DELETE',
 }
 
 export enum SystemMessageType {
@@ -83,6 +84,8 @@ export interface FileMessageType extends MessageBodyTypeInterface {
 }
 
 export interface FileShareMessageType extends MessageBodyTypeInterface, SharedFileInterface {}
+
+export interface FileShareDeleteMessageType extends MessageBodyTypeInterface, String {}
 
 export interface FileShareUpdateMessageType extends MessageBodyTypeInterface, SharedFileInterface {}
 
