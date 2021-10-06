@@ -1,6 +1,6 @@
 import { initKeys, updatePrivateKey, updatePublicKey } from './store/keyStore';
-import {initUserData} from "./store/user";
-import {initTokens} from "./store/tokenStore";
+import { initUserData } from './store/user';
+import { initTokens } from './store/tokenStore';
 import { initYggdrasil, isInitialized as yggdrasilIsInitialized, setupYggdrasil } from './service/yggdrasilService';
 import routes from './routes';
 import errorMiddleware from './middlewares/errorHandlingMiddleware';
@@ -14,7 +14,7 @@ const initAll = () => {
     initUserData();
     initTokens();
     initYggdrasil();
-}
+};
 
 export {
     initAll,
@@ -26,5 +26,5 @@ export {
     updatePublicKey,
     yggdrasilIsInitialized,
     setupYggdrasil,
-    getKeyPair
-}
+    getKeyPair,
+};

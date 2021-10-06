@@ -1,9 +1,4 @@
-import {
-    ContactRequest,
-    DtIdInterface,
-    MessageInterface,
-    MessageTypes,
-} from '../types/index';
+import { ContactRequest, DtIdInterface, MessageInterface, MessageTypes } from '../types/index';
 import { parseMessage } from './../service/messageService';
 import express, { Router } from 'express';
 import Contact from '../models/contact';
@@ -32,9 +27,7 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
     console.log(`Adding contact  ${contact.id}`);
     contacts.push(contact);
 
-    const message: MessageInterface<MessageBodyTypeInterface> = parseMessage(
-        con.message
-    );
+    const message: MessageInterface<MessageBodyTypeInterface> = parseMessage(con.message);
     console.log(`creating chat`);
     const myLocation = await getMyLocation();
     const chat = addChat(

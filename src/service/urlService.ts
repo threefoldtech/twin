@@ -2,9 +2,6 @@
 // const isIpv4 = ipv4Regex.test(location);
 // location = isIpv4 ? location : `[${location}]`;
 
-export const getFullIPv6ApiLocation = (
-    location: string,
-    apiEndPoint: string
-) => {
+export const getFullIPv6ApiLocation = (location: string, apiEndPoint: string) => {
     return `http://[${location}]/api${apiEndPoint}`;
 };

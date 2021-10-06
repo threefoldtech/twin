@@ -17,18 +17,17 @@ const errorMiddleware = (
 ): express.Response | void => {
     try {
         next();
-    }
-    catch(err) {
+    } catch (err) {
         if (error instanceof ErrorWrapper) {
-            return response
-                .status(error.getHttpStatus())
-                .send(error.data ?? { reason: getReasonPhrase(error.getHttpStatus()), message: error.message });
+            return response.status(error.getHttpStatus()).send(
+                error.data ?? {
+                    reason: getReasonPhrase(error.getHttpStatus()),
+                    message: error.message,
+                }
+            );
         }
-        return response
-            .status(StatusCodes.INTERNAL_SERVER_ERROR)
-            .send({ message: error.message });
+        return response.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: error.message });
     }
 };
-
 
 export default errorMiddleware;

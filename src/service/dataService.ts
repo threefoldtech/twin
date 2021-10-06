@@ -13,7 +13,6 @@ import { SharesInterface } from './fileShareService';
 const userDirectory = PATH.join(config.baseDir, '/user');
 const chatsDirectory = PATH.join(config.baseDir, '/chats');
 
-
 export const getChatIds = (): IdInterface[] => {
     const locations = fs.readdirSync(chatsDirectory);
     console.log(locations);
@@ -23,9 +22,7 @@ export const getChatIds = (): IdInterface[] => {
 export const getChat = (id: IdInterface, messagesAmount: number | undefined = undefined): Chat => {
     const path = PATH.join(chatsDirectory, id as string, 'chat.json');
     const chat: Chat = <Chat>JSON.parse(fs.readFileSync(path).toString());
-    return messagesAmount === undefined
-        ? parseFullChat(chat)
-        : parsePartialChat(chat, messagesAmount);
+    return messagesAmount === undefined ? parseFullChat(chat) : parsePartialChat(chat, messagesAmount);
 };
 
 export const getTokenFile = (): ITokenFile => {
@@ -44,13 +41,13 @@ export const getUserdata = () => {
         const data = JSON.parse(fs.readFileSync(location).toString());
         return data;
     } catch {
-        throw new Error('Userinfo file doesn\'t exitst');
+        throw new Error("Userinfo file doesn't exitst");
     }
 };
 
 export enum Key {
     Public = 'publicKey',
-    Private = 'privateKey'
+    Private = 'privateKey',
 }
 
 export const saveKey = (key: string, keyName: Key, force = false) => {
@@ -120,11 +117,7 @@ export const persistUserdata = (userData: UserInterface) => {
     return;
 };
 
-export const saveFile = (
-    chatId: IdInterface,
-    messageId: string,
-    file: UploadedFile,
-) => {
+export const saveFile = (chatId: IdInterface, messageId: string, file: UploadedFile) => {
     let path = PATH.join(chatsDirectory, chatId as string, 'files', messageId);
     fs.mkdirSync(path);
     path = PATH.join(path, file.name);
@@ -151,29 +144,31 @@ export const deleteAvatar = (id: string) => {
 
 export const resizeAvatar = async (from: string, to: string): Promise<unknown> => {
     return new Promise((resolve, reject) => {
-        im.resize({
-            srcPath: from,
-            dstPath: to,
-            width: 64,
-        }, (err: Error, result) => {
-            if (err) {
-                reject(err);
+        im.resize(
+            {
+                srcPath: from,
+                dstPath: to,
+                width: 64,
+            },
+            (err: Error, result) => {
+                if (err) {
+                    reject(err);
+                }
+                resolve(result);
             }
-            resolve(result);
-        });
+        );
     });
-
 };
 
 export const persistBlocklist = (blockList: string[]) => {
-    const location = PATH.join(userDirectory, "blocklist.json");
+    const location = PATH.join(userDirectory, 'blocklist.json');
     fs.writeFileSync(location, JSON.stringify(blockList, null, 4), {
         flag: 'w',
     });
 };
 
 export const getBlocklist = (): string[] => {
-    const location = PATH.join(userDirectory, "blocklist.json");
+    const location = PATH.join(userDirectory, 'blocklist.json');
     try {
         return JSON.parse(fs.readFileSync(location).toString());
     } catch {
@@ -182,27 +177,27 @@ export const getBlocklist = (): string[] => {
 };
 
 export const getShareConfig = (): SharesInterface => {
-    const location = PATH.join(userDirectory, "shares.json");
+    const location = PATH.join(userDirectory, 'shares.json');
     try {
         return JSON.parse(fs.readFileSync(location, 'utf8'));
     } catch (ex) {
         //@ts-ignore
         if (ex.code === 'ENOENT') {
             console.log('Shares.json not found!');
-            let obj=<SharesInterface>{
-            Shared: [],
-            SharedWithMe:[]
-            }
+            let obj = <SharesInterface>{
+                Shared: [],
+                SharedWithMe: [],
+            };
             let json = JSON.stringify(obj);
             fs.writeFileSync(location, json);
             return JSON.parse(fs.readFileSync(location, 'utf8'));
         }
     }
-}
+};
 
 export const persistShareConfig = (config: SharesInterface) => {
-    const location = PATH.join(userDirectory, "shares.json");
+    const location = PATH.join(userDirectory, 'shares.json');
     fs.writeFileSync(location, JSON.stringify(config, null, 2), {
         flag: 'w',
     });
-}
+};

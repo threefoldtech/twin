@@ -1,4 +1,4 @@
-import { SharedFileInterface, updateShareName } from './../service/fileShareService';
+import { removeFilePermissions, SharedFileInterface, updateShareName } from './../service/fileShareService';
 import express, { Router } from 'express';
 import {
     copyWithRetry,
@@ -7,7 +7,8 @@ import {
     getFilesRecursive,
     getFormattedDetails,
     getStats,
-    isPathDirectory, moveWithRetry,
+    isPathDirectory,
+    moveWithRetry,
     Path,
     readDir,
     removeFile,
@@ -31,7 +32,9 @@ import {
     createShare,
     getShareByPath,
     getSharePermissionForUser,
-    getSharesWithme, getShareWithId, removeShare,
+    getSharesWithme,
+    getShareWithId,
+    removeShare,
     SharePermission,
     SharePermissionInterface,
     ShareStatus,
@@ -45,7 +48,7 @@ import { sendMessageToApi } from '../service/apiService';
 import { sendEventToConnectedSockets } from '../service/socketService';
 import { persistMessage } from '../service/chatService';
 import { parseMessage } from '../service/messageService';
-import crypto from 'crypto'
+import crypto from 'crypto';
 import { getDocumentBrowserKey } from '../service/fileService';
 import { isCallChain } from 'typescript';
 import Contact from '../models/contact';
@@ -63,7 +66,13 @@ router.get('/directories/content', requiresAuthentication, async (req: express.R
     if (!p || typeof p !== 'string') p = '/';
     const path = new Path(p);
     const stats = await getStats(path);
-    if (!stats.isDirectory() || stats.isBlockDevice() || stats.isCharacterDevice() || stats.isSymbolicLink() || stats.isSocket())
+    if (
+        !stats.isDirectory() ||
+        stats.isBlockDevice() ||
+        stats.isCharacterDevice() ||
+        stats.isSymbolicLink() ||
+        stats.isSocket()
+    )
         throw new HttpError(StatusCodes.BAD_REQUEST, 'Path is not a directory');
     res.json(await readDir(path, { withFileTypes: true }));
 });
@@ -73,14 +82,20 @@ router.get('/directories/info', requiresAuthentication, async (req: express.Requ
     if (!p || typeof p !== 'string') p = '/';
     const path = new Path(p);
     const stats = await getStats(path);
-    if (!stats.isDirectory() || stats.isBlockDevice() || stats.isCharacterDevice() || stats.isSymbolicLink() || stats.isSocket())
+    if (
+        !stats.isDirectory() ||
+        stats.isBlockDevice() ||
+        stats.isCharacterDevice() ||
+        stats.isSymbolicLink() ||
+        stats.isSocket()
+    )
         throw new HttpError(StatusCodes.BAD_REQUEST, 'Path is not a directory');
     return getFormattedDetails(path);
 });
 
 router.post('/directories', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const dto = req.body as DirectoryDto;
-    dto.name =dto.name.replace(/\\|\//g,'');
+    dto.name = dto.name.replace(/\\|\//g, '');
     if (!dto.path) dto.path = '/';
     if (!dto.name) dto.name = 'New Folder';
     const path = new Path(dto.path);
@@ -96,35 +111,44 @@ router.post('/directories', requiresAuthentication, async (req: express.Request,
 
 router.get('/files/info', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let p;
-    let shareConfig = getShareConfig()
+    let shareConfig = getShareConfig();
     if (req.query.params) {
-        let params = Buffer.from(req.query.params as string, 'base64').toString()
+        let params = Buffer.from(req.query.params as string, 'base64').toString();
         let object = JSON.parse(params);
         let shareId = object.shareId;
         let token = object.token;
         const [payload, err] = verifyJwtToken<Token<FileToken>>(token);
-        if (err)
-            throw new HttpError(StatusCodes.UNAUTHORIZED, err.message);
-        if (!payload || !payload.data || payload.data.permissions.indexOf(Permission.FileBrowserRead) === -1 || payload.data.file !== p)
+        if (err) throw new HttpError(StatusCodes.UNAUTHORIZED, err.message);
+        if (
+            !payload ||
+            !payload.data ||
+            payload.data.permissions.indexOf(Permission.FileBrowserRead) === -1 ||
+            payload.data.file !== p
+        )
             throw new HttpError(StatusCodes.UNAUTHORIZED, 'No permission for reading file');
-        p = getShareWithId(shareId, ShareStatus.Shared).path
+        p = getShareWithId(shareId, ShareStatus.Shared).path;
     } else {
         p = req.query.path;
     }
-    if (!p || typeof p !== 'string')
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
+    if (!p || typeof p !== 'string') throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
     const path = new Path(p);
     res.json({
         ...(await getFormattedDetails(path)),
         key: getDocumentBrowserKey(true, path.securedPath),
-        readToken: createJwtToken({
-            file: p,
-            permissions: [Permission.FileBrowserRead],
-        } as FileToken, 5 * 60),
-        writeToken: createJwtToken({
-            file: p,
-            permissions: [Permission.FileBrowserWrite],
-        } as FileToken, 24 * 60 * 60),
+        readToken: createJwtToken(
+            {
+                file: p,
+                permissions: [Permission.FileBrowserRead],
+            } as FileToken,
+            5 * 60
+        ),
+        writeToken: createJwtToken(
+            {
+                file: p,
+                permissions: [Permission.FileBrowserWrite],
+            } as FileToken,
+            24 * 60 * 60
+        ),
     });
     res.status(StatusCodes.OK);
 });
@@ -135,12 +159,14 @@ router.post('/files', requiresAuthentication, async (req: express.Request, res: 
     if (!dto.path) dto.path = '/';
     if (Array.isArray(files)) {
         const results = [] as PathInfo[];
-        await Promise.all(files.map(async f => {
-            const path = new Path(dto.path);
-            path.appendPath(f.name);
-            const result = await saveFileWithRetry(path, f);
-            results.push(result);
-        }));
+        await Promise.all(
+            files.map(async f => {
+                const path = new Path(dto.path);
+                path.appendPath(f.name);
+                const result = await saveFileWithRetry(path, f);
+                results.push(result);
+            })
+        );
         res.json(results);
         res.status(StatusCodes.CREATED);
         return;
@@ -155,7 +181,7 @@ router.post('/files', requiresAuthentication, async (req: express.Request, res: 
 
 router.delete('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const pathClass = new Path(req.body.filepath);
-    removeShare(req.body.filepath)
+    removeShare(req.body.filepath);
     const result = await removeFile(pathClass);
     res.json(result);
     res.status(StatusCodes.CREATED);
@@ -163,8 +189,7 @@ router.delete('/files', requiresAuthentication, async (req: express.Request, res
 
 router.get('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let p = req.query.path;
-    if (!p || typeof p !== 'string')
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
+    if (!p || typeof p !== 'string') throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
 
     const path = new Path(p);
     if (await isPathDirectory(path)) {
@@ -196,19 +221,20 @@ interface OnlyOfficeCallback {
 router.get('/internal/files', async (req: express.Request, res: express.Response) => {
     let p = req.query.path;
     let token = req.query.token;
-    if (!token || typeof token !== 'string')
-        throw new HttpError(StatusCodes.UNAUTHORIZED, 'No valid token provided');
+    if (!token || typeof token !== 'string') throw new HttpError(StatusCodes.UNAUTHORIZED, 'No valid token provided');
 
-    if (!p || typeof p !== 'string')
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
+    if (!p || typeof p !== 'string') throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
 
-    if (isBlocked(token))
-        throw new HttpError(StatusCodes.FORBIDDEN, 'Provided token is blocked');
+    if (isBlocked(token)) throw new HttpError(StatusCodes.FORBIDDEN, 'Provided token is blocked');
 
     const [payload, err] = verifyJwtToken<Token<FileToken>>(token);
-    if (err)
-        throw new HttpError(StatusCodes.UNAUTHORIZED, err.message);
-    if (!payload || !payload.data || payload.data.permissions.indexOf(Permission.FileBrowserRead) === -1 || payload.data.file !== p)
+    if (err) throw new HttpError(StatusCodes.UNAUTHORIZED, err.message);
+    if (
+        !payload ||
+        !payload.data ||
+        payload.data.permissions.indexOf(Permission.FileBrowserRead) === -1 ||
+        payload.data.file !== p
+    )
         throw new HttpError(StatusCodes.UNAUTHORIZED, 'No permission for reading file');
 
     const path = new Path(p);
@@ -219,25 +245,21 @@ router.get('/internal/files', async (req: express.Request, res: express.Response
 router.post('/internal/files', async (req: express.Request, res: express.Response) => {
     const body = req.body as OnlyOfficeCallback;
     const token = req.query.token;
-    if (!token || typeof token !== 'string')
-        throw new HttpError(StatusCodes.UNAUTHORIZED, 'No valid token provided');
+    if (!token || typeof token !== 'string') throw new HttpError(StatusCodes.UNAUTHORIZED, 'No valid token provided');
 
     if (body.status !== 2 && body.status !== 6) {
         res.json({ error: 0 });
         return;
     }
 
-    if (isBlocked(token))
-        throw new HttpError(StatusCodes.FORBIDDEN, 'Provided token is blocked');
+    if (isBlocked(token)) throw new HttpError(StatusCodes.FORBIDDEN, 'Provided token is blocked');
 
     const [payload, err] = verifyJwtToken<Token<FileToken>>(token);
-    if (err)
-        throw new HttpError(StatusCodes.UNAUTHORIZED, err.message);
+    if (err) throw new HttpError(StatusCodes.UNAUTHORIZED, err.message);
     if (!payload || !payload.data || payload.data.permissions.indexOf(Permission.FileBrowserWrite) === -1)
         throw new HttpError(StatusCodes.UNAUTHORIZED, 'No permission for reading file');
 
-    if (!payload.data.file || !body.url)
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
+    if (!payload.data.file || !body.url) throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
     const url = new URL(body.url);
     url.hostname = 'documentserver.digitaltwin-test.jimbertesting.be';
     url.protocol = 'https:';
@@ -250,29 +272,29 @@ router.post('/internal/files', async (req: express.Request, res: express.Respons
 
 router.post('/files/copy', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const data = req.body.paths;
-    if (!data || data.length === 0)
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'No items to copy specified');
+    if (!data || data.length === 0) throw new HttpError(StatusCodes.BAD_REQUEST, 'No items to copy specified');
 
     const destinationPath = req.body.destinationPath;
-    if (!destinationPath)
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'No destinationpath specified');
+    if (!destinationPath) throw new HttpError(StatusCodes.BAD_REQUEST, 'No destinationpath specified');
 
-    const result = await Promise.all(data.map(async (source: string) => copyWithRetry(new Path(source), new Path(destinationPath))));
+    const result = await Promise.all(
+        data.map(async (source: string) => copyWithRetry(new Path(source), new Path(destinationPath)))
+    );
     res.json(result);
     res.status(StatusCodes.CREATED);
 });
 
 router.post('/files/move', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    let config = getShareConfig()
+    let config = getShareConfig();
     const data = req.body.paths;
-    if (!data || data.length === 0)
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'No items to copy specified');
+    if (!data || data.length === 0) throw new HttpError(StatusCodes.BAD_REQUEST, 'No items to copy specified');
 
     const destinationPath = req.body.destinationPath;
 
-    if (!destinationPath)
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'No destinationpath specified');
-    const result = await Promise.all(data.map(async (source: string) => moveWithRetry(new Path(source), new Path(destinationPath))));
+    if (!destinationPath) throw new HttpError(StatusCodes.BAD_REQUEST, 'No destinationpath specified');
+    const result = await Promise.all(
+        data.map(async (source: string) => moveWithRetry(new Path(source), new Path(destinationPath)))
+    );
     res.json(result);
     res.status(StatusCodes.CREATED);
 });
@@ -281,13 +303,12 @@ router.put('/files/rename', requiresAuthentication, async (req: express.Request,
     const oldPath = new Path(req.body.oldPath);
     const newPath = new Path(req.body.newPath);
 
-    const allShares = getShareConfig()
-    const share = allShares.Shared.find(share => share.path == oldPath.path)
-
+    const allShares = getShareConfig();
+    const share = allShares.Shared.find(share => share.path == oldPath.path);
 
     if (share) {
-        updateSharePath(oldPath.path, newPath.path)
-        updateShareName(share.id, newPath.path.split('/').pop())
+        updateSharePath(oldPath.path, newPath.path);
+        updateShareName(share.id, newPath.path.split('/').pop());
     }
 
     const result = await renameFile(oldPath, newPath);
@@ -299,8 +320,7 @@ router.put('/files/rename', requiresAuthentication, async (req: express.Request,
 router.get('/files/search', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let term = req.query.searchTerm;
     let dir = req.query.currentDir;
-    if (!dir || typeof dir !== 'string')
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
+    if (!dir || typeof dir !== 'string') throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
 
     const path = new Path(dir);
     let fileList = await getFilesRecursive(path);
@@ -311,16 +331,16 @@ router.get('/files/search', requiresAuthentication, async (req: express.Request,
     res.status(StatusCodes.CREATED);
 });
 
-router.post('/files/removeShare', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const chatId = req.body.chatId as string | undefined;
-    const path = req.body.path as string | undefined;
+router.post(
+    '/files/removeFilePermissions',
+    requiresAuthentication,
+    async (req: express.Request, res: express.Response) => {
+        const chatId = req.body.chatId as string | undefined;
+        const path = req.body.path as string | undefined;
 
-    removeShare(path);
-
-
-});
-
-
+        removeFilePermissions(path, chatId);
+    }
+);
 
 router.post('/files/share', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const path = req.body.path as string | undefined;
@@ -329,43 +349,56 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
     const writable = req.body.writable as boolean | undefined;
     const chatId = req.body.chatId as string | undefined;
 
-    if (!path)
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'No path specified');
+    if (!path) throw new HttpError(StatusCodes.BAD_REQUEST, 'No path specified');
 
-    if (writable && isPublic)
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'No public writable files');
+    if (writable && isPublic) throw new HttpError(StatusCodes.BAD_REQUEST, 'No public writable files');
 
-    if (!chatId)
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'No chat specified');
+    if (!chatId) throw new HttpError(StatusCodes.BAD_REQUEST, 'No chat specified');
 
-    const chat = getChat(chatId, 0)
-    const itemStats = await getStats(new Path(path))
+    const chat = getChat(chatId, 0);
+    const itemStats = await getStats(new Path(path));
 
-    const types = <SharePermission[]>[SharePermission.Read]
-    if (writable) types.push(SharePermission.Write)
+    const types = <SharePermission[]>[SharePermission.Read];
+    if (writable) types.push(SharePermission.Write);
 
-    const sharePermissions: SharePermissionInterface[] = [{
-        chatId: chatId,
-        types
-    }]
+    const sharePermissions: SharePermissionInterface[] = [
+        {
+            chatId: chatId,
+            types,
+        },
+    ];
 
-    const allShares = getShareConfig()
-    const existingShare = getShareByPath(allShares, path, ShareStatus.Shared)
+    const allShares = getShareConfig();
+    const existingShare = getShareByPath(allShares, path, ShareStatus.Shared);
 
     // const share = existingShare ? existingShare.permissions.find(p => p.chatId === chatId) ? existingShare : await createShare(path, filename, !itemStats.isFile(), itemStats.size, itemStats.mtime.getTime(), ShareStatus.Shared, sharePermissions) : await createShare(path, filename, !itemStats.isFile(), itemStats.size, itemStats.mtime.getTime(), ShareStatus.Shared, sharePermissions);;
-
 
     let share: SharedFileInterface;
     if (!isUndefined(existingShare)) {
         let id = existingShare.id;
         // if (!existingShare.permissions.find(p => p.chatId === chatId)) {
-        share = await createShare(path, filename, !itemStats.isFile(), itemStats.size, itemStats.mtime.getTime(), ShareStatus.Shared, sharePermissions, id)
+        share = await createShare(
+            path,
+            filename,
+            !itemStats.isFile(),
+            itemStats.size,
+            itemStats.mtime.getTime(),
+            ShareStatus.Shared,
+            sharePermissions,
+            id
+        );
         // }
+    } else {
+        share = await createShare(
+            path,
+            filename,
+            !itemStats.isFile(),
+            itemStats.size,
+            itemStats.mtime.getTime(),
+            ShareStatus.Shared,
+            sharePermissions
+        );
     }
-    else {
-        share = await createShare(path, filename, !itemStats.isFile(), itemStats.size, itemStats.mtime.getTime(), ShareStatus.Shared, sharePermissions);
-    }
-
 
     let msg: Message<FileShareMessageType> = {
         id: uuidv4(),
@@ -376,18 +409,18 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
         type: MessageTypes.FILE_SHARE,
         replies: [],
         signatures: [],
-        subject: null
-    }
-    const parsedmsg = parseMessage(msg)
-    appendSignatureToMessage(parsedmsg)
-    const contacts = chat.contacts.filter(c => c.id !== config.userid)
+        subject: null,
+    };
+    const parsedmsg = parseMessage(msg);
+    appendSignatureToMessage(parsedmsg);
+    const contacts = chat.contacts.filter(c => c.id !== config.userid);
     for (const contact of contacts) {
-        await sendMessageToApi(contact.location, parsedmsg)
+        await sendMessageToApi(contact.location, parsedmsg);
     }
 
     persistMessage(chat.chatId, parsedmsg);
     sendEventToConnectedSockets('message', parsedmsg);
-    res.json()
+    res.json();
     res.status(StatusCodes.OK);
 });
 
@@ -402,79 +435,85 @@ router.get('/files/getShareWithId', requiresAuthentication, async (req: express.
     let results = await getShareWithId(shareId, ShareStatus.SharedWithMe);
     res.json(results);
     res.status(StatusCodes.OK);
-
 });
-router.get('/files/getSharedFileDownload', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    let params = Buffer.from(req.query.params as string, 'base64').toString();
-    let object = JSON.parse(params);
-    let shareId = object.shareId;
-    let token = object.token;
+router.get(
+    '/files/getSharedFileDownload',
+    requiresAuthentication,
+    async (req: express.Request, res: express.Response) => {
+        let params = Buffer.from(req.query.params as string, 'base64').toString();
+        let object = JSON.parse(params);
+        let shareId = object.shareId;
+        let token = object.token;
 
-    if (!token || typeof token !== 'string')
-        throw new HttpError(StatusCodes.UNAUTHORIZED, 'No valid token provided');
-    if (isBlocked(token))
-        throw new HttpError(StatusCodes.FORBIDDEN, 'Provided token is blocked');
+        if (!token || typeof token !== 'string')
+            throw new HttpError(StatusCodes.UNAUTHORIZED, 'No valid token provided');
+        if (isBlocked(token)) throw new HttpError(StatusCodes.FORBIDDEN, 'Provided token is blocked');
 
-    const [payload, err] = verifyJwtToken<Token<FileToken>>(token);
+        const [payload, err] = verifyJwtToken<Token<FileToken>>(token);
 
-    const share = getShareWithId(shareId, ShareStatus.Shared);
-    if (!share.path || typeof share.path !== 'string')
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
-    if (err)
-        throw new HttpError(StatusCodes.UNAUTHORIZED, err.message);
-    if (!payload || !share.path || payload.data.permissions.indexOf(Permission.FileBrowserRead) === -1)
-        throw new HttpError(StatusCodes.UNAUTHORIZED, 'No permission for reading file');
+        const share = getShareWithId(shareId, ShareStatus.Shared);
+        if (!share.path || typeof share.path !== 'string')
+            throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
+        if (err) throw new HttpError(StatusCodes.UNAUTHORIZED, err.message);
+        if (!payload || !share.path || payload.data.permissions.indexOf(Permission.FileBrowserRead) === -1)
+            throw new HttpError(StatusCodes.UNAUTHORIZED, 'No permission for reading file');
 
-    const path = new Path(share.path);
-    res.download(path.securedPath);
-    res.status(StatusCodes.CREATED);
-
-});
+        const path = new Path(share.path);
+        res.download(path.securedPath);
+        res.status(StatusCodes.CREATED);
+    }
+);
 
 router.get('/files/getShareFileAccessDetails', async (req: express.Request, res: express.Response) => {
-    const shareId = <string>req.query.shareId
-    const share = getShareWithId(shareId, ShareStatus.Shared)
+    const shareId = <string>req.query.shareId;
+    const share = getShareWithId(shareId, ShareStatus.Shared);
     if (!share) {
         throw new HttpError(StatusCodes.UNAUTHORIZED, 'Share not found');
     }
-    const userId = <string>req.query.userId
-    const givenPath = req.query.path
-    const userPermissions = getSharePermissionForUser(shareId, userId)
-    const userCanWrite = !!userPermissions.find(x => x === SharePermission.Write)
+    const userId = <string>req.query.userId;
+    const givenPath = req.query.path;
+    const userPermissions = getSharePermissionForUser(shareId, userId);
+    const userCanWrite = !!userPermissions.find(x => x === SharePermission.Write);
 
-    let realPath = share.path
+    let realPath = share.path;
     if (givenPath !== share.path) {
-        realPath = realPath + givenPath
+        realPath = realPath + givenPath;
     }
-    const securePath = new Path(realPath)
-    const key = getDocumentBrowserKey(userCanWrite, securePath.securedPath)
+    const securePath = new Path(realPath);
+    const key = getDocumentBrowserKey(userCanWrite, securePath.securedPath);
     const response = {
         ...(await getFormattedDetails(securePath)),
         key: key,
-        readToken: createJwtToken({
-            file: realPath,
-            permissions: [Permission.FileBrowserRead],
-        } as FileToken, 5 * 60),
-        writeToken: <string>undefined
-    }
+        readToken: createJwtToken(
+            {
+                file: realPath,
+                permissions: [Permission.FileBrowserRead],
+            } as FileToken,
+            5 * 60
+        ),
+        writeToken: <string>undefined,
+    };
     if (userCanWrite) {
-        response['writeToken'] = createJwtToken({
-            file: realPath,
-            permissions: [Permission.FileBrowserWrite],
-        } as FileToken, 24 * 60 * 60)
+        response['writeToken'] = createJwtToken(
+            {
+                file: realPath,
+                permissions: [Permission.FileBrowserWrite],
+            } as FileToken,
+            24 * 60 * 60
+        );
     }
     res.json(response);
     res.status(StatusCodes.OK);
 });
 
 router.get('/share/:shareId/folder', async (req: express.Request, res: express.Response) => {
-    const shareId = req.params.shareId
+    const shareId = req.params.shareId;
     let p = req.query.path;
 
-    const share = getShareWithId(shareId, ShareStatus.Shared)
+    const share = getShareWithId(shareId, ShareStatus.Shared);
 
     if (!share) {
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'Share doesn\'t exist');
+        throw new HttpError(StatusCodes.BAD_REQUEST, "Share doesn't exist");
     }
 
     // @todo verify if user can access this api call, atm security = 0
@@ -482,21 +521,27 @@ router.get('/share/:shareId/folder', async (req: express.Request, res: express.R
     if (!p || typeof p !== 'string') p = '/';
     const path = new Path(share.path + '/' + p);
     const stats = await getStats(path);
-    if (!stats.isDirectory() || stats.isBlockDevice() || stats.isCharacterDevice() || stats.isSymbolicLink() || stats.isSocket())
+    if (
+        !stats.isDirectory() ||
+        stats.isBlockDevice() ||
+        stats.isCharacterDevice() ||
+        stats.isSymbolicLink() ||
+        stats.isSocket()
+    )
         throw new HttpError(StatusCodes.BAD_REQUEST, 'Path is not a directory');
 
-    const resultDirs = await readDir(path, { withFileTypes: true })
-    resultDirs.forEach((dir) => dir.path = dir.path.substring(share.path.length))
+    const resultDirs = await readDir(path, { withFileTypes: true });
+    resultDirs.forEach(dir => (dir.path = dir.path.substring(share.path.length)));
     res.json(resultDirs);
     res.status(StatusCodes.OK);
 });
 
 router.get('/share/path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const path = <string>req.query.path
-    const allShares = getShareConfig()
+    const path = <string>req.query.path;
+    const allShares = getShareConfig();
     let share = getShareByPath(allShares, path, ShareStatus.Shared);
     res.json(share);
     res.status(StatusCodes.OK);
-})
+});
 
 export default router;

@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { appCallback, getAppLoginUrl } from '../service/authService';
-import {yggdrasilIsInitialized} from "../index";
-import {HttpError} from "../types/errors/httpError";
-import {StatusCodes} from "http-status-codes";
+import { yggdrasilIsInitialized } from '../index';
+import { HttpError } from '../types/errors/httpError';
+import { StatusCodes } from 'http-status-codes';
 const router = Router();
 
 router.get('/', async (request, response) => {
@@ -17,7 +17,7 @@ router.get('/', async (request, response) => {
 
 router.get('/signin', async (request, response) => {
     let loginUrl = await getAppLoginUrl(request, `/api/auth/callback`);
-    loginUrl = loginUrl + "&username=" + request.query.username
+    loginUrl = loginUrl + '&username=' + request.query.username;
 
     console.log('url: ', loginUrl);
     response.redirect(loginUrl);
@@ -37,7 +37,7 @@ router.get('/callback', async (request, response) => {
 
 router.get('/authenticated', async (request, response) => {
     const hasSession = !!request?.session?.userId;
-    const isDevelopmentMode =  process.env.ENVIRONMENT === 'development';
+    const isDevelopmentMode = process.env.ENVIRONMENT === 'development';
     if (!hasSession && (!isDevelopmentMode || !yggdrasilIsInitialized)) {
         response.send('false');
         return;

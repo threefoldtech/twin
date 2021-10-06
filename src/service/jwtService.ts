@@ -4,9 +4,13 @@ import { config } from '../config/config';
 
 export const createJwtToken = (data: any, exp?: number | string) => {
     const privateKey = getPrivateKey();
-    return sign({
-        data: data,
-    }, Buffer.from(privateKey), { expiresIn: exp ?? '9999 years', issuer: config.userid });
+    return sign(
+        {
+            data: data,
+        },
+        Buffer.from(privateKey),
+        { expiresIn: exp ?? '9999 years', issuer: config.userid }
+    );
 };
 
 export const verifyJwtToken = <T extends object>(token: string): [payload: T, error: any] => {
@@ -18,8 +22,7 @@ export const verifyJwtToken = <T extends object>(token: string): [payload: T, er
         return [undefined, ex];
     }
 };
-export const parseJwt= (token: string) =>{
+export const parseJwt = (token: string) => {
     let base64Url = token.split('.')[1];
-    return JSON.parse(Buffer.from(base64Url, 'base64').toString())
+    return JSON.parse(Buffer.from(base64Url, 'base64').toString());
 };
-

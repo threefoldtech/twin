@@ -19,9 +19,7 @@ routes.use('/messages/', messageRouter);
 routes.use('/user/', userRouter);
 routes.use('/group/', groupUser);
 routes.use('/blocked/', blockedRouter);
-routes.use('/browse/', fileBrowserRouter)
+routes.use('/browse/', fileBrowserRouter);
 routes.use('/', misc);
-
-
 
 export default routes;

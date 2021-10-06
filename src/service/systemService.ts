@@ -10,10 +10,7 @@ import { sendMessageToApi } from './apiService';
 import { getFullIPv6ApiLocation } from './urlService';
 import axios from 'axios';
 
-export const handleSystemMessage = (
-    message: Message<{ contact: Contact; type: string }>,
-    chat: Chat
-) => {
+export const handleSystemMessage = (message: Message<{ contact: Contact; type: string }>, chat: Chat) => {
     if (chat.adminId !== message.from) {
         throw Error('not allowed');
     }
@@ -24,12 +21,15 @@ export const handleSystemMessage = (
             //@todo send message request to invited 3 bot
             const path = getFullIPv6ApiLocation(message.body.contact.location, '/group/invite');
             try {
-                axios.put(path, chat).then(()=>{
-                    sendEventToConnectedSockets('chat_updated', chat);
-                    sendMessageToApi(message.body.contact.location, message);
-                }).catch(e => {
-                    console.log('failed to send group request');
-                })
+                axios
+                    .put(path, chat)
+                    .then(() => {
+                        sendEventToConnectedSockets('chat_updated', chat);
+                        sendMessageToApi(message.body.contact.location, message);
+                    })
+                    .catch(e => {
+                        console.log('failed to send group request');
+                    });
             } catch (e) {
                 console.log('failed to send group request');
             }
@@ -41,19 +41,17 @@ export const handleSystemMessage = (
                 sendEventToConnectedSockets('chat_removed', chat.chatId);
                 return;
             }
-            chat.contacts = chat.contacts.filter(
-                c => c.id !== message.body.contact.id
-            );
+            chat.contacts = chat.contacts.filter(c => c.id !== message.body.contact.id);
 
             sendEventToConnectedSockets('chat_updated', chat);
             sendMessageToApi(message.body.contact.location, message);
             break;
         case SystemMessageType.JOINED_VIDEOROOM: {
-            persistMessage(chat.chatId, message)
+            persistMessage(chat.chatId, message);
             return;
         }
         case SystemMessageType.CONTACT_REQUEST_SEND: {
-            persistMessage(chat.chatId, message)
+            persistMessage(chat.chatId, message);
             return;
         }
         default:

@@ -1,10 +1,4 @@
-import {
-    DtIdInterface,
-    IdInterface,
-    MessageBodyTypeInterface,
-    MessageInterface,
-    MessageTypes,
-} from '../types';
+import { DtIdInterface, IdInterface, MessageBodyTypeInterface, MessageInterface, MessageTypes } from '../types';
 
 export default class Message<T> implements MessageInterface<T> {
     public from: DtIdInterface;

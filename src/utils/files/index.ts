@@ -6,7 +6,7 @@ import { PathInfo } from '../../types/dtos/fileDto';
 import { config } from '../../config/config';
 import { UploadedFile } from 'express-fileupload';
 import * as fse from 'fs-extra';
-import {updateShareName, updateSharePath} from '../../service/fileShareService';
+import { updateShareName, updateSharePath } from '../../service/fileShareService';
 import { getShareConfig } from '../../service/dataService';
 
 const baseDir = PATH.join(config.baseDir, config.storage);
@@ -48,15 +48,13 @@ export class Path {
 }
 
 export const getStats = (path: Path): Promise<Stats> => {
-    if (!pathExists(path))
-        throw new FileSystemError(ErrorType.FileNotFound, 'fileDoesNotExist');
+    if (!pathExists(path)) throw new FileSystemError(ErrorType.FileNotFound, 'fileDoesNotExist');
 
     return FS.stat(path.securedPath);
 };
 
 export const getFile = async (path: Path): Promise<Buffer> => {
-    if (!pathExists(path))
-        throw new FileSystemError(ErrorType.FileNotFound, 'fileDoesNotExist');
+    if (!pathExists(path)) throw new FileSystemError(ErrorType.FileNotFound, 'fileDoesNotExist');
 
     return await readFile(path);
 };
@@ -65,12 +63,12 @@ export const getFormattedDetails = async (path: Path): Promise<PathInfo> => {
     const stats = await getStats(path);
     const details = PATH.parse(path.securedPath);
     const extension = details.ext.replace('.', '');
-    console.log("s", stats);
-    console.log("d", details);
+    console.log('s', stats);
+    console.log('d', details);
     return {
         isFile: stats.isFile(),
         isDirectory: stats.isDirectory(),
-        directory: details.dir.replace(baseDir, ""),
+        directory: details.dir.replace(baseDir, ''),
         path: path.path,
         fullName: details.base,
         name: details.name,
@@ -89,18 +87,21 @@ export const createDir = async (path: Path): Promise<PathInfo> => {
     return await getFormattedDetails(path);
 };
 
-export const readDir = async (path: Path, options:  & { withFileTypes: true }): Promise<PathInfo[]> => {
+export const readDir = async (path: Path, options: { withFileTypes: true }): Promise<PathInfo[]> => {
     const exists = await pathExists(path);
     if (!exists) return [];
     const content = await readDirectory(path, options);
-    return (await Promise.all(content.map(c => {
-        if (c.isBlockDevice() || c.isCharacterDevice() || c.isSymbolicLink() || c.isSocket())
-            return;
+    return (
+        await Promise.all(
+            content.map(c => {
+                if (c.isBlockDevice() || c.isCharacterDevice() || c.isSymbolicLink() || c.isSocket()) return;
 
-        const itemPath = new Path(path.path);
-        itemPath.appendPath(c.name);
-        return getFormattedDetails(itemPath);
-    }))).filter(c => c) as PathInfo[];
+                const itemPath = new Path(path.path);
+                itemPath.appendPath(c.name);
+                return getFormattedDetails(itemPath);
+            })
+        )
+    ).filter(c => c) as PathInfo[];
 };
 
 export const isPathDirectory = async (path: Path): Promise<boolean> => {
@@ -113,23 +114,21 @@ export const isPathDirectory = async (path: Path): Promise<boolean> => {
 
 export const getNameWithCount = async (source: Path, count = 0) => {
     const details = await getFormattedDetails(source);
-    if (!count)  return details.fullName;
+    if (!count) return details.fullName;
     if (details.isDirectory) return `${details.fullName} (${count})`;
     return `${details.name} (${count})${details.extension ? `.${details.extension}` : undefined}`;
 };
 
 export const createDirectoryWithRetry = async (path: Path, count = 0): Promise<PathInfo> => {
     const pathCount = count === 0 ? path : new Path(`${path.path} (${count})`);
-    if (pathExists(pathCount))
-        return await createDirectoryWithRetry(path, count + 1);
+    if (pathExists(pathCount)) return await createDirectoryWithRetry(path, count + 1);
 
     return await createDir(path);
 };
 
 export const saveFileWithRetry = async (path: Path, file: UploadedFile, count = 0): Promise<PathInfo> => {
     const pathCount = count === 0 ? path : new Path(path.path.insert(path.path.lastIndexOf('.'), ` (${count})`));
-    if (pathExists(pathCount))
-        return await saveFileWithRetry(path, file, count + 1);
+    if (pathExists(pathCount)) return await saveFileWithRetry(path, file, count + 1);
 
     return await saveUploadedFile(pathCount, file);
 };
@@ -137,8 +136,7 @@ export const saveFileWithRetry = async (path: Path, file: UploadedFile, count = 
 export const copyWithRetry = async (source: Path, destinationDirectory: Path, count = 0): Promise<PathInfo> => {
     const name = await getNameWithCount(source, count);
     const destinationCount = new Path(PATH.join(destinationDirectory.path, name));
-    if (pathExists(destinationCount))
-        return copyWithRetry(source, destinationDirectory, count + 1);
+    if (pathExists(destinationCount)) return copyWithRetry(source, destinationDirectory, count + 1);
 
     return copy(source, destinationCount);
 };
@@ -146,23 +144,20 @@ export const copyWithRetry = async (source: Path, destinationDirectory: Path, co
 export const moveWithRetry = async (source: Path, destinationDirectory: Path, count = 0): Promise<PathInfo> => {
     const name = await getNameWithCount(source, count);
     const destinationCount = new Path(PATH.join(destinationDirectory.path, name));
-    if (pathExists(destinationCount))
-        return moveWithRetry(source, destinationDirectory, count + 1);
+    if (pathExists(destinationCount)) return moveWithRetry(source, destinationDirectory, count + 1);
 
     return move(source, destinationCount);
 };
 
 export const saveUploadedFile = async (path: Path, file: UploadedFile) => {
-    if (file.tempFilePath)
-        return await moveUploadedFile(file, path);
+    if (file.tempFilePath) return await moveUploadedFile(file, path);
 
     return saveFile(path, file.data);
 };
 
 export const moveUploadedFile = async (file: UploadedFile, path: Path) => {
     const directory = new Path(path.path.removeAfterLastOccurrence('/'));
-    if (!pathExists(directory))
-        await createDir(directory);
+    if (!pathExists(directory)) await createDir(directory);
 
     await file.mv(path.securedPath);
     return await getFormattedDetails(path);
@@ -170,8 +165,7 @@ export const moveUploadedFile = async (file: UploadedFile, path: Path) => {
 
 export const saveFile = async (path: Path, file: Buffer) => {
     const directory = new Path(path.path.removeAfterLastOccurrence('/'));
-    if (!pathExists(directory))
-        await createDir(directory);
+    if (!pathExists(directory)) await createDir(directory);
 
     await writeFile(path, file);
     return await getFormattedDetails(path);
@@ -186,17 +180,16 @@ export const copy = async (source: Path, destination: Path) => {
     return await getFormattedDetails(destination);
 };
 
-export const move = async (
-    source: Path,
-    destination: Path,
-) => {
-    let config = getShareConfig()
-    const share = config.Shared.find(share => share.path == source.path)
+export const move = async (source: Path, destination: Path) => {
+    let config = getShareConfig();
+    const share = config.Shared.find(share => share.path == source.path);
 
     if (share) {
-        updateSharePath(source.path, destination.path)
+        updateSharePath(source.path, destination.path);
     }
-    fse.moveSync(source.securedPath, destination.securedPath, { overwrite: false });
+    fse.moveSync(source.securedPath, destination.securedPath, {
+        overwrite: false,
+    });
     return await getFormattedDetails(destination);
 };
 
@@ -240,11 +233,9 @@ const writeFile = async (path: Path, file: Buffer) => {
 };
 
 export const removeFile = async (path: Path) => {
-    if (await isPathDirectory(path))
-        return rmdirSync(path.securedPath, { recursive: true });
+    if (await isPathDirectory(path)) return rmdirSync(path.securedPath, { recursive: true });
 
-    if (!pathExists(path))
-        throw new FileSystemError(ErrorType.FileNotFound);
+    if (!pathExists(path)) throw new FileSystemError(ErrorType.FileNotFound);
 
     return await FS.rm(path.securedPath);
 };
@@ -255,4 +246,3 @@ export const renameFile = async (oldPath: Path, newPath: Path) => {
     }
     return await FS.rename(oldPath.securedPath, newPath.securedPath);
 };
-

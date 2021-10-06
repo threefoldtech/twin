@@ -29,7 +29,7 @@ app.use(
                 httpLogger.http(text);
             },
         },
-    }),
+    })
 );
 app.use(errorMiddleware);
 
@@ -50,7 +50,7 @@ app.use(
             httpOnly: false,
             secure: false,
         },
-    }),
+    })
 );
 
 app.use(bodyParser.raw());
@@ -61,7 +61,7 @@ app.use(
     fileupload({
         useTempFiles: true,
         parseNested: true,
-    }),
+    })
 );
 
 app.use('/api/', routes);

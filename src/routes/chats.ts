@@ -1,10 +1,6 @@
 import { IdInterface } from '../types/index';
 import express, { Router } from 'express';
-import {
-    getAcceptedChatsWithPartialMessages,
-    getChatRequests,
-    getChatById,
-} from '../service/chatService';
+import { getAcceptedChatsWithPartialMessages, getChatRequests, getChatById } from '../service/chatService';
 import { getChat, persistChat } from '../service/dataService';
 import { sendEventToConnectedSockets } from '../service/socketService';
 import { config } from '../config/config';
