@@ -15,7 +15,7 @@ export const setUserData = () => {
         id = userData.id;
         lastSeen = userData.lastSeen;
     } catch (error) {
-        console.log("setting default user data");
+        console.log('setting default user data');
         status = 'Exploring the new DigitalTwin';
         image = `default`;
         id = config.userid;
@@ -24,13 +24,13 @@ export const setUserData = () => {
 };
 
 export const initUserData = () => {
-    console.log("Init set user data");
+    console.log('Init set user data');
     setUserData();
 };
 
 export const getId = () => {
     return id;
-}
+};
 
 export const getStatus = () => {
     return status;
@@ -72,10 +72,9 @@ export const updateStatus = (newStatus: string) => {
 export const updateLastSeen = () => {
     lastSeen = new Date().getTime();
     saveUserData();
-}
+};
 
-export const updateAvatar = (url:string) => {
+export const updateAvatar = (url: string) => {
     image = url;
     saveUserData();
-}
-
+};

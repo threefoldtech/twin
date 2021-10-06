@@ -8,10 +8,7 @@ import { sendEventToConnectedSockets } from './socketService';
 import { getChatfromAdmin } from './apiService';
 import { config } from '../config/config';
 
-export const persistMessage = (
-    chatId: IdInterface,
-    message: MessageInterface<MessageBodyTypeInterface>
-) => {
+export const persistMessage = (chatId: IdInterface, message: MessageInterface<MessageBodyTypeInterface>) => {
     const chat = getChat(chatId);
     if (!message.subject) {
         chat.messages.push(message);
@@ -20,9 +17,7 @@ export const persistMessage = (
         return;
     }
 
-    const subjectMessageIndex = chat.messages.findIndex(
-        m => m.id === message.subject
-    );
+    const subjectMessageIndex = chat.messages.findIndex(m => m.id === message.subject);
     const subjectMessage = chat.messages[subjectMessageIndex];
     subjectMessage.replies = [...subjectMessage.replies, message];
     chat.messages[subjectMessageIndex] = subjectMessage;
@@ -41,16 +36,7 @@ export const addChat = (
     acceptedChat: boolean,
     adminId: DtIdInterface
 ) => {
-    const chat = new Chat(
-        chatId,
-        contacts,
-        isGroupchat,
-        message,
-        name,
-        acceptedChat,
-        adminId,
-        {}
-    );
+    const chat = new Chat(chatId, contacts, isGroupchat, message, name, acceptedChat, adminId, {});
     // @TODO clean this up
     if (chat.chatId == config.userid) {
         return null;
@@ -60,10 +46,7 @@ export const addChat = (
     return chat;
 };
 
-export const syncNewChatWithAdmin = async (
-    adminLocation: string,
-    chatId: string
-) => {
+export const syncNewChatWithAdmin = async (adminLocation: string, chatId: string) => {
     const chat = await getChatfromAdmin(adminLocation, chatId);
     console.log('retreived chat', chat);
     sendEventToConnectedSockets('new_chat', chat);
@@ -96,7 +79,7 @@ export const parsePartialChat = (chat: any, amount: number) => {
     const start = chat.messages.length - amount;
     const messages = chat.messages.slice(start < 0 ? 0 : start, chat.messages.length);
     return parseChat(chat, parseMessages(messages));
-}
+};
 
 export const parseChat = (chat: any, messages: Array<MessageInterface<MessageBodyTypeInterface>>) => {
     return new Chat(

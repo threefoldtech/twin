@@ -26,20 +26,20 @@ const setKeys = () => {
 };
 
 export const initKeys = () => {
-    console.log("Init keys")
+    console.log('Init keys');
     try {
         setKeys();
     } catch (ex) {
-        console.log("Pub and private key not found, first time login no keys yet")
+        console.log('Pub and private key not found, first time login no keys yet');
     }
-}
+};
 
 export const getPrivateKey = () => {
     return privateKey;
 };
 
 export const updatePrivateKey = (pk: Uint8Array) => {
-    const pkString = uint8ToBase64(pk)
+    const pkString = uint8ToBase64(pk);
     saveKey(pkString, Key.Private);
     privateKey = pkString;
 };
@@ -49,7 +49,7 @@ export const getPublicKey = () => {
 };
 
 export const updatePublicKey = (pk: Uint8Array) => {
-    const pkString = uint8ToBase64(pk)
+    const pkString = uint8ToBase64(pk);
     saveKey(pkString, Key.Public);
     publicKey = pkString;
 };

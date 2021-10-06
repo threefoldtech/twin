@@ -1,10 +1,6 @@
 import Contact from './contact';
 import Message from './message';
-import {
-    ChatInterface,
-    DtIdInterface,
-    MessageBodyTypeInterface,
-} from '../types';
+import { ChatInterface, DtIdInterface, MessageBodyTypeInterface } from '../types';
 
 export default class Chat implements ChatInterface {
     chatId: String;

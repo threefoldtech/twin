@@ -1,9 +1,5 @@
 import Message from '../models/message';
-import {
-    base64ToUint8Array,
-    createBase64Signature,
-    verifySignature,
-} from './encryptionService';
+import { base64ToUint8Array, createBase64Signature, verifySignature } from './encryptionService';
 import { getPrivateKey, getPublicKeyFromCache, setPublicKeyInCache } from '../store/keyStore';
 import { getPublicKey } from './apiService';
 import Contact from '../models/contact';

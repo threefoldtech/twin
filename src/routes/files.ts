@@ -34,10 +34,7 @@ router.post('/:chatid/:messageid', async (req, resp) => {
         body: <FileMessageType>{
             type: req.body.type,
             filename: fileToSave.name,
-            url: getFullIPv6ApiLocation(
-                myLocation,
-                `/files/${chatId}/${messageId}/${fileToSave.name}`,
-            ),
+            url: getFullIPv6ApiLocation(myLocation, `/files/${chatId}/${messageId}/${fileToSave.name}`),
         },
         id: messageId,
         timeStamp: new Date(),
@@ -49,12 +46,9 @@ router.post('/:chatid/:messageid', async (req, resp) => {
     };
     sendEventToConnectedSockets('message', message);
     const chat = getChat(chatId);
-    const messageToSend = parseMessage(message)
+    const messageToSend = parseMessage(message);
     appendSignatureToMessage(messageToSend);
-    await sendMessageToApi(
-        chat.contacts.find(contact => contact.id === chat.adminId).location,
-        messageToSend,
-    );
+    await sendMessageToApi(chat.contacts.find(contact => contact.id === chat.adminId).location, messageToSend);
     chat.addMessage(messageToSend);
     persistChat(chat);
     resp.sendStatus(200);

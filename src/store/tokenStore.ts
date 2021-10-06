@@ -6,7 +6,7 @@ import { verifyJwtToken } from '../service/jwtService';
 
 export enum Permission {
     FileBrowserRead = 'FileBrowserRead',
-    FileBrowserWrite = 'FileBrowserWrite'
+    FileBrowserWrite = 'FileBrowserWrite',
 }
 
 export interface ITokenFile {
@@ -20,7 +20,7 @@ export interface Token<T extends TokenData> {
 }
 
 export interface TokenData {
-    permissions: Permission[]
+    permissions: Permission[];
 }
 
 export const initTokens = () => {

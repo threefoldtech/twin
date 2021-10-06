@@ -44,7 +44,7 @@ export enum SystemMessageType {
     ADDUSER = 'ADDUSER',
     REMOVEUSER = 'REMOVEUSER',
     JOINED_VIDEOROOM = 'JOINED_VIDEOROOM',
-    CONTACT_REQUEST_SEND = 'CONTACT_REQUEST_SEND'
+    CONTACT_REQUEST_SEND = 'CONTACT_REQUEST_SEND',
 }
 
 export enum FileTypes {
@@ -67,7 +67,7 @@ export interface MessageInterface<T> extends MessageBodyTypeInterface {
     timeStamp: Date;
     subject: IdInterface | null;
     replies: MessageInterface<MessageBodyTypeInterface>[];
-    signatures: string[],
+    signatures: string[];
     updated?: Date | undefined;
 }
 
@@ -75,20 +75,16 @@ export interface MessageBodyTypeInterface {}
 
 export interface StringMessageTypeInterface extends MessageBodyTypeInterface {}
 
-export interface ContactRequest
-    extends MessageBodyTypeInterface,
-        ContactInterface {}
+export interface ContactRequest extends MessageBodyTypeInterface, ContactInterface {}
 export interface FileMessageType extends MessageBodyTypeInterface {
     type: FileTypes;
     filename: string;
     url: string;
 }
 
-export interface FileShareMessageType extends MessageBodyTypeInterface, SharedFileInterface {
-}
+export interface FileShareMessageType extends MessageBodyTypeInterface, SharedFileInterface {}
 
-export interface FileShareUpdateMessageType extends MessageBodyTypeInterface, SharedFileInterface {
-}
+export interface FileShareUpdateMessageType extends MessageBodyTypeInterface, SharedFileInterface {}
 
 export interface SystemMessageInterface extends MessageBodyTypeInterface {
     type: SystemMessageType;
@@ -126,11 +122,9 @@ export interface AnonymousContactInterface {
     id: DtIdInterface;
 }
 
-export interface DtIdInterface extends IdInterface {
-}
+export interface DtIdInterface extends IdInterface {}
 
-export interface IdInterface extends String {
-}
+export interface IdInterface extends String {}
 
 const test: IdInterface = '';
 

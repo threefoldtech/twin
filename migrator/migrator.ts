@@ -8,12 +8,11 @@ const migrationsConfigPath = PATH.join(config.baseDir, 'migrations.json');
 
 interface IMigration {
     name: string;
-    executedOn: Date
+    executedOn: Date;
 }
 
 const getMigrations = (): IMigration[] => {
-    if (!fs.existsSync(migrationsConfigPath))
-        return [];
+    if (!fs.existsSync(migrationsConfigPath)) return [];
 
     const raw = fs.readFileSync(migrationsConfigPath, 'utf8');
     return JSON.parse(raw) as IMigration[];
@@ -27,8 +26,7 @@ const persistMigrations = (data: IMigration[]): void => {
     const files = fs.readdirSync(migrationsFolder).sort();
     const migrations = getMigrations();
     for (const file of files) {
-        if (!file.match(migrationName))
-            continue;
+        if (!file.match(migrationName)) continue;
 
         const migration = await import(PATH.join(migrationsFolder, file));
         if (migration.up === undefined || migration.down === undefined)

@@ -9,9 +9,9 @@ import { getPublicKey } from '../store/keyStore';
 
 const router = Router();
 
-router.get("/publickey", (req, res) => {
+router.get('/publickey', (req, res) => {
     res.json(getPublicKey());
-})
+});
 
 router.get('/getStatus', async (req, res) => {
     const isOnline = connections.getConnections().length ? true : false;
@@ -40,7 +40,7 @@ router.post('/avatar', async (req, resp) => {
     const file = <UploadedFile>req.files.file;
     const avatarId = uuidv4();
     await saveAvatar(file, avatarId);
-    await deleteAvatar(getImage())
+    await deleteAvatar(getImage());
 
     updateAvatar(avatarId);
     const newUrl = await getAvatar();

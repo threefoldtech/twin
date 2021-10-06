@@ -1,10 +1,10 @@
 import nacl from 'tweetnacl';
-import {encodeHex} from './encryptionService';
-import {execSync, spawn} from 'child_process';
+import { encodeHex } from './encryptionService';
+import { execSync, spawn } from 'child_process';
 import fs from 'fs';
 import PATH from 'path';
-import {config} from '../config/config';
-import {getMyLocation} from "./locationService";
+import { config } from '../config/config';
+import { getMyLocation } from './locationService';
 
 export interface YggdrasilConfig {
     signingPrivateKey: string;
@@ -21,11 +21,14 @@ export let isInitialized = false;
 
 const replaceValues = (generatedConfig: string, replaceConfig: YggdrasilConfig) => {
     let cfg = generatedConfig;
-    cfg = cfg.replace(/EncryptionPublicKey: .*$/mg, `EncryptionPublicKey: ${replaceConfig.encryptionPublicKey}`);
-    cfg = cfg.replace(/EncryptionPrivateKey: .*$/mg, `EncryptionPrivateKey: ${replaceConfig.encryptionPrivateKey}`);
-    cfg = cfg.replace(/SigningPublicKey: .*$/mg, `SigningPublicKey: ${replaceConfig.signingPublicKey}`);
-    cfg = cfg.replace(/SigningPrivateKey: .*$/mg, `SigningPrivateKey: ${replaceConfig.signingPrivateKey}`);
-    cfg = cfg.replace(/Peers: \[]/mg, `Peers: ${config.yggdrasil.peers.length === 0 ? "[]" : `["${config.yggdrasil.peers.join('","')}"]`}`);
+    cfg = cfg.replace(/EncryptionPublicKey: .*$/gm, `EncryptionPublicKey: ${replaceConfig.encryptionPublicKey}`);
+    cfg = cfg.replace(/EncryptionPrivateKey: .*$/gm, `EncryptionPrivateKey: ${replaceConfig.encryptionPrivateKey}`);
+    cfg = cfg.replace(/SigningPublicKey: .*$/gm, `SigningPublicKey: ${replaceConfig.signingPublicKey}`);
+    cfg = cfg.replace(/SigningPrivateKey: .*$/gm, `SigningPrivateKey: ${replaceConfig.signingPrivateKey}`);
+    cfg = cfg.replace(
+        /Peers: \[]/gm,
+        `Peers: ${config.yggdrasil.peers.length === 0 ? '[]' : `["${config.yggdrasil.peers.join('","')}"]`}`
+    );
     return cfg;
 };
 
@@ -57,9 +60,9 @@ const saveConfigs = (conf: string, replacements: YggdrasilConfig) => {
 const runYggdrasil: () => Promise<void> = () => {
     const out = fs.openSync('/var/log/yggdrasil/out.log', 'a');
     const err = fs.openSync('/var/log/yggdrasil/err.log', 'a');
-    const p = spawn('yggdrasil', ["-useconffile", configPath, "-logto", "/var/log/yggdrasil/yggdrasil.log"], {
+    const p = spawn('yggdrasil', ['-useconffile', configPath, '-logto', '/var/log/yggdrasil/yggdrasil.log'], {
         detached: true,
-        stdio: ['ignore', out, err]
+        stdio: ['ignore', out, err],
     });
     p.unref();
 
@@ -69,7 +72,7 @@ const runYggdrasil: () => Promise<void> = () => {
             if (done) return;
             reject();
             done = true;
-        }, 30000)
+        }, 30000);
         while (!done) {
             const address = await getMyLocation();
             if (address) {
@@ -78,7 +81,7 @@ const runYggdrasil: () => Promise<void> = () => {
                 break;
             }
         }
-    })
+    });
 };
 
 export const initYggdrasil = () => {
@@ -86,7 +89,7 @@ export const initYggdrasil = () => {
     console.log('Yggdrasil initialized');
     isInitialized = true;
     return;
-}
+};
 
 export const setupYggdrasil = async (seed: string) => {
     const chatSeed = `${seed}-chat`;

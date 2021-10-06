@@ -9,16 +9,14 @@ import {
     StringMessageTypeInterface,
 } from '../types';
 import Message from '../models/message';
-import {getChat, persistChat, saveFile} from './dataService';
-import {sendEventToConnectedSockets} from './socketService';
-import {determineChatId} from '../routes/messages';
+import { getChat, persistChat, saveFile } from './dataService';
+import { sendEventToConnectedSockets } from './socketService';
+import { determineChatId } from '../routes/messages';
 import { UploadedFile } from 'express-fileupload';
 
 export const parseMessages = (messages: Array<any>) => messages.map(parseMessage);
 
-export const parseMessage = (
-    msg: any,
-): MessageInterface<MessageBodyTypeInterface> => {
+export const parseMessage = (msg: any): MessageInterface<MessageBodyTypeInterface> => {
     const type: MessageTypes = <MessageTypes>msg.type;
 
     // console.log('MESSAGE: ', msg);
@@ -32,9 +30,7 @@ export const parseMessage = (
                 new Date(msg.timeStamp),
                 msg.id,
                 type,
-                msg.replies
-                    ? [...msg.replies?.map((r: any) => parseMessage(r))]
-                    : [],
+                msg.replies ? [...msg.replies?.map((r: any) => parseMessage(r))] : [],
                 msg?.subject,
                 msg?.signatures,
                 msg?.updated
@@ -47,9 +43,7 @@ export const parseMessage = (
                 new Date(msg.timeStamp),
                 msg.id,
                 type,
-                msg.replies
-                    ? [...msg.replies?.map((r: any) => parseMessage(r))]
-                    : [],
+                msg.replies ? [...msg.replies?.map((r: any) => parseMessage(r))] : [],
                 msg?.subject,
                 msg?.signatures,
                 msg?.updated
@@ -62,9 +56,7 @@ export const parseMessage = (
                 new Date(msg.timeStamp),
                 msg.id,
                 type,
-                msg.replies
-                    ? [...msg.replies?.map((r: any) => parseMessage(r))]
-                    : [],
+                msg.replies ? [...msg.replies?.map((r: any) => parseMessage(r))] : [],
                 msg?.subject,
                 msg?.signatures,
                 msg?.updated
@@ -77,34 +69,26 @@ export const parseMessage = (
                 new Date(msg.timeStamp),
                 msg.id,
                 type,
-                msg.replies
-                    ? [...msg.replies?.map((r: any) => parseMessage(r))]
-                    : [],
+                msg.replies ? [...msg.replies?.map((r: any) => parseMessage(r))] : [],
                 msg?.subject,
                 msg?.signatures,
                 msg?.updated
             );
         case MessageTypes.FILE_UPLOAD:
-            console.log("File re-upload")
-            const url = saveFile(
-                msg.to,
-                msg.id,
-                {
-                    name: msg.body.name,
-                    data: msg.body.parsedFile
-                } as UploadedFile
-            );
+            console.log('File re-upload');
+            const url = saveFile(msg.to, msg.id, {
+                name: msg.body.name,
+                data: msg.body.parsedFile,
+            } as UploadedFile);
 
             return new Message<FileMessageType>(
                 msg.from,
                 msg.to,
-                <FileMessageType>{filename: msg.body.name},
+                <FileMessageType>{ filename: msg.body.name },
                 new Date(msg.timeStamp),
                 msg.id,
                 MessageTypes.FILE,
-                msg.replies
-                    ? [...msg.replies?.map((r: any) => parseMessage(r))]
-                    : [],
+                msg.replies ? [...msg.replies?.map((r: any) => parseMessage(r))] : [],
                 msg?.subject,
                 msg?.signatures,
                 msg?.updated
@@ -117,9 +101,7 @@ export const parseMessage = (
                 new Date(msg.timeStamp),
                 msg.id,
                 type,
-                msg.replies
-                    ? [...msg.replies?.map((r: any) => parseMessage(r))]
-                    : [],
+                msg.replies ? [...msg.replies?.map((r: any) => parseMessage(r))] : [],
                 msg?.subject,
                 msg?.signatures,
                 msg?.updated
@@ -132,9 +114,7 @@ export const parseMessage = (
                 new Date(msg.timeStamp),
                 msg.id,
                 type,
-                msg.replies
-                    ? [...msg.replies?.map((r: any) => parseMessage(r))]
-                    : [],
+                msg.replies ? [...msg.replies?.map((r: any) => parseMessage(r))] : [],
                 msg?.subject,
                 msg?.signatures,
                 msg?.updated
@@ -147,9 +127,7 @@ export const parseMessage = (
                 new Date(msg.timeStamp),
                 msg.id,
                 MessageTypes.EDIT,
-                msg.replies
-                    ? [...msg.replies?.map((r: any) => parseMessage(r))]
-                    : [],
+                msg.replies ? [...msg.replies?.map((r: any) => parseMessage(r))] : [],
                 msg?.subject,
                 msg?.signatures,
                 msg?.updated
@@ -162,9 +140,7 @@ export const parseMessage = (
                 new Date(msg.timeStamp),
                 msg.id,
                 MessageTypes.DELETE,
-                msg.replies
-                    ? [...msg.replies?.map((r: any) => parseMessage(r))]
-                    : [],
+                msg.replies ? [...msg.replies?.map((r: any) => parseMessage(r))] : [],
                 msg?.subject,
                 msg?.signatures,
                 msg?.updated
@@ -177,9 +153,7 @@ export const parseMessage = (
                 new Date(msg.timeStamp),
                 msg.id,
                 MessageTypes.QUOTE,
-                msg.replies
-                    ? [...msg.replies?.map((r: any) => parseMessage(r))]
-                    : [],
+                msg.replies ? [...msg.replies?.map((r: any) => parseMessage(r))] : [],
                 msg?.subject,
                 msg?.signatures,
                 msg?.updated
@@ -192,9 +166,7 @@ export const parseMessage = (
                 new Date(msg.timeStamp),
                 msg.id,
                 MessageTypes.READ,
-                msg.replies
-                    ? [...msg.replies?.map((r: any) => parseMessage(r))]
-                    : [],
+                msg.replies ? [...msg.replies?.map((r: any) => parseMessage(r))] : [],
                 msg?.subject,
                 msg?.signatures,
                 msg?.updated
@@ -208,9 +180,7 @@ export const parseMessage = (
                 new Date(msg.timeStamp),
                 msg.id,
                 msg.type,
-                msg.replies
-                    ? [...msg.replies?.map((r: any) => parseMessage(r))]
-                    : [],
+                msg.replies ? [...msg.replies?.map((r: any) => parseMessage(r))] : [],
                 msg?.subject,
                 msg?.signatures,
                 msg?.updated
@@ -236,7 +206,7 @@ export const editReply = (chatId: IdInterface, newMessage: Message<MessageBodyTy
 
 export const editMessage = (
     chatId: IdInterface,
-    newMessage: Message<MessageBodyTypeInterface | Message<MessageBodyTypeInterface>>,
+    newMessage: Message<MessageBodyTypeInterface | Message<MessageBodyTypeInterface>>
 ) => {
     if (newMessage.subject) {
         editReply(chatId, newMessage);
@@ -263,7 +233,6 @@ export const editMessage = (
     persistChat(chat);
 };
 
-
 export const handleRead = (message: Message<StringMessageTypeInterface>) => {
     // console.log('reading');
 
@@ -271,15 +240,9 @@ export const handleRead = (message: Message<StringMessageTypeInterface>) => {
     const chat = getChat(chatId);
 
     const newRead = chat.messages.find(m => m.id === message.body);
-    const oldRead = chat.messages.find(
-        m => m.id === chat.read[<string>message.from],
-    );
+    const oldRead = chat.messages.find(m => m.id === chat.read[<string>message.from]);
 
-    if (
-        oldRead &&
-        newRead &&
-        newRead.timeStamp.getTime() < oldRead.timeStamp.getTime()
-    ) {
+    if (oldRead && newRead && newRead.timeStamp.getTime() < oldRead.timeStamp.getTime()) {
         return;
     }
 

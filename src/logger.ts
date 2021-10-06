@@ -3,13 +3,7 @@ import { TransformableInfo } from 'logform';
 import { underline, italic, white } from 'chalk';
 
 const getDetailsFromFile = (fileDetails: any) => {
-    const fileAndRow = fileDetails
-        .split('at ')
-        .pop()
-        .split('(')
-        .pop()
-        .replace(')', '')
-        .split(':');
+    const fileAndRow = fileDetails.split('at ').pop().split('(').pop().replace(')', '').split(':');
 
     const detailsFromFile = {
         file: fileAndRow[0].trim(),
@@ -41,15 +35,10 @@ export const logger = createLogger({
                     format: 'YY/MM/DD:HH:mm:ss:SSS',
                 }),
                 format.printf((info: TransformableInfo) => {
-                    const detailsFromFile = getDetailsFromFile(
-                        new Error().stack
-                    );
+                    const detailsFromFile = getDetailsFromFile(new Error().stack);
 
                     // S'il y a un objet, on le formatte
-                    const meta =
-                        info.meta && Object.keys(info.meta).length
-                            ? JSON.stringify(info.meta, null, 2)
-                            : '';
+                    const meta = info.meta && Object.keys(info.meta).length ? JSON.stringify(info.meta, null, 2) : '';
 
                     return `[${info.timestamp}] ${info.level}: ${info.message}${
                         info.splat !== undefined ? `${info.splat}` : ' '
