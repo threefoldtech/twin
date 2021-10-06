@@ -53,6 +53,7 @@ import { getDocumentBrowserKey } from '../service/fileService';
 import { isCallChain } from 'typescript';
 import Contact from '../models/contact';
 import { isUndefined } from 'lodash';
+import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
 
 const router = Router();
 
@@ -337,8 +338,10 @@ router.post(
     async (req: express.Request, res: express.Response) => {
         const chatId = req.body.chatId as string | undefined;
         const path = req.body.path as string | undefined;
+        const location = req.body.path as string | undefined;
 
-        removeFilePermissions(path, chatId);
+        removeFilePermissions(path, chatId, location);
+        res.status(StatusCodes.OK);
     }
 );
 
@@ -426,7 +429,9 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
 
 router.get('/files/getShares', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let shareStatus = req.query.shareStatus as ShareStatus;
+    // console.log('status', shareStatus)
     let results = await getSharesWithme(shareStatus);
+    console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', results);
     res.json(results);
     res.status(StatusCodes.OK);
 });
@@ -473,6 +478,14 @@ router.get('/files/getShareFileAccessDetails', async (req: express.Request, res:
     const userId = <string>req.query.userId;
     const givenPath = req.query.path;
     const userPermissions = getSharePermissionForUser(shareId, userId);
+    console.log('USERPERMISSIONS', userId, userPermissions);
+    if (userPermissions.length < 1) {
+        res.json({ message: 'ACCESS_DENIED' });
+        res.status(StatusCodes.OK);
+        // throw new HttpError(StatusCodes.UNAUTHORIZED, 'No permissions to access the file.')
+        return;
+    }
+
     const userCanWrite = !!userPermissions.find(x => x === SharePermission.Write);
 
     let realPath = share.path;

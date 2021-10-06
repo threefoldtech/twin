@@ -6,6 +6,7 @@ import { sendEventToConnectedSockets } from '../service/socketService';
 import {
     ContactRequest,
     DtIdInterface,
+    FileShareDeleteMessageType,
     FileShareMessageType,
     GroupUpdateType,
     MessageBodyTypeInterface,
@@ -23,7 +24,11 @@ import { uuidv4 } from '../common';
 import { handleSystemMessage } from '../service/systemService';
 import { getMyLocation } from '../service/locationService';
 import { appendSignatureToMessage, verifyMessageSignature } from '../service/keyService';
-import { handleIncommingFileShare, handleIncommingFileShareUpdate } from '../service/fileShareService';
+import {
+    handleIncommingFileShare,
+    handleIncommingFileShareDelete,
+    handleIncommingFileShareUpdate,
+} from '../service/fileShareService';
 
 const router = Router();
 
@@ -154,6 +159,7 @@ const handleGroupAdmin = async <ResBody, Locals>(
 
 // Should be externally availble
 router.put('/', async (req, res) => {
+    console.log('xxxxxxxxxxxxxxxxxxxxxXXX', req.body);
     // @ TODO check if valid
     const msg = req.body;
     let message = msg as Message<MessageBodyTypeInterface>;
@@ -262,12 +268,20 @@ router.put('/', async (req, res) => {
             res.json({ status: 'success' });
             return;
         case MessageTypes.FILE_SHARE_UPDATE:
-            console.log('share update');
             if (message.from === config.userid) {
                 res.json({ status: 'cannot update share with yourself' });
                 return;
             }
             handleIncommingFileShareUpdate(message as Message<FileShareMessageType>);
+            res.json({ status: 'success' });
+            return;
+        case MessageTypes.FILE_SHARE_DELETE:
+            console.log('delete fileshare');
+            if (message.from === config.userid) {
+                res.json({ status: 'cannot update share with yourself' });
+                return;
+            }
+            handleIncommingFileShareDelete(message as Message<FileShareDeleteMessageType>);
             res.json({ status: 'success' });
             return;
     }

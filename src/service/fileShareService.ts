@@ -8,6 +8,7 @@ import {
     ContactInterface,
     ContactRequest,
     DtIdInterface,
+    FileShareDeleteMessageType,
     FileShareMessageType,
     FileShareUpdateMessageType,
     MessageBodyTypeInterface,
@@ -24,6 +25,7 @@ import { parseMessage } from './messageService';
 import { collapseTextChangeRangesAcrossMultipleVersions } from 'typescript';
 import { emptyDir } from 'fs-extra';
 import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
+import { sendEventToConnectedSockets } from './socketService';
 
 export enum ShareStatus {
     Shared = 'Shared',
@@ -84,6 +86,7 @@ export const updateShareName = (id: string, name: string) => {
     notifySharedWithConsumers(share);
 };
 const notifySharedWithConsumers = (share: SharedFileInterface) => {
+    console.log('start', share);
     share.permissions.map(async (permission: SharePermissionInterface) => {
         const body: FileShareUpdateMessageType = {
             id: share.id,
@@ -109,20 +112,59 @@ const notifySharedWithConsumers = (share: SharedFileInterface) => {
         appendSignatureToMessage(message);
         const chat = getChat(permission.chatId, 0);
         chat.contacts.forEach(contact => {
+            console.log('looping chats');
             sendMessageToApi(contact.location, message);
         });
     });
 };
+export const notifyDeleteSharePermission = (permission: SharePermissionInterface, shareId: string) => {
+    const message: Message<MessageBodyTypeInterface> = parseMessage({
+        id: uuidv4(),
+        to: permission.chatId,
+        body: shareId,
+        from: config.userid,
+        type: MessageTypes.FILE_SHARE_DELETE,
+        timeStamp: new Date(),
+        replies: [],
+        signatures: [],
+        subject: null,
+    });
+    appendSignatureToMessage(message);
+    const chat = getChat(permission.chatId, 0);
+    chat.contacts.forEach(contact => {
+        console.log('looping chats');
+        sendMessageToApi(contact.location, message);
+    });
+};
 
-export const removeFilePermissions = (path: string, chatId: string) => {
+export const removeFilePermissions = (path: string, chatId: string, location: string) => {
     const allShares = getShareConfig();
     const shareIndex = allShares.Shared.findIndex(share => share.path === path);
     const share = allShares.Shared.find(share => share.path === path);
     let index = share.permissions.findIndex(p => p.chatId === chatId);
+    const deletedSharedPermission = share.permissions[index];
     share.permissions.splice(index, 1);
 
     allShares.Shared[shareIndex] = share;
+    console.log('shared');
     persistShareConfig(allShares);
+
+    // const message: Message<MessageBodyTypeInterface> = parseMessage({
+    //     id: uuidv4(),
+    //     to: chatId,
+    //     body: "update file share",
+    //     from: config.userid,
+    //     type: MessageTypes.FILE_SHARE_UPDATE,
+    //     timeStamp: new Date(),
+    //     replies: [],
+    //     signatures: [],
+    //     subject: null,
+    // });
+    // console.log(message)
+
+    // sendMessageToApi(location, message)
+    // notifySharedWithConsumers(share);
+    notifyDeleteSharePermission(deletedSharedPermission, share.id);
 };
 
 export const removeShare = (path: string) => {
@@ -130,6 +172,14 @@ export const removeShare = (path: string) => {
     const shareIndex = allShares.Shared.findIndex(share => share.path === path);
     if (!shareIndex) throw new Error(`Share doesn't exist`);
     allShares.Shared.splice(shareIndex, 1);
+    persistShareConfig(allShares);
+};
+// @TODO implement in above
+export const removeSharedWithMe = (path: string) => {
+    const allShares = getShareConfig();
+    const shareIndex = allShares.SharedWithMe.findIndex(share => share.path === path);
+    if (!shareIndex) throw new Error(`Share doesn't exist`);
+    allShares.SharedWithMe.splice(shareIndex, 1);
     persistShareConfig(allShares);
 };
 
@@ -336,6 +386,16 @@ export const handleIncommingFileShareUpdate = (message: Message<FileShareMessage
     );
 };
 
+export const handleIncommingFileShareDelete = (message: Message<FileShareDeleteMessageType>) => {
+    const shareId = message.body;
+    // if (!shareConfig.name || !shareConfig.owner) return;
+    const share = getShareWithId(<string>shareId, ShareStatus.SharedWithMe);
+    console.log('share ', share);
+    if (!share) return;
+    if (share.owner.id != message.from) return;
+    removeSharedWithMe(share.path);
+};
+
 export const getSharePermissionForUser = (shareId: string, userId: string): SharePermission[] => {
     const share = getShareWithId(shareId, ShareStatus.Shared);
     if (!share) return [];
@@ -352,6 +412,7 @@ export const getSharePermissionForUser = (shareId: string, userId: string): Shar
     });
     return permissions;
 };
-function x(arg0: string, x: any) {
-    throw new Error('Function not implemented.');
-}
+
+export const notifyPersist = (config: SharesInterface) => {
+    sendEventToConnectedSockets('shares_updated', config);
+};
