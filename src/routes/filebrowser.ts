@@ -431,14 +431,17 @@ router.get('/files/getShares', requiresAuthentication, async (req: express.Reque
     let shareStatus = req.query.shareStatus as ShareStatus;
     // console.log('status', shareStatus)
     let results = await getSharesWithme(shareStatus);
-    console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', results);
     res.json(results);
     res.status(StatusCodes.OK);
 });
 router.get('/files/getShareWithId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let shareId = req.query.id as string;
     let results = await getShareWithId(shareId, ShareStatus.SharedWithMe);
-    res.json(results);
+    if (isUndefined(results)) {
+        res.json({ message: 'ACCESS_DENIED' });
+    } else {
+        res.json(results);
+    }
     res.status(StatusCodes.OK);
 });
 router.get(

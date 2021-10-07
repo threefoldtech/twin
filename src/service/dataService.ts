@@ -8,7 +8,7 @@ import im from 'imagemagick';
 import { ITokenFile } from '../store/tokenStore';
 import PATH from 'path';
 import { UploadedFile } from 'express-fileupload';
-import { SharesInterface } from './fileShareService';
+import { notifyPersist, SharesInterface } from './fileShareService';
 
 const userDirectory = PATH.join(config.baseDir, '/user');
 const chatsDirectory = PATH.join(config.baseDir, '/chats');
@@ -200,4 +200,5 @@ export const persistShareConfig = (config: SharesInterface) => {
     fs.writeFileSync(location, JSON.stringify(config, null, 2), {
         flag: 'w',
     });
+    notifyPersist(config);
 };
