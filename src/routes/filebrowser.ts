@@ -341,6 +341,7 @@ router.post(
         const location = req.body.path as string | undefined;
 
         removeFilePermissions(path, chatId, location);
+        res.json();
         res.status(StatusCodes.OK);
     }
 );
