@@ -148,6 +148,7 @@ export const removeFilePermissions = (path: string, chatId: string, location: st
     allShares.Shared[shareIndex] = share;
     console.log('shared');
     persistShareConfig(allShares);
+    console.log(allShares.Shared.find(share => share.path === path));
 
     // const message: Message<MessageBodyTypeInterface> = parseMessage({
     //     id: uuidv4(),
