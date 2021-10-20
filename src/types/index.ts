@@ -41,6 +41,11 @@ export enum MessageTypes {
     FILE_SHARE_DELETE = 'FILE_SHARE_DELETE',
 }
 
+export enum MessageAction {
+    EDIT = 'EDIT',
+    REPLY = 'REPLY',
+}
+
 export enum SystemMessageType {
     ADDUSER = 'ADDUSER',
     REMOVEUSER = 'REMOVEUSER',
@@ -70,6 +75,7 @@ export interface MessageInterface<T> extends MessageBodyTypeInterface {
     replies: MessageInterface<MessageBodyTypeInterface>[];
     signatures: string[];
     updated?: Date | undefined;
+    action: MessageAction;
 }
 
 export interface MessageBodyTypeInterface {}

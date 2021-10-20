@@ -9,6 +9,8 @@ import { HttpError } from '../types/errors/httpError';
 import { StatusCodes } from 'http-status-codes';
 import http from 'http';
 import express from 'express';
+import { getChatById } from '../service/chatService';
+import Message from '../models/message';
 
 const router = Router();
 
@@ -16,6 +18,14 @@ router.get('/healthcheck', async (req, res) => {
     res.sendStatus(200);
 });
 
+router.post('/updateDraft', (req: express.Request, res: express.Response) => {
+    const draftMessage = req.body.params.draftMessage;
+    console.log(draftMessage);
+    let chatWithUpdatedDraft = getChatById(draftMessage.to);
+    chatWithUpdatedDraft.draft = draftMessage;
+    persistChat(chatWithUpdatedDraft);
+    res.sendStatus(200);
+});
 router.get('/possibleMessages', async (req, res) => {
     res.json(MessageTypes);
 });
