@@ -63,8 +63,6 @@ export const getFormattedDetails = async (path: Path): Promise<PathInfo> => {
     const stats = await getStats(path);
     const details = PATH.parse(path.securedPath);
     const extension = details.ext.replace('.', '');
-    console.log('s', stats);
-    console.log('d', details);
     return {
         isFile: stats.isFile(),
         isDirectory: stats.isDirectory(),

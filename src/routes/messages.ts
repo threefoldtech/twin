@@ -159,7 +159,6 @@ const handleGroupAdmin = async <ResBody, Locals>(
 
 // Should be externally availble
 router.put('/', async (req, res) => {
-    console.log('xxxxxxxxxxxxxxxxxxxxxXXX', req.body);
     // @ TODO check if valid
     const msg = req.body;
     let message = msg as Message<MessageBodyTypeInterface>;
