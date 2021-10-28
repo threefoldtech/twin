@@ -237,27 +237,20 @@ export const editMessage = (
 
 export const renameShareInChat = (
     shareConfig: FileShareMessageType,
-    contacts: contact[]
+    contacts?: contact[]
 ) => {
-    if (!contacts) contacts = [new contact(shareConfig.owner.id, null)]
+    if (!contacts) contacts = [new contact(String(shareConfig.owner.id), null)]
     console.log('chatids', getChatIds())
     console.log('////////////////////////////////////');
-
-    // console.log(contacts)
-
     contacts.filter(el => el.id !== config.userid).forEach(contact => {
 
         console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
         console.log('ids', getChatById(contact.id))
 
-        console.log('zzzzzzzzzz',
-            getChatById(contact.id)
-                .messages.filter(msg => msg.type === 'FILE_SHARE')
-                .filter(el => el.body.id === shareConfig.id)
-        );
+
         const referencesToUpdate = getChatById(contact.id)
             .messages.filter(msg => msg.type === 'FILE_SHARE')
-            .filter(el => el.body.id === shareConfig.id);
+            .filter(el => (el.body as MessageInterface<FileMessageType>).id === shareConfig.id);
         let updatedChat = getChatById(contact.id);
         console.log('refs', referencesToUpdate);
         console.log('update config', shareConfig);
@@ -267,22 +260,14 @@ export const renameShareInChat = (
         updatedChat.messages = updatedChat.messages.map(
             old => referencesToUpdate.find(update => update.id === old.id) || old
         );
-        console.log('test', shareConfig.id);
-        console.log('test2', referencesToUpdate.at(-1).body.id);
+        // console.log('test', shareConfig.id);
+        // console.log('test2', referencesToUpdate.at(-1).body.id);
 
         persistChat(updatedChat);
 
         console.log('-----------------------------------------------');
     });
 
-    // const referencesToUpdate = getChatById(shareConfig.owner.id).messages.filter(msg => msg.type === 'FILE_SHARE').filter(el => el.body.id === shareConfig.id);
-    // console.log('RENAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMEEEEEEEEEEEEEEEEEEEEEEEEee')
-    // console.log(shareConfig, referencesToUpdate)
-    // console.log('EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEND')
-    // referencesToUpdate.forEach(msg => msg.body = shareConfig);
-    // let updatedChat = getChatById(shareConfig.owner.id);
-    // updatedChat.messages = updatedChat.messages.map(old => referencesToUpdate.find(update => update.id === old.id) || old);
-    // persistChat(updatedChat);
 };
 export const handleRead = (message: Message<StringMessageTypeInterface>) => {
     // console.log('reading');
