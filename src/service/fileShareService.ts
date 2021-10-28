@@ -111,13 +111,9 @@ const notifySharedWithConsumers = (share: SharedFileInterface) => {
         appendSignatureToMessage(message);
         const chat = getChat(permission.chatId, 0);
 
-        // console.log('-----Fconso-------------------------------------------MESSAAAAAAAAAAAAAAAAAAAAAAAAAAGE', message)
-        //
-
         renameShareInChat(message.body as FileShareMessageType, chat.contacts);
 
         chat.contacts.forEach(contact => {
-            // console.log('looping chats');
             sendMessageToApi(contact.location, message);
         });
     });

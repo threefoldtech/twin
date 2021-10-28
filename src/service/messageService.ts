@@ -240,32 +240,19 @@ export const renameShareInChat = (
     contacts?: contact[]
 ) => {
     if (!contacts) contacts = [new contact(String(shareConfig.owner.id), null)]
-    console.log('chatids', getChatIds())
-    console.log('////////////////////////////////////');
     contacts.filter(el => el.id !== config.userid).forEach(contact => {
-
-        console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-        console.log('ids', getChatById(contact.id))
-
 
         const referencesToUpdate = getChatById(contact.id)
             .messages.filter(msg => msg.type === 'FILE_SHARE')
             .filter(el => (el.body as MessageInterface<FileMessageType>).id === shareConfig.id);
         let updatedChat = getChatById(contact.id);
-        console.log('refs', referencesToUpdate);
-        console.log('update config', shareConfig);
-        // console.log('updated', updatedChat.messages.map(old => referencesToUpdate.find(update => update.id === old.id) || old))
 
         referencesToUpdate.forEach(msg => (msg.body = shareConfig));
         updatedChat.messages = updatedChat.messages.map(
             old => referencesToUpdate.find(update => update.id === old.id) || old
         );
-        // console.log('test', shareConfig.id);
-        // console.log('test2', referencesToUpdate.at(-1).body.id);
-
         persistChat(updatedChat);
 
-        console.log('-----------------------------------------------');
     });
 
 };
