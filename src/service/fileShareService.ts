@@ -114,7 +114,7 @@ const notifySharedWithConsumers = (share: SharedFileInterface) => {
         // console.log('-----Fconso-------------------------------------------MESSAAAAAAAAAAAAAAAAAAAAAAAAAAGE', message)
         //
 
-        renameShareInChat(message.body, chat.contacts);
+        renameShareInChat(message.body as FileShareMessageType, chat.contacts);
 
         chat.contacts.forEach(contact => {
             // console.log('looping chats');

@@ -9,12 +9,13 @@ import {
     StringMessageTypeInterface,
 } from '../types';
 import Message from '../models/message';
-import { getChat, persistChat, saveFile } from './dataService';
+import { getChat, getChatIds, persistChat, saveFile } from './dataService';
 import { sendEventToConnectedSockets } from './socketService';
 import { determineChatId } from '../routes/messages';
 import { UploadedFile } from 'express-fileupload';
 import { getChatById } from './chatService';
 import contact from '../models/contact';
+import { config } from '../config/config';
 
 export const parseMessages = (messages: Array<any>) => messages.map(parseMessage);
 
@@ -236,18 +237,20 @@ export const editMessage = (
 
 export const renameShareInChat = (
     shareConfig: FileShareMessageType,
-    contacts?: contact[] = [new contact(shareConfig.id, null)]
+    contacts: contact[]
 ) => {
+    if (!contacts) contacts = [new contact(shareConfig.owner.id, null)]
+    console.log('chatids', getChatIds())
     console.log('////////////////////////////////////');
 
     // console.log(contacts)
-    console.log('conts', contacts);
-    contacts?.forEach(contact => {
-        // contacts?.forEach(contact => console.log('msgs wiht', getChatById('dr15').messages))
 
-        const EVERYCHATID = 'dr15'; // <----- uupdate with foreach over contacts
+    contacts.filter(el => el.id !== config.userid).forEach(contact => {
 
-        console.log(
+        console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+        console.log('ids', getChatById(contact.id))
+
+        console.log('zzzzzzzzzz',
             getChatById(contact.id)
                 .messages.filter(msg => msg.type === 'FILE_SHARE')
                 .filter(el => el.body.id === shareConfig.id)
