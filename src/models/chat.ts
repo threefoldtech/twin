@@ -11,6 +11,7 @@ export default class Chat implements ChatInterface {
     acceptedChat: boolean;
     adminId: DtIdInterface;
     read: { [key: string]: string } = {};
+    draft?: Message<MessageBodyTypeInterface>;
 
     constructor(
         chatId: String,
@@ -20,7 +21,8 @@ export default class Chat implements ChatInterface {
         name: string,
         acceptedChat: boolean,
         adminId: DtIdInterface,
-        read: { [key: string]: string } = {}
+        read: { [key: string]: string } = {},
+        draft?: Message<MessageBodyTypeInterface>
     ) {
         this.chatId = chatId;
         this.contacts = contacts;
@@ -30,6 +32,7 @@ export default class Chat implements ChatInterface {
         this.acceptedChat = acceptedChat;
         this.adminId = adminId;
         this.read = read;
+        this.draft = draft;
     }
 
     addMessage(message: Message<MessageBodyTypeInterface>) {

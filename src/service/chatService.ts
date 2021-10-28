@@ -90,6 +90,7 @@ export const parseChat = (chat: any, messages: Array<MessageInterface<MessageBod
         chat.name,
         chat.acceptedChat,
         chat.adminId,
-        chat.read
+        chat.read,
+        chat.draft
     );
 };
