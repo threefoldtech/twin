@@ -75,7 +75,7 @@ export interface MessageInterface<T> extends MessageBodyTypeInterface {
     replies: MessageInterface<MessageBodyTypeInterface>[];
     signatures: string[];
     updated?: Date | undefined;
-    action: MessageAction;
+    action?: MessageAction;
 }
 
 export interface MessageBodyTypeInterface {}
