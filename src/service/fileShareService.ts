@@ -1,4 +1,4 @@
-import { getChat, getShareConfig, persistShareConfig } from './dataService';
+import { getChat, getShareConfig, persistChat, persistShareConfig } from './dataService';
 import { uuidv4 } from '../common';
 import { createJwtToken } from './jwtService';
 import { Permission, TokenData } from '../store/tokenStore';
@@ -18,12 +18,12 @@ import Message from '../models/message';
 import { config } from '../config/config';
 import { getMyLocation } from './locationService';
 import Chat from '../models/chat';
-import { persistMessage } from './chatService';
+import { getChatById, persistMessage } from './chatService';
 import { sendMessageToApi } from './apiService';
 import { appendSignatureToMessage } from './keyService';
-import { parseMessage } from './messageService';
+import { parseMessage, renameShareInChat } from './messageService';
 import { collapseTextChangeRangesAcrossMultipleVersions } from 'typescript';
-import { emptyDir } from 'fs-extra';
+import { emptyDir, rename } from 'fs-extra';
 import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
 import { sendEventToConnectedSockets } from './socketService';
 
@@ -86,7 +86,6 @@ export const updateShareName = (id: string, name: string) => {
     notifySharedWithConsumers(share);
 };
 const notifySharedWithConsumers = (share: SharedFileInterface) => {
-    console.log('start', share);
     share.permissions.map(async (permission: SharePermissionInterface) => {
         const body: FileShareUpdateMessageType = {
             id: share.id,
@@ -111,8 +110,10 @@ const notifySharedWithConsumers = (share: SharedFileInterface) => {
         });
         appendSignatureToMessage(message);
         const chat = getChat(permission.chatId, 0);
+
+        renameShareInChat(message.body as FileShareMessageType, chat.contacts);
+
         chat.contacts.forEach(contact => {
-            console.log('looping chats');
             sendMessageToApi(contact.location, message);
         });
     });
@@ -132,7 +133,7 @@ export const notifyDeleteSharePermission = (permission: SharePermissionInterface
     appendSignatureToMessage(message);
     const chat = getChat(permission.chatId, 0);
     chat.contacts.forEach(contact => {
-        console.log('looping chats');
+        // console.log('looping chats');
         sendMessageToApi(contact.location, message);
     });
 };
@@ -202,7 +203,7 @@ export const getShareByPath = (
             // console.log(e.permissions)
         })
     );
-    console.log(allShares[shareStatus].find(share => share.path === path));
+    // console.log(allShares[shareStatus].find(share => share.path === path));
     const share = allShares[shareStatus].reverse().find(share => share.path === path);
     return share;
 };
@@ -373,6 +374,11 @@ export const handleIncommingFileShare = (message: Message<FileShareMessageType>,
 
 export const handleIncommingFileShareUpdate = (message: Message<FileShareMessageType>) => {
     const shareConfig = message.body;
+    // console.log('###########################################3')
+    // console.log(shareConfig)
+    // console.log('##1111111111111111111111111111111111111111111111111#3')
+
+    renameShareInChat(shareConfig);
     if (!shareConfig.name || !shareConfig.owner) return;
     appendShare(
         ShareStatus.SharedWithMe,

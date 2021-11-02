@@ -9,10 +9,13 @@ import {
     StringMessageTypeInterface,
 } from '../types';
 import Message from '../models/message';
-import { getChat, persistChat, saveFile } from './dataService';
+import { getChat, getChatIds, persistChat, saveFile } from './dataService';
 import { sendEventToConnectedSockets } from './socketService';
 import { determineChatId } from '../routes/messages';
 import { UploadedFile } from 'express-fileupload';
+import { getChatById } from './chatService';
+import contact from '../models/contact';
+import { config } from '../config/config';
 
 export const parseMessages = (messages: Array<any>) => messages.map(parseMessage);
 
@@ -20,7 +23,6 @@ export const parseMessage = (msg: any): MessageInterface<MessageBodyTypeInterfac
     const type: MessageTypes = <MessageTypes>msg.type;
 
     // console.log('MESSAGE: ', msg);
-
     switch (type) {
         case MessageTypes.STRING:
             return new Message<StringMessageTypeInterface>(
@@ -233,6 +235,27 @@ export const editMessage = (
     persistChat(chat);
 };
 
+export const renameShareInChat = (
+    shareConfig: FileShareMessageType,
+    contacts?: contact[]
+) => {
+    if (!contacts) contacts = [new contact(String(shareConfig.owner.id), null)]
+    contacts.filter(el => el.id !== config.userid).forEach(contact => {
+
+        const referencesToUpdate = getChatById(contact.id)
+            .messages.filter(msg => msg.type === 'FILE_SHARE')
+            .filter(el => (el.body as MessageInterface<FileMessageType>).id === shareConfig.id);
+        let updatedChat = getChatById(contact.id);
+
+        referencesToUpdate.forEach(msg => (msg.body = shareConfig));
+        updatedChat.messages = updatedChat.messages.map(
+            old => referencesToUpdate.find(update => update.id === old.id) || old
+        );
+        persistChat(updatedChat);
+
+    });
+
+};
 export const handleRead = (message: Message<StringMessageTypeInterface>) => {
     // console.log('reading');
 

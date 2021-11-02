@@ -5,7 +5,7 @@ import { parseFullChat } from './chatService';
 import { getFullIPv6ApiLocation } from './urlService';
 
 export const sendMessageToApi = async (location: string, message: Message<MessageBodyTypeInterface>) => {
-    console.log('Location: ', location);
+    // console.log('Location: ', location);
     if (message.type !== 'READ') console.log('newMessage: ', message);
     const url = getFullIPv6ApiLocation(location, '/messages');
     try {
