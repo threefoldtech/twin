@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { config } from '../config/config';
 import Message from '../models/message';
 import { MessageBodyTypeInterface } from '../types';
 import { parseFullChat } from './chatService';
@@ -9,7 +10,7 @@ export const sendMessageToApi = async (location: string, message: Message<Messag
     if (message.type !== 'READ') console.log('newMessage: ', message);
     const url = getFullIPv6ApiLocation(location, '/messages');
     try {
-        await axios.put(url, message);
+        return await axios.put(url, message);
     } catch (e) {
         console.error(`couldn't send message ${url}`);
     }

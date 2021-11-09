@@ -9,15 +9,17 @@ import * as fse from 'fs-extra';
 import { updateShareName, updateSharePath } from '../../service/fileShareService';
 import { getShareConfig } from '../../service/dataService';
 
-const baseDir = PATH.join(config.baseDir, config.storage);
+let baseDir = PATH.join(config.baseDir, config.storage);
 
 export class Path {
     private _path: string;
     private _securedPath: string;
 
-    constructor(path: string) {
+    constructor(path: string, dir?: string) {
+        if (dir) baseDir = dir;
         this._path = path;
         this.setSecuredPath();
+        console.log(this.securedPath);
     }
 
     public setSecuredPath() {
@@ -125,6 +127,7 @@ export const createDirectoryWithRetry = async (path: Path, count = 0): Promise<P
 };
 
 export const saveFileWithRetry = async (path: Path, file: UploadedFile, count = 0): Promise<PathInfo> => {
+    console.log('->>>> file', file);
     const pathCount = count === 0 ? path : new Path(path.path.insert(path.path.lastIndexOf('.'), ` (${count})`));
     if (pathExists(pathCount)) return await saveFileWithRetry(path, file, count + 1);
 
@@ -150,6 +153,8 @@ export const moveWithRetry = async (source: Path, destinationDirectory: Path, co
 export const saveUploadedFile = async (path: Path, file: UploadedFile) => {
     if (file.tempFilePath) return await moveUploadedFile(file, path);
 
+    console.log('DATAAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaa', file.data);
+
     return saveFile(path, file.data);
 };
 
@@ -164,7 +169,7 @@ export const moveUploadedFile = async (file: UploadedFile, path: Path) => {
 export const saveFile = async (path: Path, file: Buffer) => {
     const directory = new Path(path.path.removeAfterLastOccurrence('/'));
     if (!pathExists(directory)) await createDir(directory);
-
+    console.log('---------------------------------------------------------------', path, file);
     await writeFile(path, file);
     return await getFormattedDetails(path);
 };

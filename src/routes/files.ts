@@ -27,6 +27,10 @@ router.post('/:chatid/:messageid', async (req, resp) => {
     const chatId = req.params.chatid;
     const messageId = req.params.messageid;
     const fileToSave = <UploadedFile>req.files.file;
+    console.log(
+        'updaload to chat; )))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))',
+        fileToSave
+    );
     saveFile(chatId, messageId, fileToSave);
     let myLocation = await getMyLocation();
     const message: Message<FileMessageType> = {

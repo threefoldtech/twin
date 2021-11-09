@@ -29,6 +29,8 @@ import {
     handleIncommingFileShareDelete,
     handleIncommingFileShareUpdate,
 } from '../service/fileShareService';
+import { getFile, Path } from '../utils/files';
+import { createNoSubstitutionTemplateLiteral } from 'typescript';
 
 const router = Router();
 
@@ -282,6 +284,20 @@ router.put('/', async (req, res) => {
             }
             handleIncommingFileShareDelete(message as Message<FileShareDeleteMessageType>);
             res.json({ status: 'success' });
+            return;
+        case MessageTypes.DOWNLOAD_ATTACHMENT:
+            if (message.from === config.userid) {
+                res.json({
+                    status: 'downloading file to your quantum',
+                });
+            }
+
+            let url: string = decodeURI(new URL(<string>message.body).pathname).replace(
+                '/api/files/' + message.from,
+                '' + message.from + '/files'
+            );
+            const file = await getFile(new Path(url, '/appdata/chats'));
+            res.send(file);
             return;
     }
 

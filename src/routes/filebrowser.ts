@@ -1,5 +1,5 @@
 import { removeFilePermissions, SharedFileInterface, updateShareName } from './../service/fileShareService';
-import express, { Router } from 'express';
+import express, { json, Router } from 'express';
 import {
     copyWithRetry,
     createDirectoryWithRetry,
@@ -41,7 +41,14 @@ import {
     updateSharePath,
 } from '../service/fileShareService';
 import { getChat, getShareConfig, persistShareConfig } from '../service/dataService';
-import { FileShareMessageType, MessageTypes } from '../types';
+import {
+    FileShareMessageType,
+    IdInterface,
+    MessageBodyTypeInterface,
+    MessageInterface,
+    MessageTypes,
+    StringMessageTypeInterface,
+} from '../types';
 import Message from '../models/message';
 import { appendSignatureToMessage } from '../service/keyService';
 import { sendMessageToApi } from '../service/apiService';
@@ -54,6 +61,7 @@ import { isCallChain } from 'typescript';
 import Contact from '../models/contact';
 import { isUndefined } from 'lodash';
 import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
+import chat from '../models/chat';
 
 const router = Router();
 
@@ -557,6 +565,58 @@ router.get('/share/path', requiresAuthentication, async (req: express.Request, r
     const allShares = getShareConfig();
     let share = getShareByPath(allShares, path, ShareStatus.Shared);
     res.json(share);
+    res.status(StatusCodes.OK);
+});
+
+router.get('/attachment/download', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const owner = <IdInterface>req.query.owner;
+    const path = <string>req.query.path;
+
+    const location = new URL(path).hostname.replace('[', '').replace(']', '');
+
+    let msg: Message<StringMessageTypeInterface> = {
+        id: uuidv4(),
+        body: path,
+        from: config.userid,
+        to: owner,
+        timeStamp: new Date(),
+        type: MessageTypes.DOWNLOAD_ATTACHMENT,
+        replies: [],
+        signatures: [],
+        subject: null,
+    };
+    const parsedmsg = parseMessage(msg);
+    appendSignatureToMessage(parsedmsg);
+    // const contacts = chat.contacts.filter((c: { id: string; }) => c.id !== config.userid);
+    // for (const contact of contacts) {
+    const result = await sendMessageToApi(location, parsedmsg);
+
+    let file: UploadedFile = {
+        name: null,
+        data: result.data,
+        size: null,
+        encoding: null,
+        tempFilePath: null,
+        truncated: null,
+        mimetype: null,
+        md5: null,
+        mv: null,
+    };
+    file.data = result.data;
+    console.log('data', file.data);
+
+    const yy = await saveFileWithRetry(
+        new Path(<string>owner + '/' + path.split('/').pop(), '/appdata/attachments/'),
+        file
+    );
+    console.log(yy);
+
+    // }
+
+    // persistMessage(chat.chatId, parsedmsg);
+    // const x = await sendEventToConnectedSockets('message', parsedmsg);
+    // console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', x)
+    res.json('OK');
     res.status(StatusCodes.OK);
 });
 

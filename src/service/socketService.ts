@@ -34,9 +34,7 @@ export const startSocketIo = (httpServer: http.Server) => {
             }
         });
 
-        socket.on('message', messageData => {
-            console.log('new message');
-
+        socket.on('message', async messageData => {
             const newMessage: Message<MessageBodyTypeInterface> = parseMessage(messageData.message);
             newMessage.from = config.userid;
             appendSignatureToMessage(newMessage);
@@ -59,7 +57,7 @@ export const startSocketIo = (httpServer: http.Server) => {
 
             if (newMessage.type === MessageTypes.READ) {
                 handleRead(<Message<StringMessageTypeInterface>>newMessage);
-                sendMessageToApi(location, newMessage);
+                const x = await sendMessageToApi(location, newMessage);
                 return;
             }
 
