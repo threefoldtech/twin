@@ -72,8 +72,13 @@ interface FileToken extends TokenData {
 
 router.get('/directories/content', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let p = req.query.path;
+    console.log(req.query);
+    let attachment = req.query.attachments === '1';
+    console.log('attach ', attachment);
     if (!p || typeof p !== 'string') p = '/';
-    const path = new Path(p);
+    let path;
+    attachment ? (path = new Path(p, '/appdata/attachments')) : (path = new Path(p));
+
     const stats = await getStats(path);
     if (
         !stats.isDirectory() ||
@@ -83,7 +88,7 @@ router.get('/directories/content', requiresAuthentication, async (req: express.R
         stats.isSocket()
     )
         throw new HttpError(StatusCodes.BAD_REQUEST, 'Path is not a directory');
-    res.json(await readDir(path, { withFileTypes: true }));
+    res.json(await readDir(path, { withFileTypes: true }, attachment));
 });
 
 router.get('/directories/info', requiresAuthentication, async (req: express.Request, res: express.Response) => {
@@ -126,6 +131,7 @@ router.get('/files/info', requiresAuthentication, async (req: express.Request, r
         let object = JSON.parse(params);
         let shareId = object.shareId;
         let token = object.token;
+        console.log(object);
         const [payload, err] = verifyJwtToken<Token<FileToken>>(token);
         if (err) throw new HttpError(StatusCodes.UNAUTHORIZED, err.message);
         if (
@@ -138,9 +144,13 @@ router.get('/files/info', requiresAuthentication, async (req: express.Request, r
         p = getShareWithId(shareId, ShareStatus.Shared).path;
     } else {
         p = req.query.path;
+        console.log('xxxxxxxxxxxxxxxxxx', req.query);
     }
     if (!p || typeof p !== 'string') throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
-    const path = new Path(p);
+    let path;
+    req.query.attachments === 'true' ? (path = new Path(p, '/appdata/attachments')) : (path = new Path(p));
+
+    console.log();
     res.json({
         ...(await getFormattedDetails(path)),
         key: getDocumentBrowserKey(true, path.securedPath),
@@ -165,6 +175,7 @@ router.get('/files/info', requiresAuthentication, async (req: express.Request, r
 router.post('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const files = req.files.newFiles as UploadedFile[] | UploadedFile;
     const dto = req.body as FileDto;
+
     if (!dto.path) dto.path = '/';
     if (Array.isArray(files)) {
         const results = [] as PathInfo[];
@@ -442,6 +453,19 @@ router.get('/files/getShares', requiresAuthentication, async (req: express.Reque
     res.json(results);
     res.status(StatusCodes.OK);
 });
+
+router.get('/attachments', requiresAuthentication, (req: express.Request, res: express.Response) => {
+    let shareStatus = req.query.shareStatus as ShareStatus;
+    // console.log('status', shareStatus)
+
+    console.log('___________________________FILES -===========================');
+    const results = fs.readdirSync('/appdata/attachments/');
+    console.log('___________________________FILES -=======ENDN====================');
+
+    res.json(results);
+    res.status(StatusCodes.OK);
+});
+
 router.get('/files/getShareWithId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let shareId = req.query.id as string;
     let results = await getShareWithId(shareId, ShareStatus.SharedWithMe);

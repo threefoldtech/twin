@@ -16,7 +16,8 @@ export class Path {
     private _securedPath: string;
 
     constructor(path: string, dir?: string) {
-        if (dir) baseDir = dir;
+        console.log('dir', dir);
+        dir ? (baseDir = dir) : (baseDir = '/appdata/storage');
         this._path = path;
         this.setSecuredPath();
         console.log(this.securedPath);
@@ -50,6 +51,7 @@ export class Path {
 }
 
 export const getStats = (path: Path): Promise<Stats> => {
+    console.log('---------------------', path);
     if (!pathExists(path)) throw new FileSystemError(ErrorType.FileNotFound, 'fileDoesNotExist');
 
     return FS.stat(path.securedPath);
@@ -87,7 +89,11 @@ export const createDir = async (path: Path): Promise<PathInfo> => {
     return await getFormattedDetails(path);
 };
 
-export const readDir = async (path: Path, options: { withFileTypes: true }): Promise<PathInfo[]> => {
+export const readDir = async (
+    path: Path,
+    options: { withFileTypes: true },
+    attachments: boolean = false
+): Promise<PathInfo[]> => {
     const exists = await pathExists(path);
     if (!exists) return [];
     const content = await readDirectory(path, options);
@@ -96,7 +102,10 @@ export const readDir = async (path: Path, options: { withFileTypes: true }): Pro
             content.map(c => {
                 if (c.isBlockDevice() || c.isCharacterDevice() || c.isSymbolicLink() || c.isSocket()) return;
 
-                const itemPath = new Path(path.path);
+                let itemPath;
+                attachments
+                    ? (itemPath = new Path(path.path, '/appdata/attachments'))
+                    : (itemPath = new Path(path.path));
                 itemPath.appendPath(c.name);
                 return getFormattedDetails(itemPath);
             })
