@@ -135,10 +135,11 @@ export const createDirectoryWithRetry = async (path: Path, count = 0): Promise<P
     return await createDir(path);
 };
 
-export const saveFileWithRetry = async (path: Path, file: UploadedFile, count = 0): Promise<PathInfo> => {
-    console.log('->>>> file', file);
-    const pathCount = count === 0 ? path : new Path(path.path.insert(path.path.lastIndexOf('.'), ` (${count})`));
-    if (pathExists(pathCount)) return await saveFileWithRetry(path, file, count + 1);
+export const saveFileWithRetry = async (path: Path, file: UploadedFile, count = 0, dir?: string): Promise<PathInfo> => {
+    console.log('->>>> RETRY', file, path);
+    const pathCount = count === 0 ? path : new Path(path.path.insert(path.path.lastIndexOf('.'), ` (${count})`), dir);
+    console.log("new path")
+    if (pathExists(pathCount)) return await saveFileWithRetry(path, file, count + 1, dir);
 
     return await saveUploadedFile(pathCount, file);
 };

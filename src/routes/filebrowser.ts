@@ -631,7 +631,7 @@ router.get('/attachment/download', requiresAuthentication, async (req: express.R
 
     const yy = await saveFileWithRetry(
         new Path(<string>owner + '/' + path.split('/').pop(), '/appdata/attachments/'),
-        file
+        file, 0, '/appdata/attachments/'
     );
     console.log(yy);
 
