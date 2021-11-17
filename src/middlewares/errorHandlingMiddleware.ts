@@ -18,6 +18,7 @@ const errorMiddleware = (
     try {
         next();
     } catch (err) {
+        console.log("error here")
         if (error instanceof ErrorWrapper) {
             return response.status(error.getHttpStatus()).send(
                 error.data ?? {

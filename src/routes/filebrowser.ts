@@ -54,6 +54,7 @@ import { isCallChain } from 'typescript';
 import Contact from '../models/contact';
 import { isUndefined } from 'lodash';
 import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
+import { messageKernel } from '../middlewares/messageKernel';
 
 const router = Router();
 
@@ -155,29 +156,7 @@ router.get('/files/info', requiresAuthentication, async (req: express.Request, r
 });
 
 router.post('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const files = req.files.newFiles as UploadedFile[] | UploadedFile;
-    const dto = req.body as FileDto;
-    if (!dto.path) dto.path = '/';
-    if (Array.isArray(files)) {
-        const results = [] as PathInfo[];
-        await Promise.all(
-            files.map(async f => {
-                const path = new Path(dto.path);
-                path.appendPath(f.name);
-                const result = await saveFileWithRetry(path, f);
-                results.push(result);
-            })
-        );
-        res.json(results);
-        res.status(StatusCodes.CREATED);
-        return;
-    }
-
-    const path = new Path(dto.path);
-    path.appendPath((files as UploadedFile).name);
-    const result = await saveFileWithRetry(path, files as UploadedFile);
-    res.json(result);
-    res.status(StatusCodes.CREATED);
+    messageKernel(req, res, "fileUpload");
 });
 
 router.delete('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
