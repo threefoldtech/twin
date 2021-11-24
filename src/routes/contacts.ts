@@ -20,6 +20,8 @@ router.get('/', requiresAuthentication, (req: express.Request, res: express.Resp
     res.json(contacts);
 });
 
+export const addContact = () => {};
+
 router.post('/', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const con = req.body;
     const contact = new Contact(con.id, con.location);
