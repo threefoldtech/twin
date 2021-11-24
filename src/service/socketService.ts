@@ -67,9 +67,23 @@ export const startSocketIo = (httpServer: http.Server) => {
             sendMessageToApi(location, newMessage);
         });
 
-        socket.on('draft_message', messageData => {
-            console.log('draft message from websocket', messageData);
-            updateDraftMessage(messageData);
+        // socket.on('draft_message', messageData => {
+        //     console.log('draft message from websocket', messageData);
+        //     updateDraftMessage(messageData);
+        //     socket.emit("answer", 'OK')
+        // });
+
+        socket.on('draft_message', function (data, callback) {
+            console.log(data);
+            // do some work with the data
+
+            // if (err) {
+            //     callback({ error: 'someErrorCode', msg: 'Some message' });
+            //     return;
+            // }
+            updateDraftMessage(data.property);
+
+            callback({ ok: true });
         });
 
         socket.on('update_message', messageData => {

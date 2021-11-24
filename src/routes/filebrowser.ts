@@ -156,7 +156,7 @@ router.get('/files/info', requiresAuthentication, async (req: express.Request, r
 });
 
 router.post('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    messageKernel(req, res, "fileUpload");
+    messageKernel(req, res, 'fileUpload');
 });
 
 router.delete('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
