@@ -1,4 +1,4 @@
-import { getChatById, persistMessage } from './chatService';
+import { getChatById, persistMessage, updateDraftMessage } from './chatService';
 import { Socket } from 'socket.io';
 import Message from '../models/message';
 import { connections } from '../store/connections';
@@ -65,6 +65,11 @@ export const startSocketIo = (httpServer: http.Server) => {
 
             persistMessage(chat.chatId, newMessage);
             sendMessageToApi(location, newMessage);
+        });
+
+        socket.on('draft_message', messageData => {
+            console.log('draft message from websocket', messageData);
+            updateDraftMessage(messageData);
         });
 
         socket.on('update_message', messageData => {

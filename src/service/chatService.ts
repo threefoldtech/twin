@@ -1,4 +1,4 @@
-import { DtIdInterface, MessageInterface } from '../types/index';
+import { DtIdInterface, MessageInterface, MessageTypes } from '../types/index';
 import Chat from '../models/chat';
 import { IdInterface, MessageBodyTypeInterface } from '../types';
 import Contact from '../models/contact';
@@ -93,4 +93,10 @@ export const parseChat = (chat: any, messages: Array<MessageInterface<MessageBod
         chat.read,
         chat.draft
     );
+};
+
+export const updateDraftMessage = (draftMessage: MessageInterface<MessageBodyTypeInterface>) => {
+    let chatWithUpdatedDraft = getChatById(draftMessage.to);
+    chatWithUpdatedDraft.draft = draftMessage;
+    persistChat(chatWithUpdatedDraft);
 };

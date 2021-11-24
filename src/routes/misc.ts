@@ -18,14 +18,6 @@ router.get('/healthcheck', async (req, res) => {
     res.sendStatus(200);
 });
 
-router.post('/updateDraft', (req: express.Request, res: express.Response) => {
-    const draftMessage = req.body.params.draftMessage;
-    console.log(draftMessage);
-    let chatWithUpdatedDraft = getChatById(draftMessage.to);
-    chatWithUpdatedDraft.draft = draftMessage;
-    persistChat(chatWithUpdatedDraft);
-    res.sendStatus(200);
-});
 router.get('/possibleMessages', async (req, res) => {
     res.json(MessageTypes);
 });
