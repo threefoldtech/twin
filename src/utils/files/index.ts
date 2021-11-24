@@ -9,22 +9,24 @@ import * as fse from 'fs-extra';
 import { updateShareName, updateSharePath } from '../../service/fileShareService';
 import { getShareConfig } from '../../service/dataService';
 
+
 let baseDir = PATH.join(config.baseDir, config.storage);
 
 export class Path {
     private _path: string;
     private _securedPath: string;
 
-    constructor(path: string, dir?: string) {
-        console.log('dir', dir);
-        dir ? (baseDir = dir) : (baseDir = '/appdata/storage');
+    constructor(path: string, dir?: string, attachment?:boolean) {
+        dir ? (baseDir = dir) : attachment ? (baseDir = '/appdata/attachments') :(baseDir = '/appdata/storage');
+        //console.log("dir: " + dir)
         this._path = path;
+        //console.log("path: " + baseDir)
         this.setSecuredPath();
-        console.log(this.securedPath);
     }
 
     public setSecuredPath() {
         const realPath = PATH.join(baseDir, this._path);
+        //console.log("Real path: " + realPath)
         if (realPath.indexOf(baseDir) !== 0)
             throw new FileSystemError(ErrorType.ForbidTraversal, 'Traversal not allowed!');
 
@@ -82,7 +84,10 @@ export const getFormattedDetails = async (path: Path): Promise<PathInfo> => {
     };
 };
 
-export const pathExists = (path: Path): boolean => fse.existsSync(path.securedPath);
+export const pathExists = (path: Path): boolean => {
+
+    return fse.existsSync(path.securedPath);
+}
 
 export const createDir = async (path: Path): Promise<PathInfo> => {
     await createDirectory(path);
@@ -136,11 +141,11 @@ export const createDirectoryWithRetry = async (path: Path, count = 0): Promise<P
 };
 
 export const saveFileWithRetry = async (path: Path, file: UploadedFile, count = 0, dir?: string): Promise<PathInfo> => {
-    console.log('->>>> RETRY', file, path);
+    //console.log('->>>> RETRY', path);
     const pathCount = count === 0 ? path : new Path(path.path.insert(path.path.lastIndexOf('.'), ` (${count})`), dir);
-    console.log("new path")
-    if (pathExists(pathCount)) return await saveFileWithRetry(path, file, count + 1, dir);
 
+
+    if (pathExists(pathCount)) return await saveFileWithRetry(path, file, count + 1, dir);
     return await saveUploadedFile(pathCount, file);
 };
 
@@ -161,9 +166,8 @@ export const moveWithRetry = async (source: Path, destinationDirectory: Path, co
 };
 
 export const saveUploadedFile = async (path: Path, file: UploadedFile) => {
-    if (file.tempFilePath) return await moveUploadedFile(file, path);
 
-    console.log('DATAAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaa', file.data);
+    if (file.tempFilePath) return await moveUploadedFile(file, path);
 
     return saveFile(path, file.data);
 };
@@ -177,9 +181,8 @@ export const moveUploadedFile = async (file: UploadedFile, path: Path) => {
 };
 
 export const saveFile = async (path: Path, file: Buffer) => {
-    const directory = new Path(path.path.removeAfterLastOccurrence('/'));
+    const directory = new Path(path.path.removeAfterLastOccurrence('/'), undefined, true);
     if (!pathExists(directory)) await createDir(directory);
-    console.log('---------------------------------------------------------------', path, file);
     await writeFile(path, file);
     return await getFormattedDetails(path);
 };
@@ -242,7 +245,9 @@ const readDirectory = async (path: Path, options: ObjectEncodingOptions & { with
 };
 
 const writeFile = async (path: Path, file: Buffer) => {
-    return await FS.writeFile(path.securedPath, file);
+    return await FS.writeFile(path.securedPath, file, {
+        encoding: "utf-8",
+    });
 };
 
 export const removeFile = async (path: Path) => {

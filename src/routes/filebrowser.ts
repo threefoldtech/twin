@@ -239,6 +239,7 @@ interface OnlyOfficeCallback {
 }
 
 router.get('/internal/files', async (req: express.Request, res: express.Response) => {
+    const attachment :boolean = req.query.attachment === 'true';
     let p = req.query.path;
     let token = req.query.token;
     if (!token || typeof token !== 'string') throw new HttpError(StatusCodes.UNAUTHORIZED, 'No valid token provided');
@@ -257,7 +258,7 @@ router.get('/internal/files', async (req: express.Request, res: express.Response
     )
         throw new HttpError(StatusCodes.UNAUTHORIZED, 'No permission for reading file');
 
-    const path = new Path(p);
+    const path = new Path(p, undefined, attachment);
     res.download(path.securedPath);
     res.status(StatusCodes.OK);
 });
@@ -595,7 +596,6 @@ router.get('/share/path', requiresAuthentication, async (req: express.Request, r
 router.get('/attachment/download', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const owner = <IdInterface>req.query.owner;
     const path = <string>req.query.path;
-
     const location = new URL(path).hostname.replace('[', '').replace(']', '');
 
     let msg: Message<StringMessageTypeInterface> = {
@@ -613,7 +613,9 @@ router.get('/attachment/download', requiresAuthentication, async (req: express.R
     appendSignatureToMessage(parsedmsg);
     // const contacts = chat.contacts.filter((c: { id: string; }) => c.id !== config.userid);
     // for (const contact of contacts) {
+
     const result = await sendMessageToApi(location, parsedmsg);
+
 
     let file: UploadedFile = {
         name: null,
@@ -626,14 +628,23 @@ router.get('/attachment/download', requiresAuthentication, async (req: express.R
         md5: null,
         mv: null,
     };
+    console.log("---------------------------------------")
+    //console.log("Result of data: " + result.headers)
+    console.log(result.headers)
+    // Result of data: status,statusText,headers,config,request,data
+    console.log("---------------------------------------")
+
     file.data = result.data;
-    console.log('data', file.data);
+
 
     const yy = await saveFileWithRetry(
         new Path(<string>owner + '/' + path.split('/').pop(), '/appdata/attachments/'),
         file, 0, '/appdata/attachments/'
     );
-    console.log(yy);
+
+
+
+    //console.log(yy);
 
     // }
 

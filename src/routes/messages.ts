@@ -31,6 +31,8 @@ import {
 } from '../service/fileShareService';
 import { getFile, Path } from '../utils/files';
 import { createNoSubstitutionTemplateLiteral } from 'typescript';
+import {fromBuffer} from 'file-type';
+
 
 const router = Router();
 
@@ -162,6 +164,7 @@ const handleGroupAdmin = async <ResBody, Locals>(
 // Should be externally availble
 router.put('/', async (req, res) => {
     // @ TODO check if valid
+
     const msg = req.body;
     let message = msg as Message<MessageBodyTypeInterface>;
 
@@ -297,6 +300,10 @@ router.put('/', async (req, res) => {
                 '' + message.from + '/files'
             );
             const file = await getFile(new Path(url, '/appdata/chats'));
+
+            const mime = await fromBuffer(file)
+
+            res.set('Content-Type', mime.mime)
             res.send(file);
             return;
     }
