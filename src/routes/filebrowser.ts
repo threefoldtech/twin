@@ -457,12 +457,9 @@ router.get('/files/getShares', requiresAuthentication, async (req: express.Reque
 });
 
 router.get('/attachments', requiresAuthentication, (req: express.Request, res: express.Response) => {
-    let shareStatus = req.query.shareStatus as ShareStatus;
-    // console.log('status', shareStatus)
+    const shareStatus = req.query.shareStatus as ShareStatus;
 
-    console.log('___________________________FILES -===========================');
     const results = fs.readdirSync('/appdata/attachments/');
-    console.log('___________________________FILES -=======ENDN====================');
 
     res.json(results);
     res.status(StatusCodes.OK);

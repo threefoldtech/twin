@@ -18,15 +18,12 @@ export class Path {
 
     constructor(path: string, dir?: string, attachment?:boolean) {
         dir ? (baseDir = dir) : attachment ? (baseDir = '/appdata/attachments') :(baseDir = '/appdata/storage');
-        //console.log("dir: " + dir)
         this._path = path;
-        //console.log("path: " + baseDir)
         this.setSecuredPath();
     }
 
     public setSecuredPath() {
         const realPath = PATH.join(baseDir, this._path);
-        //console.log("Real path: " + realPath)
         if (realPath.indexOf(baseDir) !== 0)
             throw new FileSystemError(ErrorType.ForbidTraversal, 'Traversal not allowed!');
 
