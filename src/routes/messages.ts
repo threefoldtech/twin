@@ -301,9 +301,11 @@ router.put('/', async (req, res) => {
             );
             const file = await getFile(new Path(url, '/appdata/chats'));
 
+
             const mime = await fromBuffer(file)
 
-            res.set('Content-Type', mime.mime)
+
+            res.set('Content-Type', mime?.mime || null)
             res.send(file);
             return;
     }

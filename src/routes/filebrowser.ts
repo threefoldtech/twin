@@ -62,6 +62,7 @@ import Contact from '../models/contact';
 import { isUndefined } from 'lodash';
 import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
 import chat from '../models/chat';
+import {fromBuffer}  from "file-type";
 
 const router = Router();
 
@@ -611,46 +612,26 @@ router.get('/attachment/download', requiresAuthentication, async (req: express.R
     };
     const parsedmsg = parseMessage(msg);
     appendSignatureToMessage(parsedmsg);
-    // const contacts = chat.contacts.filter((c: { id: string; }) => c.id !== config.userid);
-    // for (const contact of contacts) {
 
-    const result = await sendMessageToApi(location, parsedmsg);
-
+    const result = await sendMessageToApi(location, parsedmsg, 'arraybuffer');
 
     let file: UploadedFile = {
         name: null,
-        data: result.data,
+        data: Buffer.from(result.data),
         size: null,
         encoding: null,
         tempFilePath: null,
         truncated: null,
-        mimetype: null,
+        mimetype: (await fromBuffer(Buffer.from(result.data, 'utf8')))?.mime || null,
         md5: null,
         mv: null,
     };
-    console.log("---------------------------------------")
-    //console.log("Result of data: " + result.headers)
-    console.log(result.headers)
-    // Result of data: status,statusText,headers,config,request,data
-    console.log("---------------------------------------")
-
-    file.data = result.data;
-
 
     const yy = await saveFileWithRetry(
         new Path(<string>owner + '/' + path.split('/').pop(), '/appdata/attachments/'),
         file, 0, '/appdata/attachments/'
     );
 
-
-
-    //console.log(yy);
-
-    // }
-
-    // persistMessage(chat.chatId, parsedmsg);
-    // const x = await sendEventToConnectedSockets('message', parsedmsg);
-    // console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', x)
     res.json('OK');
     res.status(StatusCodes.OK);
 });

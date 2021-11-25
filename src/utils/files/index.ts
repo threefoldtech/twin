@@ -1,6 +1,6 @@
 import PATH from 'path';
 
-import { ObjectEncodingOptions, promises as FS, Stats, lstatSync, rmdirSync, statSync } from 'fs';
+import fs, { ObjectEncodingOptions, promises as FS, Stats, lstatSync, rmdirSync, statSync } from 'fs';
 import { FileSystemError, FileSystemErrorType as ErrorType } from '../../types/errors/fileSystemError';
 import { PathInfo } from '../../types/dtos/fileDto';
 import { config } from '../../config/config';
@@ -245,9 +245,7 @@ const readDirectory = async (path: Path, options: ObjectEncodingOptions & { with
 };
 
 const writeFile = async (path: Path, file: Buffer) => {
-    return await FS.writeFile(path.securedPath, file, {
-        encoding: "utf-8",
-    });
+        return await FS.writeFile(path.securedPath, file);
 };
 
 export const removeFile = async (path: Path) => {
