@@ -1,12 +1,17 @@
-import { DtIdInterface, MessageInterface, MessageTypes } from '../types/index';
+import { ContactRequest, DtIdInterface, MessageInterface, MessageTypes, SystemMessageInterface } from '../types/index';
 import Chat from '../models/chat';
 import { IdInterface, MessageBodyTypeInterface } from '../types';
 import Contact from '../models/contact';
 import { getChatIds, persistChat, getChat } from './dataService';
-import { parseMessages } from './messageService';
+import { parseMessage, parseMessages } from './messageService';
 import { sendEventToConnectedSockets } from './socketService';
-import { getChatfromAdmin } from './apiService';
+import { getChatfromAdmin, sendMessageToApi } from './apiService';
 import { config } from '../config/config';
+import { appendSignatureToMessage } from './keyService';
+import { uuidv4 } from '../common';
+import Message from '../models/message';
+import { getMyLocation } from './locationService';
+import { contacts } from '../store/contacts';
 
 export const persistMessage = (chatId: IdInterface, message: MessageInterface<MessageBodyTypeInterface>) => {
     const chat = getChat(chatId);

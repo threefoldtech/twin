@@ -10,7 +10,7 @@ import { sendMessageToApi } from './apiService';
 import { updateLastSeen, updateStatus } from '../store/user';
 import { config } from '../config/config';
 import { appendSignatureToMessage } from './keyService';
-import { addContact } from '../routes/contacts';
+import { addContact } from './contactService';
 
 const socketio = require('socket.io');
 
@@ -89,7 +89,9 @@ export const startSocketIo = (httpServer: http.Server) => {
 
         socket.on('add_contact', function (data, callback) {
             console.log('data from add contact', data);
-            addContact();
+            addContact(data.username, data.location, data.addMessage);
+
+            callback({ ok: true });
         });
 
         socket.on('update_message', messageData => {
