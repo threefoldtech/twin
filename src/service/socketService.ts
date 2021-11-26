@@ -11,6 +11,7 @@ import { updateLastSeen, updateStatus } from '../store/user';
 import { config } from '../config/config';
 import { appendSignatureToMessage } from './keyService';
 import { addContact } from './contactService';
+import { appCallback } from './authService';
 
 const socketio = require('socket.io');
 
@@ -24,6 +25,7 @@ export const startSocketIo = (httpServer: http.Server) => {
     });
 
     io.on('connection', (socket: Socket) => {
+        require('../websocketRoutes/user')(socket);
         console.log(`${socket.id} connected`);
         connections.add(socket.id);
 
@@ -68,11 +70,12 @@ export const startSocketIo = (httpServer: http.Server) => {
             sendMessageToApi(location, newMessage);
         });
 
-        // socket.on('draft_message', messageData => {
-        //     console.log('draft message from websocket', messageData);
-        //     updateDraftMessage(messageData);
-        //     socket.emit("answer", 'OK')
-        // });
+        socket.on('draft_message', (messageData, callback) => {
+            console.log('draft message from websocket', messageData);
+            updateDraftMessage(messageData);
+            // socket.emit("answer", 'OK')
+            callback({ ok: true });
+        });
 
         socket.on('draft_message', function (data, callback) {
             console.log(data);

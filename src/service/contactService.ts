@@ -59,3 +59,8 @@ export const addContact = async (username: string, location: string, addMessage:
     await sendMessageToApi(contact.location, data);
     sendEventToConnectedSockets('connectionRequest', chat);
 };
+
+export const getAvatar = () => {
+    console.log('getting avatar');
+    return 'getAvatar from backend';
+};

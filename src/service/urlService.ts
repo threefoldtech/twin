@@ -3,5 +3,6 @@
 // location = isIpv4 ? location : `[${location}]`;
 
 export const getFullIPv6ApiLocation = (location: string, apiEndPoint: string) => {
+    console.log('is this function ever used');
     return `http://[${location}]/api${apiEndPoint}`;
 };

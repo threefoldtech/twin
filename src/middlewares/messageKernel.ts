@@ -6,16 +6,27 @@ import { FileDto, PathInfo } from '../types/dtos/fileDto';
 import { UploadedFile } from 'express-fileupload';
 import { errorMiddleware } from '..';
 import { HttpError } from '../types/errors/httpError';
+import { Socket } from 'socket.io';
+import { getAvatar } from '../store/user';
 
 // responds back to the frontend over API.
 // The respondance of the result will happen over websocket
-const respondToInitialRequest = (req: express.Request, res: express.Response, msg: StatusCodes) => {
+const respondToInitialRequest = (socket: Socket, requirements: any, callback: any) => {
+    if (!checkRequirements(requirements)) {
+        callback({ ok: false });
+        return;
+    }
+
     // res.json(msg);
     // res.status(400).send('bad reqeust');
 
     // if error
     // errorMiddleware(new HttpError(StatusCodes.CONFLICT, "X", "why not"), req, res, null)
-    res.status(StatusCodes.ACCEPTED);
+    // res.status(StatusCodes.ACCEPTED);
+};
+
+const checkRequirements = (requirements: any) => {
+    return true;
 };
 
 export const messageKernel = async (req: express.Request, res: express.Response, messageAction: string) => {
@@ -29,6 +40,27 @@ export const messageKernel = async (req: express.Request, res: express.Response,
             respondToInitialRequest(req, res, StatusCodes.ACCEPTED);
             //handle request
             handleUpload(req.files.newFiles, req.body);
+            return;
+        default:
+            console.log('resulted to default messageaction');
+    }
+
+    return;
+};
+
+export const messageKernelWS = async (socket: Socket, messageAction: string, callback: any) => {
+    console.log('>>> MERNEL [', new Date(), '] <<<', messageAction);
+
+    switch (messageAction) {
+        case 'get_avatar':
+            //check requirements for handleupload (e.g. file is added)
+            //respond to request
+            respondToInitialRequest(socket, null, callback);
+            const image = await getAvatar();
+            console.log('-----------------------------', image);
+            callback({ data: image });
+            //handle request
+            // handleUpload(req.files.newFiles, req.body);
             return;
         default:
             console.log('resulted to default messageaction');
