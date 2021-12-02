@@ -37,7 +37,7 @@ export const messageKernel = async (req: express.Request, res: express.Response,
             console.log('its handle upload');
             //check requirements for handleupload (e.g. file is added)
             //respond to request
-            respondToInitialRequest(req, res, StatusCodes.ACCEPTED);
+            // respondToInitialRequest(req, res, StatusCodes.ACCEPTED);
             //handle request
             handleUpload(req.files.newFiles, req.body);
             return;
@@ -62,11 +62,20 @@ export const messageKernelWS = async (socket: Socket, messageAction: string, cal
             //handle request
             // handleUpload(req.files.newFiles, req.body);
             return;
+        case 'get_my_status':
+            //check requirements for handleupload (e.g. file is added)
+            //respond to request
+            console.log('testings');
+            respondToInitialRequest(socket, null, callback);
+
+            //handle request
+            // handleUpload(req.files.newFiles, req.body);
+            return true;
         default:
             console.log('resulted to default messageaction');
     }
 
-    return;
+    return false;
 };
 
 const handleUpload = async (files: UploadedFile[] | UploadedFile, dto: FileDto) => {

@@ -101,7 +101,9 @@ export const parseChat = (chat: any, messages: Array<MessageInterface<MessageBod
 };
 
 export const updateDraftMessage = (draftMessage: MessageInterface<MessageBodyTypeInterface>) => {
+    console.log('test', draftMessage.to);
     let chatWithUpdatedDraft = getChatById(draftMessage.to);
     chatWithUpdatedDraft.draft = draftMessage;
+
     persistChat(chatWithUpdatedDraft);
 };

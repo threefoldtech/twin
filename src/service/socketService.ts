@@ -12,6 +12,7 @@ import { config } from '../config/config';
 import { appendSignatureToMessage } from './keyService';
 import { addContact } from './contactService';
 import { appCallback } from './authService';
+import { getMyStatus } from '../websocketRoutes/user';
 
 const socketio = require('socket.io');
 
@@ -25,7 +26,9 @@ export const startSocketIo = (httpServer: http.Server) => {
     });
 
     io.on('connection', (socket: Socket) => {
-        require('../websocketRoutes/user')(socket);
+        // require('../websocketRoutes/user')(socket);
+        // getMyStatus();
+
         console.log(`${socket.id} connected`);
         connections.add(socket.id);
 
@@ -36,6 +39,9 @@ export const startSocketIo = (httpServer: http.Server) => {
                 updateLastSeen();
             }
         });
+
+        // require('../websocketRoutes/user')(socket)
+        getMyStatus(socket);
 
         socket.on('message', messageData => {
             console.log('new message');
@@ -70,23 +76,9 @@ export const startSocketIo = (httpServer: http.Server) => {
             sendMessageToApi(location, newMessage);
         });
 
-        socket.on('draft_message', (messageData, callback) => {
-            console.log('draft message from websocket', messageData);
-            updateDraftMessage(messageData);
-            // socket.emit("answer", 'OK')
-            callback({ ok: true });
-        });
-
         socket.on('draft_message', function (data, callback) {
-            console.log(data);
             // do some work with the data
-
-            // if (err) {
-            //     callback({ error: 'someErrorCode', msg: 'Some message' });
-            //     return;
-            // }
             updateDraftMessage(data.property);
-
             callback({ ok: true });
         });
 
