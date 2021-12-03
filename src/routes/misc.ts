@@ -11,6 +11,8 @@ import http from 'http';
 import express from 'express';
 import { getChatById } from '../service/chatService';
 import Message from '../models/message';
+import { sendMyYggdrasilAddress } from '../websocketRoutes/misc';
+import { Socket } from 'socket.io-client';
 
 const router = Router();
 
@@ -29,11 +31,6 @@ router.get('/test', async (req, res) => {
 
     persistChat(chat);
     res.json({ success: true });
-});
-
-router.get('/yggdrasil_address', async (req, res) => {
-    let myLocation = await getMyLocation();
-    res.json(myLocation);
 });
 
 router.get('/getexternalresource', async (req: express.Request, res: express.Response) => {

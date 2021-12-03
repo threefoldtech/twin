@@ -13,6 +13,7 @@ import { appendSignatureToMessage } from './keyService';
 import { addContact } from './contactService';
 import { appCallback } from './authService';
 import { getMyStatus } from '../websocketRoutes/user';
+import { sendMyYggdrasilAddress } from '../websocketRoutes/misc';
 
 const socketio = require('socket.io');
 
@@ -42,6 +43,7 @@ export const startSocketIo = (httpServer: http.Server) => {
 
         // require('../websocketRoutes/user')(socket)
         getMyStatus(socket);
+        sendMyYggdrasilAddress(socket);
 
         socket.on('message', messageData => {
             console.log('new message');

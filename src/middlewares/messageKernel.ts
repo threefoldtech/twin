@@ -13,6 +13,7 @@ import { getAvatar } from '../store/user';
 // The respondance of the result will happen over websocket
 const respondToInitialRequest = (socket: Socket, requirements: any, callback: any) => {
     if (!checkRequirements(requirements)) {
+        throw new Error('[!!!] Faulty params');
         callback({ ok: false });
         return;
     }
@@ -57,12 +58,15 @@ export const messageKernelWS = async (socket: Socket, messageAction: string, cal
             //respond to request
             respondToInitialRequest(socket, null, callback);
             const image = await getAvatar();
-            console.log('-----------------------------', image);
+
             callback({ data: image });
             //handle request
             // handleUpload(req.files.newFiles, req.body);
             return;
         case 'get_my_status':
+            respondToInitialRequest(socket, null, callback);
+            return true;
+        case 'my_yggdrasil_address':
             respondToInitialRequest(socket, null, callback);
             return true;
         default:
