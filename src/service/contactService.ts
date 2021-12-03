@@ -61,6 +61,5 @@ export const addContact = async (username: string, location: string, addMessage:
 };
 
 export const getAvatar = () => {
-    console.log('getting avatar');
     return 'getAvatar from backend';
 };

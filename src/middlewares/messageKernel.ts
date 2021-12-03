@@ -63,13 +63,7 @@ export const messageKernelWS = async (socket: Socket, messageAction: string, cal
             // handleUpload(req.files.newFiles, req.body);
             return;
         case 'get_my_status':
-            //check requirements for handleupload (e.g. file is added)
-            //respond to request
-            console.log('testings');
             respondToInitialRequest(socket, null, callback);
-
-            //handle request
-            // handleUpload(req.files.newFiles, req.body);
             return true;
         default:
             console.log('resulted to default messageaction');

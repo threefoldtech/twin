@@ -156,7 +156,29 @@ router.get('/files/info', requiresAuthentication, async (req: express.Request, r
 });
 
 router.post('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    messageKernel(req, res, 'fileUpload');
+    const files = req.files.newFiles as UploadedFile[] | UploadedFile;
+    const dto = req.body as FileDto;
+    if (!dto.path) dto.path = '/';
+    if (Array.isArray(files)) {
+        const results = [] as PathInfo[];
+        await Promise.all(
+            files.map(async f => {
+                const path = new Path(dto.path);
+                path.appendPath(f.name);
+                const result = await saveFileWithRetry(path, f);
+                results.push(result);
+            })
+        );
+        res.json(results);
+        res.status(StatusCodes.CREATED);
+        return;
+    }
+
+    const path = new Path(dto.path);
+    path.appendPath((files as UploadedFile).name);
+    const result = await saveFileWithRetry(path, files as UploadedFile);
+    res.json(result);
+    res.status(StatusCodes.CREATED);
 });
 
 router.delete('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
