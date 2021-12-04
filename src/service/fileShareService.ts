@@ -149,23 +149,6 @@ export const removeFilePermissions = (path: string, chatId: string, location: st
     allShares.Shared[shareIndex] = share;
     console.log('shared');
     persistShareConfig(allShares);
-    console.log(allShares.Shared.find(share => share.path === path));
-
-    // const message: Message<MessageBodyTypeInterface> = parseMessage({
-    //     id: uuidv4(),
-    //     to: chatId,
-    //     body: "update file share",
-    //     from: config.userid,
-    //     type: MessageTypes.FILE_SHARE_UPDATE,
-    //     timeStamp: new Date(),
-    //     replies: [],
-    //     signatures: [],
-    //     subject: null,
-    // });
-    // console.log(message)
-
-    // sendMessageToApi(location, message)
-    // notifySharedWithConsumers(share);
     notifyDeleteSharePermission(deletedSharedPermission, share.id);
 };
 
@@ -197,13 +180,6 @@ export const getShareByPath = (
     path: string,
     shareStatus: ShareStatus
 ): SharedFileInterface => {
-    console.log(
-        allShares[shareStatus].forEach(e => {
-            // console.log("----------------------------------")
-            // console.log(e.permissions)
-        })
-    );
-    // console.log(allShares[shareStatus].find(share => share.path === path));
     const share = allShares[shareStatus].reverse().find(share => share.path === path);
     return share;
 };
@@ -374,9 +350,6 @@ export const handleIncommingFileShare = (message: Message<FileShareMessageType>,
 
 export const handleIncommingFileShareUpdate = (message: Message<FileShareMessageType>) => {
     const shareConfig = message.body;
-    // console.log('###########################################3')
-    // console.log(shareConfig)
-    // console.log('##1111111111111111111111111111111111111111111111111#3')
 
     renameShareInChat(shareConfig);
     if (!shareConfig.name || !shareConfig.owner) return;

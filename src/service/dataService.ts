@@ -15,7 +15,6 @@ const chatsDirectory = PATH.join(config.baseDir, '/chats');
 
 export const getChatIds = (): IdInterface[] => {
     const locations = fs.readdirSync(chatsDirectory);
-    console.log(locations);
     return locations;
 };
 

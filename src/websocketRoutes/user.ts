@@ -5,9 +5,6 @@ import { getAvatar } from '../service/contactService';
 import { connections } from '../store/connections';
 import { getLastSeen, getStatus } from '../store/user';
 
-export const test = (socket: Socket) => {
-    console.log('testing ');
-};
 export const getMyStatus = (socket: Socket) => {
     socket.on('get_my_status', async (messageData, callback) => {
         if (messageKernelWS(socket, 'get_my_status', callback)) {

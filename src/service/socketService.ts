@@ -14,6 +14,7 @@ import { addContact } from './contactService';
 import { appCallback } from './authService';
 import { getMyStatus } from '../websocketRoutes/user';
 import { sendMyYggdrasilAddress } from '../websocketRoutes/misc';
+import { retrievingChats } from '../websocketRoutes/chats';
 
 const socketio = require('socket.io');
 
@@ -44,6 +45,7 @@ export const startSocketIo = (httpServer: http.Server) => {
         // require('../websocketRoutes/user')(socket)
         getMyStatus(socket);
         sendMyYggdrasilAddress(socket);
+        retrievingChats(socket);
 
         socket.on('message', messageData => {
             console.log('new message');

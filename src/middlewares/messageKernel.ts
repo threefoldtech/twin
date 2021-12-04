@@ -69,6 +69,8 @@ export const messageKernelWS = async (socket: Socket, messageAction: string, cal
         case 'my_yggdrasil_address':
             respondToInitialRequest(socket, null, callback);
             return true;
+        case 'retrieve_chats':
+            respondToInitialRequest(socket, null, callback);
         default:
             console.log('resulted to default messageaction');
     }

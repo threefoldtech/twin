@@ -28,7 +28,6 @@ router.post('/', requiresAuthentication, (req: express.Request, res: express.Res
 router.get('/', requiresAuthentication, (req: express.Request, res: express.Response) => {
     let limit = parseInt(<string | undefined>req.query.limit);
     limit = limit > 100 ? 100 : limit;
-
     const chats = getAcceptedChatsWithPartialMessages(limit);
     res.json(chats);
 });
