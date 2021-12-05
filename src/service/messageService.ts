@@ -20,7 +20,6 @@ import { config } from '../config/config';
 export const parseMessages = (messages: Array<any>) => messages.map(parseMessage);
 
 export const parseMessage = (msg: any): MessageInterface<MessageBodyTypeInterface> => {
-    // console.log(msg);
     const type: MessageTypes = <MessageTypes>msg.type;
 
     // console.log('MESSAGE: ', msg);

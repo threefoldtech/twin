@@ -51,6 +51,8 @@ export const messageKernel = async (req: express.Request, res: express.Response,
 
 export const messageKernelWS = async (socket: Socket, messageAction: string, callback: any) => {
     console.log('>>> MERNEL [', new Date(), '] <<<', messageAction);
+    console.log('>>> MERNEL [', new Date(), '] <<<', messageAction);
+    console.log('>>> MERNEL [', new Date(), '] <<<', messageAction);
 
     switch (messageAction) {
         case 'get_avatar':
@@ -71,6 +73,10 @@ export const messageKernelWS = async (socket: Socket, messageAction: string, cal
             return true;
         case 'retrieve_chats':
             respondToInitialRequest(socket, null, callback);
+            return true;
+        case 'add_group_chat':
+            respondToInitialRequest(socket, null, callback);
+            return true;
         default:
             console.log('resulted to default messageaction');
     }
