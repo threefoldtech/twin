@@ -39,6 +39,7 @@ export enum MessageTypes {
     GROUP_UPDATE = 'GROUP_UPDATE',
     QUOTE = 'QUOTE',
     FILE_SHARE_DELETE = 'FILE_SHARE_DELETE',
+    DOWNLOAD_ATTACHMENT = 'DOWNLOAD_ATTACHMENT',
 }
 
 export enum MessageAction {

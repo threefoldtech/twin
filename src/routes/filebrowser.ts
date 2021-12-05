@@ -1,5 +1,5 @@
 import { removeFilePermissions, SharedFileInterface, updateShareName } from './../service/fileShareService';
-import express, { Router } from 'express';
+import express, { json, Router } from 'express';
 import {
     copyWithRetry,
     createDirectoryWithRetry,
@@ -41,7 +41,14 @@ import {
     updateSharePath,
 } from '../service/fileShareService';
 import { getChat, getShareConfig, persistShareConfig } from '../service/dataService';
-import { FileShareMessageType, MessageTypes } from '../types';
+import {
+    FileShareMessageType,
+    IdInterface,
+    MessageBodyTypeInterface,
+    MessageInterface,
+    MessageTypes,
+    StringMessageTypeInterface,
+} from '../types';
 import Message from '../models/message';
 import { appendSignatureToMessage } from '../service/keyService';
 import { sendMessageToApi } from '../service/apiService';
@@ -54,6 +61,8 @@ import { isCallChain } from 'typescript';
 import Contact from '../models/contact';
 import { isUndefined } from 'lodash';
 import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
+import chat from '../models/chat';
+import {fromBuffer}  from "file-type";
 
 const router = Router();
 
@@ -64,8 +73,13 @@ interface FileToken extends TokenData {
 
 router.get('/directories/content', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let p = req.query.path;
+    console.log(req.query);
+    let attachment = req.query.attachments === '1';
+    console.log('attach ', attachment);
     if (!p || typeof p !== 'string') p = '/';
-    const path = new Path(p);
+    let path;
+    attachment ? (path = new Path(p, '/appdata/attachments')) : (path = new Path(p));
+
     const stats = await getStats(path);
     if (
         !stats.isDirectory() ||
@@ -75,7 +89,7 @@ router.get('/directories/content', requiresAuthentication, async (req: express.R
         stats.isSocket()
     )
         throw new HttpError(StatusCodes.BAD_REQUEST, 'Path is not a directory');
-    res.json(await readDir(path, { withFileTypes: true }));
+    res.json(await readDir(path, { withFileTypes: true }, attachment));
 });
 
 router.get('/directories/info', requiresAuthentication, async (req: express.Request, res: express.Response) => {
@@ -118,6 +132,7 @@ router.get('/files/info', requiresAuthentication, async (req: express.Request, r
         let object = JSON.parse(params);
         let shareId = object.shareId;
         let token = object.token;
+        console.log(object);
         const [payload, err] = verifyJwtToken<Token<FileToken>>(token);
         if (err) throw new HttpError(StatusCodes.UNAUTHORIZED, err.message);
         if (
@@ -130,9 +145,13 @@ router.get('/files/info', requiresAuthentication, async (req: express.Request, r
         p = getShareWithId(shareId, ShareStatus.Shared).path;
     } else {
         p = req.query.path;
+        console.log('xxxxxxxxxxxxxxxxxx', req.query);
     }
     if (!p || typeof p !== 'string') throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
-    const path = new Path(p);
+    let path;
+    req.query.attachments === 'true' ? (path = new Path(p, '/appdata/attachments')) : (path = new Path(p));
+
+    console.log();
     res.json({
         ...(await getFormattedDetails(path)),
         key: getDocumentBrowserKey(true, path.securedPath),
@@ -157,6 +176,7 @@ router.get('/files/info', requiresAuthentication, async (req: express.Request, r
 router.post('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const files = req.files.newFiles as UploadedFile[] | UploadedFile;
     const dto = req.body as FileDto;
+
     if (!dto.path) dto.path = '/';
     if (Array.isArray(files)) {
         const results = [] as PathInfo[];
@@ -220,6 +240,7 @@ interface OnlyOfficeCallback {
 }
 
 router.get('/internal/files', async (req: express.Request, res: express.Response) => {
+    const attachment :boolean = req.query.attachment === 'true';
     let p = req.query.path;
     let token = req.query.token;
     if (!token || typeof token !== 'string') throw new HttpError(StatusCodes.UNAUTHORIZED, 'No valid token provided');
@@ -238,7 +259,7 @@ router.get('/internal/files', async (req: express.Request, res: express.Response
     )
         throw new HttpError(StatusCodes.UNAUTHORIZED, 'No permission for reading file');
 
-    const path = new Path(p);
+    const path = new Path(p, undefined, attachment);
     res.download(path.securedPath);
     res.status(StatusCodes.OK);
 });
@@ -434,6 +455,16 @@ router.get('/files/getShares', requiresAuthentication, async (req: express.Reque
     res.json(results);
     res.status(StatusCodes.OK);
 });
+
+router.get('/attachments', requiresAuthentication, (req: express.Request, res: express.Response) => {
+    const shareStatus = req.query.shareStatus as ShareStatus;
+
+    const results = fs.readdirSync('/appdata/attachments/');
+
+    res.json(results);
+    res.status(StatusCodes.OK);
+});
+
 router.get('/files/getShareWithId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let shareId = req.query.id as string;
     let results = await getShareWithId(shareId, ShareStatus.SharedWithMe);
@@ -557,6 +588,48 @@ router.get('/share/path', requiresAuthentication, async (req: express.Request, r
     const allShares = getShareConfig();
     let share = getShareByPath(allShares, path, ShareStatus.Shared);
     res.json(share);
+    res.status(StatusCodes.OK);
+});
+
+router.get('/attachment/download', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const owner = <IdInterface>req.query.owner;
+    const path = <string>req.query.path;
+    const location = new URL(path).hostname.replace('[', '').replace(']', '');
+
+    let msg: Message<StringMessageTypeInterface> = {
+        id: uuidv4(),
+        body: path,
+        from: config.userid,
+        to: owner,
+        timeStamp: new Date(),
+        type: MessageTypes.DOWNLOAD_ATTACHMENT,
+        replies: [],
+        signatures: [],
+        subject: null,
+    };
+    const parsedmsg = parseMessage(msg);
+    appendSignatureToMessage(parsedmsg);
+
+    const result = await sendMessageToApi(location, parsedmsg, 'arraybuffer');
+
+    let file: UploadedFile = {
+        name: null,
+        data: Buffer.from(result.data),
+        size: null,
+        encoding: null,
+        tempFilePath: null,
+        truncated: null,
+        mimetype: (await fromBuffer(Buffer.from(result.data, 'utf8')))?.mime || null,
+        md5: null,
+        mv: null,
+    };
+
+    const yy = await saveFileWithRetry(
+        new Path(<string>owner + '/' + path.split('/').pop(), '/appdata/attachments/'),
+        file, 0, '/appdata/attachments/'
+    );
+
+    res.json('OK');
     res.status(StatusCodes.OK);
 });
 
