@@ -54,7 +54,6 @@ import { isCallChain } from 'typescript';
 import Contact from '../models/contact';
 import { isUndefined } from 'lodash';
 import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
-import { messageKernel } from '../middlewares/messageKernel';
 
 const router = Router();
 

@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import express, { Router } from 'express';
-import { create } from 'lodash';
+import { create, String } from 'lodash';
 import { Path, saveFileWithRetry } from '../utils/files';
 import { FileDto, PathInfo } from '../types/dtos/fileDto';
 import { UploadedFile } from 'express-fileupload';
@@ -13,9 +13,8 @@ import { getAvatar } from '../store/user';
 // The respondance of the result will happen over websocket
 const respondToInitialRequest = (socket: Socket, requirements: any, callback: any) => {
     if (!checkRequirements(requirements)) {
-        throw new Error('[!!!] Faulty params');
         callback({ ok: false });
-        return;
+        throw new Error('[!!!] Faulty params');
     }
 
     // res.json(msg);
@@ -27,31 +26,11 @@ const respondToInitialRequest = (socket: Socket, requirements: any, callback: an
 };
 
 const checkRequirements = (requirements: any) => {
+    // return !!requirements;
     return true;
 };
 
-export const messageKernel = async (req: express.Request, res: express.Response, messageAction: string) => {
-    console.log('>>> MERNEL [', new Date(), '] <<<', messageAction);
-
-    switch (messageAction) {
-        case 'handleUpload':
-            console.log('its handle upload');
-            //check requirements for handleupload (e.g. file is added)
-            //respond to request
-            // respondToInitialRequest(req, res, StatusCodes.ACCEPTED);
-            //handle request
-            handleUpload(req.files.newFiles, req.body);
-            return;
-        default:
-            console.log('resulted to default messageaction');
-    }
-
-    return;
-};
-
-export const messageKernelWS = async (socket: Socket, messageAction: string, callback: any) => {
-    console.log('>>> MERNEL [', new Date(), '] <<<', messageAction);
-    console.log('>>> MERNEL [', new Date(), '] <<<', messageAction);
+export const messageKernelWS = async (socket: Socket, messageAction: string, callback: any, data?: any) => {
     console.log('>>> MERNEL [', new Date(), '] <<<', messageAction);
 
     switch (messageAction) {
@@ -76,6 +55,9 @@ export const messageKernelWS = async (socket: Socket, messageAction: string, cal
             return true;
         case 'add_group_chat':
             respondToInitialRequest(socket, null, callback);
+            return true;
+        case 'fetch_messages':
+            respondToInitialRequest(socket, data, callback);
             return true;
         default:
             console.log('resulted to default messageaction');

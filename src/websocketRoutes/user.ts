@@ -1,6 +1,5 @@
 import { Socket } from 'socket.io';
-import { messageKernel, messageKernelWS } from '../middlewares/messageKernel';
-import { updateDraftMessage } from '../service/chatService';
+import { messageKernelWS } from '../middlewares/messageKernel';
 import { getAvatar } from '../service/contactService';
 import { connections } from '../store/connections';
 import { getLastSeen, getStatus } from '../store/user';

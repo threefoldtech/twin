@@ -294,9 +294,18 @@ router.put('/', async (req, res) => {
 });
 
 router.get('/:chatId', (req, res) => {
+    console.log('test');
+    console.log('test');
+    console.log('test');
+    console.log('test');
+    console.log('test');
+    console.log('test');
+    console.log('test');
     const fromId = <string | undefined>req.query.fromId;
     const page = parseInt(<string | undefined>req.query.page);
     let limit = parseInt(<string | undefined>req.query.limit);
+
+    console.log('fromid', fromId, 'page', page, limit, limit);
     limit = limit > 100 ? 100 : limit;
 
     const chat = getChat(req.params.chatId);
