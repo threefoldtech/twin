@@ -59,6 +59,12 @@ export const messageKernelWS = async (socket: Socket, messageAction: string, cal
         case 'fetch_messages':
             respondToInitialRequest(socket, data, callback);
             return true;
+        case 'get_block_list':
+            return true;
+            respondToInitialRequest(socket, data, callback);
+        case 'unblock_user':
+            respondToInitialRequest(socket, data, callback);
+            return true;
         default:
             console.log('resulted to default messageaction');
     }

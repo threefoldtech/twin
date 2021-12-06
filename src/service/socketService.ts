@@ -16,6 +16,7 @@ import { WSMisc } from '../websocketRoutes/misc';
 import { WSChats } from '../websocketRoutes/chats';
 import { WSGroup } from '../websocketRoutes/groups';
 import { WSMessages } from '../websocketRoutes/messages';
+import { WSBlock } from '../websocketRoutes/block';
 
 const socketio = require('socket.io');
 
@@ -49,6 +50,7 @@ export const startSocketIo = (httpServer: http.Server) => {
         WSChats(socket);
         WSGroup(socket);
         WSMessages(socket);
+        WSBlock(socket);
 
         socket.on('message', messageData => {
             console.log('new message');

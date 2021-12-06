@@ -31,6 +31,7 @@ export const getChatfromAdmin = async (adminLocation: string, chatId: string) =>
 
     try {
         console.log('getting chat from ', url);
+        console.log('gettings chat from admin', url);
         const chat = await axios.get(url);
         const parsedChat = parseFullChat(chat.data);
         console.log(parsedChat);
@@ -39,5 +40,4 @@ export const getChatfromAdmin = async (adminLocation: string, chatId: string) =>
         console.log('failed to get chat from admin');
         throw Error;
     }
-    throw Error;
 };

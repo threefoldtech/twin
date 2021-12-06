@@ -11,7 +11,6 @@ import http from 'http';
 import express from 'express';
 import { getChatById } from '../service/chatService';
 import Message from '../models/message';
-import { sendMyYggdrasilAddress } from '../websocketRoutes/misc';
 import { Socket } from 'socket.io-client';
 
 const router = Router();
