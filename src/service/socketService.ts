@@ -11,11 +11,11 @@ import { updateLastSeen, updateStatus } from '../store/user';
 import { config } from '../config/config';
 import { appendSignatureToMessage } from './keyService';
 import { addContact } from './contactService';
-import { appCallback } from './authService';
-import { getMyStatus } from '../websocketRoutes/user';
-import { sendMyYggdrasilAddress } from '../websocketRoutes/misc';
-import { retrievingChats } from '../websocketRoutes/chats';
-import { addGroupChat } from '../websocketRoutes/groups';
+import { WSUser } from '../websocketRoutes/user';
+import { WSMisc } from '../websocketRoutes/misc';
+import { WSChats } from '../websocketRoutes/chats';
+import { WSGroup } from '../websocketRoutes/groups';
+import { WSMessages } from '../websocketRoutes/messages';
 
 const socketio = require('socket.io');
 
@@ -44,10 +44,11 @@ export const startSocketIo = (httpServer: http.Server) => {
         });
 
         // require('../websocketRoutes/user')(socket)
-        getMyStatus(socket);
-        sendMyYggdrasilAddress(socket);
-        retrievingChats(socket);
-        addGroupChat(socket);
+        WSUser(socket);
+        WSMisc(socket);
+        WSChats(socket);
+        WSGroup(socket);
+        WSMessages(socket);
 
         socket.on('message', messageData => {
             console.log('new message');

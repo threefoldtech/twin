@@ -5,7 +5,7 @@ import { parseFullChat } from '../service/chatService';
 import { persistChat } from '../service/dataService';
 import { getFullIPv6ApiLocation } from '../service/urlService';
 
-export const addGroupChat = (socket: Socket) => {
+export const WSGroup = (socket: Socket) => {
     socket.on('add_group_chat', async (data: any, callback: Function) => {
         if (messageKernelWS(socket, 'add_group_chat', callback)) {
             let preParsedChat = { ...data, acceptedChat: true, isGroup: true };
