@@ -77,6 +77,21 @@ export const messageKernelWS = async (socket: Socket, messageAction: string, cal
         case 'search_dir':
             respondToInitialRequest(socket, data, callback);
             return true;
+        case 'copy_files':
+            respondToInitialRequest(socket, data, callback);
+            return true;
+        case 'move_file':
+            respondToInitialRequest(socket, data, callback);
+            return true;
+        case 'rename_file':
+            respondToInitialRequest(socket, data, callback);
+            return true;
+        case 'add_share':
+            respondToInitialRequest(socket, data, callback);
+            return true;
+        case 'remove_file_permissions':
+            respondToInitialRequest(socket, data, callback);
+            return true;
         default:
             console.log('resulted to default messageaction');
     }

@@ -282,7 +282,7 @@ router.post('/files/copy', requiresAuthentication, async (req: express.Request, 
         data.map(async (source: string) => copyWithRetry(new Path(source), new Path(destinationPath)))
     );
     res.json(result);
-    res.status(StatusCodes.CREATED);
+    res.status(StatusCodes.OK);
 });
 
 router.post('/files/move', requiresAuthentication, async (req: express.Request, res: express.Response) => {
@@ -297,7 +297,7 @@ router.post('/files/move', requiresAuthentication, async (req: express.Request, 
         data.map(async (source: string) => moveWithRetry(new Path(source), new Path(destinationPath)))
     );
     res.json(result);
-    res.status(StatusCodes.CREATED);
+    res.status(StatusCodes.OK);
 });
 
 router.put('/files/rename', requiresAuthentication, async (req: express.Request, res: express.Response) => {
