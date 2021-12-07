@@ -74,6 +74,9 @@ export const messageKernelWS = async (socket: Socket, messageAction: string, cal
         case 'delete_file':
             respondToInitialRequest(socket, data, callback);
             return true;
+        case 'search_dir':
+            respondToInitialRequest(socket, data, callback);
+            return true;
         default:
             console.log('resulted to default messageaction');
     }

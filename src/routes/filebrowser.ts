@@ -180,13 +180,13 @@ router.post('/files', requiresAuthentication, async (req: express.Request, res: 
     res.status(StatusCodes.CREATED);
 });
 
-router.delete('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const pathClass = new Path(req.body.filepath);
-    removeShare(req.body.filepath);
-    const result = await removeFile(pathClass);
-    res.json(result);
-    res.status(StatusCodes.CREATED);
-});
+// router.delete('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+//     const pathClass = new Path(req.body.filepath);
+//     removeShare(req.body.filepath);
+//     const result = await removeFile(pathClass);
+//     res.json(result);
+//     res.status(StatusCodes.CREATED);
+// });
 
 router.get('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let p = req.query.path;
