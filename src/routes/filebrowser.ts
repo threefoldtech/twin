@@ -62,21 +62,21 @@ interface FileToken extends TokenData {
     file: string;
 }
 
-router.get('/directories/content', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    let p = req.query.path;
-    if (!p || typeof p !== 'string') p = '/';
-    const path = new Path(p);
-    const stats = await getStats(path);
-    if (
-        !stats.isDirectory() ||
-        stats.isBlockDevice() ||
-        stats.isCharacterDevice() ||
-        stats.isSymbolicLink() ||
-        stats.isSocket()
-    )
-        throw new HttpError(StatusCodes.BAD_REQUEST, 'Path is not a directory');
-    res.json(await readDir(path, { withFileTypes: true }));
-});
+// router.get('/directories/content', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+//     let p = req.query.path;
+//     if (!p || typeof p !== 'string') p = '/';
+//     const path = new Path(p);
+//     const stats = await getStats(path);
+//     if (
+//         !stats.isDirectory() ||
+//         stats.isBlockDevice() ||
+//         stats.isCharacterDevice() ||
+//         stats.isSymbolicLink() ||
+//         stats.isSocket()
+//     )
+//         throw new HttpError(StatusCodes.BAD_REQUEST, 'Path is not a directory');
+//     res.json(await readDir(path, { withFileTypes: true }));
+// });
 
 router.get('/directories/info', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let p = req.query.path;

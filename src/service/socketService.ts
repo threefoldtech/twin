@@ -17,6 +17,8 @@ import { WSChats } from '../websocketRoutes/chats';
 import { WSGroup } from '../websocketRoutes/groups';
 import { WSMessages } from '../websocketRoutes/messages';
 import { WSBlock } from '../websocketRoutes/block';
+import { WSAuth } from '../websocketRoutes/auth';
+import { WSFileBrowser } from '../websocketRoutes/filebrowser';
 
 const socketio = require('socket.io');
 
@@ -51,6 +53,8 @@ export const startSocketIo = (httpServer: http.Server) => {
         WSGroup(socket);
         WSMessages(socket);
         WSBlock(socket);
+        WSAuth(socket);
+        WSFileBrowser(socket);
 
         socket.on('message', messageData => {
             console.log('new message');

@@ -65,6 +65,12 @@ export const messageKernelWS = async (socket: Socket, messageAction: string, cal
         case 'unblock_user':
             respondToInitialRequest(socket, data, callback);
             return true;
+        case 'is_user_authenticated':
+            respondToInitialRequest(socket, data, callback);
+            return true;
+        case 'get_directory_content':
+            respondToInitialRequest(socket, data, callback);
+            return true;
         default:
             console.log('resulted to default messageaction');
     }
