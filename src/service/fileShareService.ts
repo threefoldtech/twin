@@ -168,13 +168,6 @@ export const removeSharedWithMe = (path: string) => {
     persistShareConfig(allShares);
 };
 
-// NOT used anymore?
-// export const initFileShares = () => {
-//     let config = getShareConfig();
-//     // removeExpiredShares(config);
-//     persistShareConfig(config);
-// };
-
 export const getShareByPath = (
     allShares: SharesInterface,
     path: string,
