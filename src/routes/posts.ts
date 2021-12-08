@@ -27,8 +27,6 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
         filesToSave = [].concat(filesToSave);
     }
 
-    console.log(filesToSave);
-
     let path = PATH.join(socialDirectory, 'posts', id, 'files');
     fs.mkdirSync(path, { recursive: true });
 
@@ -72,29 +70,21 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
     res.json({ status: 'success' });
 });
 
-router.get('/', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+router.get('/:external', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    //Need boolean or else infinite loop
+    const fetchPostsFromExternals = req?.params.external.toLowerCase() === 'true';
+
     let posts: any[] = [];
-    for (const contact of contacts) {
-        const url = getFullIPv6ApiLocation(contact.location, '/posts/external');
-        const peersPosts = (await axios.get(url)).data;
-        posts = peersPosts;
+
+    //Getting posts from other twins
+    if (fetchPostsFromExternals) {
+        for (const contact of contacts) {
+            const url = getFullIPv6ApiLocation(contact.location, '/posts/false');
+            posts = (await axios.get(url)).data;
+        }
     }
 
     let path = PATH.join(socialDirectory, 'posts');
-
-    if (!fs.existsSync(path)) return res.json(posts);
-    const dir = await fs.promises.opendir(path);
-    for await (const dirent of dir) {
-        //@ts-ignore
-        const file = JSON.parse(fs.readFileSync(`${path}/${dirent.name}/post.json`));
-        posts.push(file);
-    }
-    res.json(posts);
-});
-
-router.get('/external', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    let path = PATH.join(socialDirectory, 'posts');
-    let posts: any[] = [];
 
     if (!fs.existsSync(path)) return res.json(posts);
     const dir = await fs.promises.opendir(path);
@@ -109,6 +99,50 @@ router.get('/external', requiresAuthentication, async (req: express.Request, res
 router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const path = atob(req.params.path);
     res.download(path);
+});
+
+router.put('/like/:postId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const postId = req.params.postId;
+
+    console.log('INSIDE LIKE   INSIDE LIKE    INSIDE LIKE   INSIDE LIKE');
+    console.log(postId);
+
+    let path = PATH.join(socialDirectory, 'posts', postId);
+    console.log(path);
+    if (fs.existsSync(path)) {
+        console.log('Post is mine');
+        //@ts-ignore
+        let postConfig = JSON.parse(fs.readFileSync(`${path}/post.json`));
+        const { likes } = postConfig;
+
+        const myLocation = await getMyLocation();
+
+        if (likes.some(e => e.location === myLocation)) {
+            console.log('have already liked');
+            console.log('going to delete like');
+            postConfig.likes = postConfig.likes.filter(like => like.location !== myLocation);
+            fs.writeFileSync(`${path}/post.json`, JSON.stringify(postConfig, null, 2));
+            console.log('removed like');
+            console.log(postConfig);
+            res.json({ status: 'unliked' });
+            return;
+        }
+        console.log('not liked');
+        postConfig.likes.push({
+            id: config.userid,
+            location: myLocation,
+        });
+        console.log('liked');
+        fs.writeFileSync(`${path}/post.json`, JSON.stringify(postConfig, null, 2));
+
+        res.json({ status: 'liked' });
+
+        return;
+    }
+
+    if (!fs.existsSync(path)) return res.json({ status: 'No post found' });
+
+    res.json({ status: 'liked' });
 });
 
 //@TODO will need to use this later
