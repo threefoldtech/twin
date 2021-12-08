@@ -32,6 +32,7 @@ router.get('/avatar/:avatarId', async (req, res) => {
     if (!req.params.avatarId) {
         res.sendStatus(403);
     }
+    console.log('avatar');
     let path = `${config.baseDir}user/avatar-${req.params.avatarId}`;
     res.download(path);
 });

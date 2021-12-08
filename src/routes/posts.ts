@@ -10,8 +10,8 @@ import { StatusCodes } from 'http-status-codes';
 import * as PATH from 'path';
 import fs from 'fs';
 import { UploadedFile } from 'express-fileupload';
-import {getMyLocation} from "../service/locationService";
-
+import { getMyLocation } from '../service/locationService';
+import { contacts } from '../store/contacts';
 
 const router = Router();
 
@@ -21,11 +21,11 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
     const { id, type, body, isGroupPost, createdOn, lastModified } = req.body;
     let filesToSave = <UploadedFile[]>req?.files.images;
 
-    if(Object.prototype.toString.call(filesToSave) !== '[object Array]') {
+    if (Object.prototype.toString.call(filesToSave) !== '[object Array]') {
         filesToSave = [].concat(filesToSave);
     }
 
-    console.log(filesToSave)
+    console.log(filesToSave);
 
     let path = PATH.join(socialDirectory, 'posts', id, 'files');
     fs.mkdirSync(path, { recursive: true });
@@ -33,44 +33,63 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
     let images = [];
 
     for (const file of filesToSave) {
-        if (file.tempFilePath && file.mv) {
+        if (file?.tempFilePath && file?.mv) {
             //@ts-ignore
             file.mv(PATH.join(path, file.name));
-            images.push({...file, path: PATH.join(path, file.name)})
-        } else if (file.data) {
+            images.push({ ...file, path: PATH.join(path, file.name) });
+        } else if (file?.data) {
             fs.writeFileSync(PATH.join(path, file.name), file.data);
         }
     }
 
     const pathConfig = PATH.join(socialDirectory, 'posts', id);
-    //Restrict file size
+    //Todo Restrict file size
 
     const json = {
         post: {
-            id, type, body, isGroupPost, createdOn, lastModified
+            id,
+            type,
+            body,
+            isGroupPost,
+            createdOn,
+            lastModified,
         },
         owner: {
             id: config.userid,
-            location: await getMyLocation()
+            location: await getMyLocation(),
         },
         likes: [] as any[],
         replies: [] as any[],
-        images: images
-    }
+        images: images,
+    };
 
-    fs.writeFileSync(`${pathConfig}/post.json`, JSON.stringify(json, null ,2))
+    fs.writeFileSync(`${pathConfig}/post.json`, JSON.stringify(json, null, 2));
 
     //Saving post with paths
 
     res.json({ status: 'success' });
 });
 
-router.get('/', requiresAuthentication, (req: express.Request, res: express.Response) => {
+router.get('/', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    //console.log(contacts)
 
+    let path = PATH.join(socialDirectory, 'posts');
 
+    let posts: any[] = [];
 
+    if (!fs.existsSync(path)) return res.json(posts);
+    const dir = await fs.promises.opendir(path);
+    for await (const dirent of dir) {
+        //@ts-ignore
+        const file = JSON.parse(fs.readFileSync(`${path}/${dirent.name}/post.json`));
+        posts.push(file);
+    }
+    res.json(posts);
+});
 
-
+router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const path = atob(req.params.path);
+    res.download(path);
 });
 
 //@TODO will need to use this later
