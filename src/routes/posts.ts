@@ -12,6 +12,8 @@ import fs from 'fs';
 import { UploadedFile } from 'express-fileupload';
 import { getMyLocation } from '../service/locationService';
 import { contacts } from '../store/contacts';
+import { getFullIPv6ApiLocation } from '../service/urlService';
+import axios from 'axios';
 
 const router = Router();
 
@@ -71,10 +73,27 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
 });
 
 router.get('/', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    //console.log(contacts)
+    let posts: any[] = [];
+    for (const contact of contacts) {
+        const url = getFullIPv6ApiLocation(contact.location, '/posts/external');
+        const peersPosts = (await axios.get(url)).data;
+        posts = peersPosts;
+    }
 
     let path = PATH.join(socialDirectory, 'posts');
 
+    if (!fs.existsSync(path)) return res.json(posts);
+    const dir = await fs.promises.opendir(path);
+    for await (const dirent of dir) {
+        //@ts-ignore
+        const file = JSON.parse(fs.readFileSync(`${path}/${dirent.name}/post.json`));
+        posts.push(file);
+    }
+    res.json(posts);
+});
+
+router.get('/external', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    let path = PATH.join(socialDirectory, 'posts');
     let posts: any[] = [];
 
     if (!fs.existsSync(path)) return res.json(posts);
