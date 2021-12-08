@@ -147,25 +147,8 @@ export const removeFilePermissions = (path: string, chatId: string, location: st
     share.permissions.splice(index, 1);
 
     allShares.Shared[shareIndex] = share;
-    console.log('shared');
     persistShareConfig(allShares);
-    console.log(allShares.Shared.find(share => share.path === path));
 
-    // const message: Message<MessageBodyTypeInterface> = parseMessage({
-    //     id: uuidv4(),
-    //     to: chatId,
-    //     body: "update file share",
-    //     from: config.userid,
-    //     type: MessageTypes.FILE_SHARE_UPDATE,
-    //     timeStamp: new Date(),
-    //     replies: [],
-    //     signatures: [],
-    //     subject: null,
-    // });
-    // console.log(message)
-
-    // sendMessageToApi(location, message)
-    // notifySharedWithConsumers(share);
     notifyDeleteSharePermission(deletedSharedPermission, share.id);
 };
 
@@ -396,6 +379,7 @@ export const handleIncommingFileShareUpdate = (message: Message<FileShareMessage
 export const handleIncommingFileShareDelete = (message: Message<FileShareDeleteMessageType>) => {
     const shareId = message.body;
     // if (!shareConfig.name || !shareConfig.owner) return;
+    console.log('before getshare');
     const share = getShareWithId(<string>shareId, ShareStatus.SharedWithMe);
     console.log('share ', share);
     if (!share) return;

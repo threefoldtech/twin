@@ -6,7 +6,8 @@ import { getFullIPv6ApiLocation } from './urlService';
 
 export const sendMessageToApi = async (location: string, message: Message<MessageBodyTypeInterface>) => {
     // console.log('Location: ', location);
-    if (message.type !== 'READ') console.log('newMessage: ', message);
+    //newMessage
+    ///if (message.type !== 'READ') console.log('newMessage: ', message);
     const url = getFullIPv6ApiLocation(location, '/messages');
     try {
         await axios.put(url, message);
