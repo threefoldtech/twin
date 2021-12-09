@@ -103,44 +103,46 @@ router.get('/download/:path', requiresAuthentication, async (req: express.Reques
 
 router.put('/like/:postId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const postId = req.params.postId;
+    const creatorPost = req.body.owner;
+    const liker_location = req.body.liker_location;
+    const liker_id = req.body.liker_id;
+    const myLocation = await getMyLocation();
 
-    console.log('INSIDE LIKE   INSIDE LIKE    INSIDE LIKE   INSIDE LIKE');
-    console.log(postId);
-
+    //Note: check first config.userid === location from post, get postId in body of put. Or else infinite loop if the post was deleted
     let path = PATH.join(socialDirectory, 'posts', postId);
-    console.log(path);
-    if (fs.existsSync(path)) {
-        console.log('Post is mine');
+    if (myLocation === creatorPost) {
+        if (!fs.existsSync(path)) return res.json({ status: 'post not found' });
         //@ts-ignore
         let postConfig = JSON.parse(fs.readFileSync(`${path}/post.json`));
         const { likes } = postConfig;
-
-        const myLocation = await getMyLocation();
-
-        if (likes.some(e => e.location === myLocation)) {
-            console.log('have already liked');
-            console.log('going to delete like');
-            postConfig.likes = postConfig.likes.filter(like => like.location !== myLocation);
+        //@ts-ignore
+        if (likes.some(e => e.location === liker_location && e.id === liker_id)) {
+            postConfig.likes = postConfig.likes.filter(
+                //@ts-ignore
+                like => like.location !== liker_location && like.id !== liker_id
+            );
             fs.writeFileSync(`${path}/post.json`, JSON.stringify(postConfig, null, 2));
-            console.log('removed like');
-            console.log(postConfig);
             res.json({ status: 'unliked' });
             return;
         }
-        console.log('not liked');
         postConfig.likes.push({
-            id: config.userid,
-            location: myLocation,
+            id: liker_id,
+            location: liker_location,
         });
-        console.log('liked');
         fs.writeFileSync(`${path}/post.json`, JSON.stringify(postConfig, null, 2));
-
         res.json({ status: 'liked' });
-
         return;
     }
-
-    if (!fs.existsSync(path)) return res.json({ status: 'No post found' });
+    //Sending to other twin
+    const url = getFullIPv6ApiLocation(creatorPost, `/posts/like/${postId}`);
+    const status = (
+        await axios.put(url, {
+            owner: creatorPost,
+            liker_location: liker_location,
+            liker_id: liker_id,
+        })
+    ).data;
+    res.json({ ...status });
 
     res.json({ status: 'liked' });
 });
