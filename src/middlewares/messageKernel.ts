@@ -92,6 +92,15 @@ export const messageKernelWS = async (socket: Socket, messageAction: string, cal
         case 'remove_file_permissions':
             respondToInitialRequest(socket, data, callback);
             return true;
+        case 'get_shared_content':
+            respondToInitialRequest(socket, data, callback);
+            return true;
+        case 'get_share_with_id':
+            respondToInitialRequest(socket, data, callback);
+            return true;
+        case 'get_share_by_path':
+            respondToInitialRequest(socket, data, callback);
+            return true;
         default:
             console.log('resulted to default messageaction');
     }

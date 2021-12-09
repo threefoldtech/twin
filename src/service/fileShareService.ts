@@ -187,7 +187,12 @@ export const getShare = (path: string, chatId: string, shareStatus: ShareStatus)
 };
 export const getShareWithId = (id: string, shareStatus: ShareStatus): SharedFileInterface => {
     const allShares = getShareConfig();
-    return allShares[shareStatus].reverse().find(share => share.id === id);
+
+    const test = allShares[shareStatus].reverse().find(share => share.id == id);
+    allShares[shareStatus].forEach(share => {
+        console.log(share.id, id, 'match', share.id === id);
+    });
+    return test;
 };
 
 export const appendShare = (
