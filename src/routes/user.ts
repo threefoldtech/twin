@@ -6,6 +6,7 @@ import { deleteAvatar, saveAvatar } from '../service/dataService';
 import { uuidv4 } from '../common';
 import { config } from '../config/config';
 import { getPublicKey } from '../store/keyStore';
+import * as fs from 'fs';
 
 const router = Router();
 
@@ -32,8 +33,16 @@ router.get('/avatar/:avatarId', async (req, res) => {
     if (!req.params.avatarId) {
         res.sendStatus(403);
     }
-    console.log('avatar');
     let path = `${config.baseDir}user/avatar-${req.params.avatarId}`;
+    if (req.params.avatarId === 'default') {
+        //@ts-ignore
+        const userConfigAvatarId = JSON.parse(fs.readFileSync(`${config.baseDir}user/userinfo.json`)).image;
+        if (userConfigAvatarId !== '' || userConfigAvatarId !== undefined)
+            path = `${config.baseDir}user/avatar-${userConfigAvatarId}`;
+    }
+    console.log(path);
+    console.log('Does it exist???? : ' + fs.existsSync(path));
+
     res.download(path);
 });
 
@@ -42,7 +51,6 @@ router.post('/avatar', async (req, resp) => {
     const avatarId = uuidv4();
     await saveAvatar(file, avatarId);
     await deleteAvatar(getImage());
-
     updateAvatar(avatarId);
     const newUrl = await getAvatar();
     resp.status(200).json(newUrl);

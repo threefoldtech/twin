@@ -143,8 +143,42 @@ router.put('/like/:postId', requiresAuthentication, async (req: express.Request,
         })
     ).data;
     res.json({ ...status });
+});
 
-    res.json({ status: 'liked' });
+router.put('/comment/:postId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const postId = req.params.postId;
+    const { id, body, owner, post, type, replies, createdOn, likes, replyTo, isReplyToComment } = req.body;
+    console.log('COMMENT');
+    const myLocation = await getMyLocation();
+    if (post.owner.location !== myLocation) {
+        //Sending to other twin
+        const url = getFullIPv6ApiLocation(post.owner.location, `/posts/comment/${postId}`);
+        const { data: status } = await axios.put(url, req.body);
+        console.log(status);
+        return res.json({ ...status });
+    }
+    //Okay post is mine
+    const path = PATH.join(socialDirectory, 'posts', postId);
+    if (!fs.existsSync(path)) return res.json({ status: 'post not found' });
+    //@ts-ignore
+    let postConfig = JSON.parse(fs.readFileSync(`${path}/post.json`));
+    //Now checking if reply or not
+    if (isReplyToComment) {
+        console.log('Is reply');
+        //console.log(postConfig?.replies[replyTo]);
+        //@ts-ignore
+        const parentCommentId = postConfig.replies.findIndex(obj => obj.id === replyTo);
+
+        //console.log(postConfig.replies[parentCommentId]);
+        postConfig?.replies[parentCommentId]?.replies.push(req.body);
+        fs.writeFileSync(`${path}/post.json`, JSON.stringify(postConfig, null, 2));
+        res.json({ status: 'commented' });
+        return;
+    }
+    postConfig.replies.push(req.body);
+    fs.writeFileSync(`${path}/post.json`, JSON.stringify(postConfig, null, 2));
+
+    res.json({ status: 'commented' });
 });
 
 //@TODO will need to use this later
