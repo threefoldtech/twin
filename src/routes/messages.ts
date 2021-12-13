@@ -31,8 +31,7 @@ import {
 } from '../service/fileShareService';
 import { getFile, Path } from '../utils/files';
 import { createNoSubstitutionTemplateLiteral } from 'typescript';
-import {fromBuffer} from 'file-type';
-
+import { fromBuffer } from 'file-type';
 
 const router = Router();
 
@@ -170,7 +169,6 @@ router.put('/', async (req, res) => {
 
     try {
         message = parseMessage(msg);
-        console.log({ message });
     } catch (e) {
         console.log('message failed to parse');
         res.status(500).json({ status: 'failed', reason: 'validation failed' });
@@ -194,11 +192,13 @@ router.put('/', async (req, res) => {
     }
 
     const chatId = determineChatId(message);
+
     let chat: Chat;
     try {
         chat = getChat(chatId);
     } catch (e) {
         console.log(e);
+
         res.status(403).json("Sorry but I'm not aware of this chat id");
         return;
     }
@@ -299,13 +299,11 @@ router.put('/', async (req, res) => {
                 '/api/files/' + message.from,
                 '' + message.from + '/files'
             );
+
             const file = await getFile(new Path(url, '/appdata/chats'));
+            const mime = await fromBuffer(file);
 
-
-            const mime = await fromBuffer(file)
-
-
-            res.set('Content-Type', mime?.mime || null)
+            res.set('Content-Type', mime?.mime || null);
             res.send(file);
             return;
     }
