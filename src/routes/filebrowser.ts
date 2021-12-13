@@ -4,6 +4,7 @@ import {
     copyWithRetry,
     createDirectoryWithRetry,
     filterOnString,
+    getFile,
     getFilesRecursive,
     getFormattedDetails,
     getStats,
@@ -62,7 +63,8 @@ import Contact from '../models/contact';
 import { isUndefined } from 'lodash';
 import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
 import chat from '../models/chat';
-import {fromBuffer}  from "file-type";
+import { fromBuffer } from 'file-type';
+import * as PATH from 'path';
 
 const router = Router();
 
@@ -73,9 +75,9 @@ interface FileToken extends TokenData {
 
 router.get('/directories/content', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let p = req.query.path;
-    console.log(req.query);
+
     let attachment = req.query.attachments === '1';
-    console.log('attach ', attachment);
+
     if (!p || typeof p !== 'string') p = '/';
     let path;
     attachment ? (path = new Path(p, '/appdata/attachments')) : (path = new Path(p));
@@ -151,7 +153,6 @@ router.get('/files/info', requiresAuthentication, async (req: express.Request, r
     let path;
     req.query.attachments === 'true' ? (path = new Path(p, '/appdata/attachments')) : (path = new Path(p));
 
-    console.log();
     res.json({
         ...(await getFormattedDetails(path)),
         key: getDocumentBrowserKey(true, path.securedPath),
@@ -240,7 +241,7 @@ interface OnlyOfficeCallback {
 }
 
 router.get('/internal/files', async (req: express.Request, res: express.Response) => {
-    const attachment :boolean = req.query.attachment === 'true';
+    const attachment: boolean = req.query.attachment === 'true';
     let p = req.query.path;
     let token = req.query.token;
     if (!token || typeof token !== 'string') throw new HttpError(StatusCodes.UNAUTHORIZED, 'No valid token provided');
@@ -594,6 +595,9 @@ router.get('/share/path', requiresAuthentication, async (req: express.Request, r
 router.get('/attachment/download', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const owner = <IdInterface>req.query.owner;
     const path = <string>req.query.path;
+    const to = <string>req.query.to;
+    const messageId = <string>req.query.messageId;
+
     const location = new URL(path).hostname.replace('[', '').replace(']', '');
 
     let msg: Message<StringMessageTypeInterface> = {
@@ -607,26 +611,40 @@ router.get('/attachment/download', requiresAuthentication, async (req: express.R
         signatures: [],
         subject: null,
     };
-    const parsedmsg = parseMessage(msg);
-    appendSignatureToMessage(parsedmsg);
 
-    const result = await sendMessageToApi(location, parsedmsg, 'arraybuffer');
+    let result: Buffer | undefined = undefined;
 
-    let file: UploadedFile = {
+    if (owner === config.userid) {
+        const path = `/appdata/chats/${to}/files/${messageId}`;
+        const folder = fs.readdirSync(path);
+        if (!folder || folder.length === 0) res.json('File does not exist');
+        result = fs.readFileSync(path + '/' + folder[0]);
+    }
+
+    if (owner !== config.userid) {
+        const parsedmsg = parseMessage(msg);
+        appendSignatureToMessage(parsedmsg);
+        result = (await sendMessageToApi(location, parsedmsg, 'arraybuffer')).data;
+    }
+
+    const file: UploadedFile = {
         name: null,
-        data: Buffer.from(result.data),
+        data: Buffer.from(result),
         size: null,
         encoding: null,
         tempFilePath: null,
         truncated: null,
-        mimetype: (await fromBuffer(Buffer.from(result.data, 'utf8')))?.mime || null,
+        //@ts-ignore
+        mimetype: (await fromBuffer(Buffer.from(result, 'utf8')))?.mime || null,
         md5: null,
         mv: null,
     };
 
     const yy = await saveFileWithRetry(
         new Path(<string>owner + '/' + path.split('/').pop(), '/appdata/attachments/'),
-        file, 0, '/appdata/attachments/'
+        file,
+        0,
+        '/appdata/attachments/'
     );
 
     res.json('OK');
