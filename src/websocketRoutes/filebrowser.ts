@@ -28,9 +28,11 @@ import { parseMessage } from '../service/messageService';
 import { sendEventToConnectedSockets } from '../service/socketService';
 import { Permission, TokenData } from '../store/tokenStore';
 import { FileShareMessageType, MessageTypes } from '../types';
+import { DirectoryContent, DirectoryDto } from '../types/dtos/fileDto';
 import { HttpError } from '../types/errors/httpError';
 import {
     copyWithRetry,
+    createDirectoryWithRetry,
     filterOnString,
     getFilesRecursive,
     getFormattedDetails,
@@ -50,8 +52,6 @@ interface FileToken extends TokenData {
 export const WSFileBrowser = (socket: Socket) => {
     socket.on('get_directory_content', async (data: any, callback: Function) => {
         if (messageKernelWS(socket, 'get_directory_content', callback, data.path)) {
-            console.log('directory content entry is ', data);
-
             let p = data.path;
             if (!p || typeof p !== 'string') p = '/';
             const path = new Path(p);
@@ -71,9 +71,34 @@ export const WSFileBrowser = (socket: Socket) => {
         }
     });
 
+    socket.on('create_directory', async (data: any, callback: Function) => {
+        if (messageKernelWS(socket, 'create_directory', callback, data)) {
+            const dto = data as DirectoryDto;
+            console.log(dto);
+            dto.name = dto.name.replace(/\\|\//g, '');
+            if (!dto.path) dto.path = '/';
+            if (!dto.name) dto.name = 'New Folder';
+            const path = new Path(dto.path);
+            console.log('path before', path);
+            path.appendPath(dto.name);
+            console.log('path after', path);
+
+            let result = {
+                status: StatusCodes.CREATED,
+                data: {
+                    name: (await createDirectoryWithRetry(path)).name,
+                    isDirectory: true,
+                    isFile: false,
+                } as DirectoryContent,
+            };
+            callback(result);
+        }
+    });
+
     socket.on('delete_file', async (data: any, callback: Function) => {
         if (messageKernelWS(socket, 'delete_file', callback, data.path)) {
             const pathClass = new Path(data.path);
+            console.log(data.path);
             removeShare(data.path);
             let result = { status: StatusCodes.CREATED, data: await removeFile(pathClass) };
             callback(result);
@@ -82,8 +107,8 @@ export const WSFileBrowser = (socket: Socket) => {
 
     socket.on('search_dir', async (data: any, callback: Function) => {
         if (messageKernelWS(socket, 'delete_file', callback, data.path)) {
-            let term = data.params.searchTerm;
-            let dir = data.params.currentDir;
+            let term = data.searchTerm;
+            let dir = data.currentDir;
             if (!dir || typeof dir !== 'string') throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
             const path = new Path(dir);
             let fileList = await getFilesRecursive(path);
@@ -94,9 +119,9 @@ export const WSFileBrowser = (socket: Socket) => {
         }
     });
 
-    socket.on('copy_files', async (params: any, callback: Function) => {
-        if (messageKernelWS(socket, 'copy_files', callback, params.params.paths)) {
-            const data = params.params;
+    socket.on('copy_files', async (data: any, callback: Function) => {
+        if (messageKernelWS(socket, 'copy_files', callback, data.paths)) {
+            // const data = data.params;
             console.log('data', data);
             if (!data || data.length === 0) throw new HttpError(StatusCodes.BAD_REQUEST, 'No items to copy specified');
 
@@ -113,30 +138,31 @@ export const WSFileBrowser = (socket: Socket) => {
         }
     });
 
-    socket.on('move_file', async (params: any, callback: Function) => {
-        if (messageKernelWS(socket, 'move_file', callback, params.params.paths)) {
+    socket.on('move_file', async (data: any, callback: Function) => {
+        if (messageKernelWS(socket, 'move_file', callback, data.paths)) {
             let config = getShareConfig();
-            const data = params.params.paths;
-            if (!data || data.length === 0) throw new HttpError(StatusCodes.BAD_REQUEST, 'No items to copy specified');
+            const paths = data.paths;
+            if (!paths || paths.length === 0)
+                throw new HttpError(StatusCodes.BAD_REQUEST, 'No items to copy specified');
 
-            const destinationPath = params.params.destinationPath;
+            const destinationPath = data.destinationPath;
 
             if (!destinationPath) throw new HttpError(StatusCodes.BAD_REQUEST, 'No destinationpath specified');
             const result = await Promise.all(
-                data.map(async (source: string) => moveWithRetry(new Path(source), new Path(destinationPath)))
+                paths.map(async (source: string) => moveWithRetry(new Path(source), new Path(destinationPath)))
             );
             let output = { status: StatusCodes.OK, data: result };
             callback(output);
         }
     });
 
-    socket.on('add_share', async (params: any, callback: Function) => {
-        if (messageKernelWS(socket, 'add_share', callback, params.params.paths)) {
-            const path = params.params.path as string | undefined;
-            const filename = params.params.filename as string | undefined;
-            const isPublic = params.params.isPublic as boolean | undefined;
-            const writable = params.params.writable as boolean | undefined;
-            const chatId = params.params.chatId as string | undefined;
+    socket.on('add_share', async (data: any, callback: Function) => {
+        if (messageKernelWS(socket, 'add_share', callback, data.paths)) {
+            const path = data.path as string | undefined;
+            const filename = data.filename as string | undefined;
+            const isPublic = data.isPublic as boolean | undefined;
+            const writable = data.writable as boolean | undefined;
+            const chatId = data.chatId as string | undefined;
 
             if (!path) throw new HttpError(StatusCodes.BAD_REQUEST, 'No path specified');
 
@@ -228,10 +254,10 @@ export const WSFileBrowser = (socket: Socket) => {
         }
     });
 
-    socket.on('rename_file', async (params: any, callback: Function) => {
+    socket.on('rename_file', async (data: any, callback: Function) => {
         if (messageKernelWS(socket, 'rename_file', callback)) {
-            const oldPath = new Path(params.params.oldPath);
-            const newPath = new Path(params.params.newPath);
+            const oldPath = new Path(data.oldPath);
+            const newPath = new Path(data.newPath);
 
             const allShares = getShareConfig();
             const share = allShares.Shared.find(share => share.path == oldPath.path);
@@ -248,10 +274,10 @@ export const WSFileBrowser = (socket: Socket) => {
         }
     });
 
-    socket.on('get_shared_content', async (params: any, callback: Function) => {
+    socket.on('get_shared_content', async (data: any, callback: Function) => {
         console.log('get shared content');
         if (messageKernelWS(socket, 'get_shared_content', callback)) {
-            let shareStatus = params.params.shareStatus as ShareStatus;
+            let shareStatus = data.shareStatus as ShareStatus;
             let results = getSharesWithme(shareStatus);
 
             let output = { status: StatusCodes.OK, data: results };
@@ -259,10 +285,10 @@ export const WSFileBrowser = (socket: Socket) => {
         }
     });
 
-    socket.on('get_share_with_id', async (params: any, callback: Function) => {
+    socket.on('get_share_with_id', async (data: any, callback: Function) => {
         console.log('shared with id');
         if (messageKernelWS(socket, 'get_share_with_id', callback)) {
-            let shareId = params.params.id as string;
+            let shareId = data.id as string;
             let results = await getShareWithId(shareId, ShareStatus.SharedWithMe);
             if (isUndefined(results)) {
                 results = <any>{ message: 'ACCESS_DENIED' };
@@ -281,6 +307,7 @@ export const WSFileBrowser = (socket: Socket) => {
             const allShares = getShareConfig();
             let share = getShareByPath(allShares, path, ShareStatus.Shared);
             let output = { status: StatusCodes.OK, data: share };
+            console.log(output, 'get shared by path');
             callback(output);
         }
     });

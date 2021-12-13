@@ -156,6 +156,7 @@ router.get('/files/info', requiresAuthentication, async (req: express.Request, r
 
 router.post('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const files = req.files.newFiles as UploadedFile[] | UploadedFile;
+    console.log('files', files);
     const dto = req.body as FileDto;
     if (!dto.path) dto.path = '/';
     if (Array.isArray(files)) {

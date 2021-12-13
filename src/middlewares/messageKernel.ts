@@ -41,8 +41,6 @@ export const messageKernelWS = async (socket: Socket, messageAction: string, cal
             const image = await getAvatar();
 
             callback({ data: image });
-            //handle request
-            // handleUpload(req.files.newFiles, req.body);
             return;
         case 'get_my_status':
             respondToInitialRequest(socket, null, callback);
@@ -101,35 +99,12 @@ export const messageKernelWS = async (socket: Socket, messageAction: string, cal
         case 'get_share_by_path':
             respondToInitialRequest(socket, data, callback);
             return true;
+        case 'create_directory':
+            respondToInitialRequest(socket, data, callback);
+            return true;
         default:
             console.log('resulted to default messageaction');
     }
 
     return false;
-};
-
-const handleUpload = async (files: UploadedFile[] | UploadedFile, dto: FileDto) => {
-    // console.log("UPLOAD REQUEST RECEIVED", files, dto)
-    // if (!dto.path) dto.path = '/';
-    // if (Array.isArray(files)) {
-    //   console.log("array of files")
-    //   const results = [] as PathInfo[];
-    //   await Promise.all(
-    //     files.map(async f => {
-    //       const path = new Path(dto.path);
-    //       path.appendPath(f.name);
-    //       const result = await saveFileWithRetry(path, f);
-    //       results.push(result);
-    //     })
-    //   );
-    //   res.json(results);
-    //   res.status(StatusCodes.CREATED);
-    //   // send this message though websocket, catch and dispatch to messageKernel
-    //   return;
-    // }
-    // const path = new Path(dto.path);
-    // path.appendPath((files as UploadedFile).name);
-    // const result = await saveFileWithRetry(path, files as UploadedFile);
-    // res.json(result);
-    // res.status(StatusCodes.CREATED);
 };

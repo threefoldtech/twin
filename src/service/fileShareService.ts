@@ -155,6 +155,8 @@ export const removeFilePermissions = (path: string, chatId: string, location: st
 export const removeShare = (path: string) => {
     const allShares = getShareConfig();
     const shareIndex = allShares.Shared.findIndex(share => share.path === path);
+    console.log(shareIndex);
+    console.log(allShares);
     if (!shareIndex) throw new Error(`Share doesn't exist`);
     allShares.Shared.splice(shareIndex, 1);
     persistShareConfig(allShares);
