@@ -9,8 +9,10 @@ import groupUser from './group';
 import blockedRouter from './blocked';
 import fileBrowserRouter from './filebrowser';
 import misc from './misc';
+import postRouter from './posts';
 
 const routes = Router();
+routes.use('/posts/', postRouter);
 routes.use('/auth/', authRouter);
 routes.use('/chats/', chatsRouter);
 routes.use('/contacts/', contactsRouter);

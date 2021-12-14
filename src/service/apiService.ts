@@ -6,6 +6,7 @@ import { parseFullChat } from './chatService';
 import { getFullIPv6ApiLocation } from './urlService';
 import { response } from 'express';
 
+
 export const sendMessageToApi = async (
     location: string,
     message: Message<MessageBodyTypeInterface>,

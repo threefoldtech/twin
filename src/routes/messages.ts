@@ -282,9 +282,11 @@ router.put('/', async (req, res) => {
         case MessageTypes.FILE_SHARE_DELETE:
             console.log('delete fileshare');
             if (message.from === config.userid) {
+                console.log(message.from, config.userid);
                 res.json({ status: 'cannot update share with yourself' });
                 return;
             }
+
             handleIncommingFileShareDelete(message as Message<FileShareDeleteMessageType>);
             res.json({ status: 'success' });
             return;

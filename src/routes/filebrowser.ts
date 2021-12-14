@@ -361,7 +361,6 @@ router.post(
         const chatId = req.body.chatId as string | undefined;
         const path = req.body.path as string | undefined;
         const location = req.body.path as string | undefined;
-
         removeFilePermissions(path, chatId, location);
         res.status(StatusCodes.OK);
     }

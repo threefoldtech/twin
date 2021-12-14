@@ -131,7 +131,10 @@ export const saveFile = (chatId: IdInterface, messageId: string, file: UploadedF
 
 export const saveAvatar = async (file: UploadedFile, id: string) => {
     const path = PATH.join(userDirectory, `avatar-${id}`);
+    //const path = PATH.join(userDirectory, `avatar-default`);
+    console.log(path);
     const tempPath = PATH.join(userDirectory, `temp-avatar-${id}`);
+    console.log(tempPath);
     await file.mv(tempPath);
     await resizeAvatar(tempPath, path);
     fs.unlinkSync(tempPath);
