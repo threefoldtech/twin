@@ -29,6 +29,9 @@ import {
     handleIncommingFileShareDelete,
     handleIncommingFileShareUpdate,
 } from '../service/fileShareService';
+import { getFile, Path } from '../utils/files';
+import { createNoSubstitutionTemplateLiteral } from 'typescript';
+import { fromBuffer } from 'file-type';
 
 const router = Router();
 
@@ -160,12 +163,12 @@ const handleGroupAdmin = async <ResBody, Locals>(
 // Should be externally availble
 router.put('/', async (req, res) => {
     // @ TODO check if valid
+
     const msg = req.body;
     let message = msg as Message<MessageBodyTypeInterface>;
 
     try {
         message = parseMessage(msg);
-        console.log({ message });
     } catch (e) {
         console.log('message failed to parse');
         res.status(500).json({ status: 'failed', reason: 'validation failed' });
@@ -189,11 +192,13 @@ router.put('/', async (req, res) => {
     }
 
     const chatId = determineChatId(message);
+
     let chat: Chat;
     try {
         chat = getChat(chatId);
     } catch (e) {
         console.log(e);
+
         res.status(403).json("Sorry but I'm not aware of this chat id");
         return;
     }
@@ -284,6 +289,24 @@ router.put('/', async (req, res) => {
 
             handleIncommingFileShareDelete(message as Message<FileShareDeleteMessageType>);
             res.json({ status: 'success' });
+            return;
+        case MessageTypes.DOWNLOAD_ATTACHMENT:
+            if (message.from === config.userid) {
+                res.json({
+                    status: 'downloading file to your quantum',
+                });
+            }
+
+            let url: string = decodeURI(new URL(<string>message.body).pathname).replace(
+                '/api/files/' + message.from,
+                '' + message.from + '/files'
+            );
+
+            const file = await getFile(new Path(url, '/appdata/chats'));
+            const mime = await fromBuffer(file);
+
+            res.set('Content-Type', mime?.mime || null);
+            res.send(file);
             return;
     }
 
