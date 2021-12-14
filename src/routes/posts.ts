@@ -65,7 +65,7 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
 
     fs.writeFileSync(`${pathConfig}/post.json`, JSON.stringify(json, null, 2));
 
-    //Saving post with paths
+    //Saving post with paths//
 
     res.json({ status: 'success' });
 });
@@ -79,8 +79,18 @@ router.get('/:external', requiresAuthentication, async (req: express.Request, re
     //Getting posts from other twins
     if (fetchPostsFromExternals) {
         for (const contact of contacts) {
-            const url = getFullIPv6ApiLocation(contact.location, '/posts/false');
-            posts = (await axios.get(url)).data;
+            //Checking if user is online
+            console.log('Polling if user is online');
+            try {
+                const url = getFullIPv6ApiLocation(contact.location, '/posts/false');
+                posts = (
+                    await axios.get(url, {
+                        timeout: 1000,
+                    })
+                ).data;
+            } catch (e) {
+                console.log("Can't make connection with other twin");
+            }
         }
     }
 
@@ -93,6 +103,7 @@ router.get('/:external', requiresAuthentication, async (req: express.Request, re
         const file = JSON.parse(fs.readFileSync(`${path}/${dirent.name}/post.json`));
         posts.push(file);
     }
+
     res.json(posts);
 });
 
