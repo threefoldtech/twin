@@ -80,7 +80,7 @@ router.get('/:external', requiresAuthentication, async (req: express.Request, re
     if (fetchPostsFromExternals) {
         for (const contact of contacts) {
             //Checking if user is online
-            console.log('Polling if user is online');
+            //console.log('Polling if user is online');
             try {
                 const url = getFullIPv6ApiLocation(contact.location, '/posts/false');
                 posts = (
@@ -159,13 +159,13 @@ router.put('/like/:postId', requiresAuthentication, async (req: express.Request,
 router.put('/comment/:postId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const postId = req.params.postId;
     const { id, body, owner, post, type, replies, createdOn, likes, replyTo, isReplyToComment } = req.body;
-    console.log('COMMENT');
+    //console.log('COMMENT');
     const myLocation = await getMyLocation();
     if (post.owner.location !== myLocation) {
         //Sending to other twin
         const url = getFullIPv6ApiLocation(post.owner.location, `/posts/comment/${postId}`);
         const { data: status } = await axios.put(url, req.body);
-        console.log(status);
+        //console.log(status);
         return res.json({ ...status });
     }
     //Okay post is mine
@@ -175,7 +175,6 @@ router.put('/comment/:postId', requiresAuthentication, async (req: express.Reque
     let postConfig = JSON.parse(fs.readFileSync(`${path}/post.json`));
     //Now checking if reply or not
     if (isReplyToComment) {
-        console.log('Is reply');
         //console.log(postConfig?.replies[replyTo]);
         //@ts-ignore
         const parentCommentId = postConfig.replies.findIndex(obj => obj.id === replyTo);
