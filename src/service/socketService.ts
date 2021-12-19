@@ -36,6 +36,7 @@ export const startSocketIo = (httpServer: http.Server) => {
 
         socket.on('message', async messageData => {
             const newMessage: Message<MessageBodyTypeInterface> = parseMessage(messageData.message);
+            console.log(newMessage);
             newMessage.from = config.userid;
             appendSignatureToMessage(newMessage);
             const chat = getChatById(newMessage.to);
