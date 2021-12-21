@@ -70,57 +70,6 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
     res.json({ status: 'success' });
 });
 
-router.post('/', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const { id, type, body, isGroupPost, createdOn, lastModified } = req.body;
-    let filesToSave = <UploadedFile[]>req?.files.images;
-
-    if (Object.prototype.toString.call(filesToSave) !== '[object Array]') {
-        filesToSave = [].concat(filesToSave);
-    }
-
-    let path = PATH.join(socialDirectory, 'posts', id, 'files');
-    fs.mkdirSync(path, { recursive: true });
-
-    let images = [];
-
-    for (const file of filesToSave) {
-        if (file?.tempFilePath && file?.mv) {
-            //@ts-ignore
-            file.mv(PATH.join(path, file.name));
-            images.push({ ...file, path: PATH.join(path, file.name) });
-        } else if (file?.data) {
-            fs.writeFileSync(PATH.join(path, file.name), file.data);
-        }
-    }
-
-    const pathConfig = PATH.join(socialDirectory, 'posts', id);
-    //Todo Restrict file size
-
-    const json = {
-        post: {
-            id,
-            type,
-            body,
-            isGroupPost,
-            createdOn,
-            lastModified,
-        },
-        owner: {
-            id: config.userid,
-            location: await getMyLocation(),
-        },
-        likes: [] as any[],
-        replies: [] as any[],
-        images: images,
-    };
-
-    fs.writeFileSync(`${pathConfig}/post.json`, JSON.stringify(json, null, 2));
-
-    //Saving post with paths//
-
-    res.json({ status: 'success' });
-});
-
 router.get('/:external', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     //Need boolean or else infinite loop
     const fetchPostsFromExternals = req?.params.external.toLowerCase() === 'true';
