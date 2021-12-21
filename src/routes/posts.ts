@@ -163,7 +163,6 @@ router.get('/single/post', requiresAuthentication, async (req: express.Request, 
     const myLocation = await getMyLocation();
 
     if (myLocation !== creatorPost) {
-        console.log('Post from someone else');
         try {
             const url = getFullIPv6ApiLocation(creatorPost, '/posts/single/post');
             const post = (
@@ -190,6 +189,35 @@ router.get('/single/post', requiresAuthentication, async (req: express.Request, 
     const post = JSON.parse(fs.readFileSync(`${path}/post.json`));
 
     res.json(post);
+});
+
+router.put('/typing', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const creatorPost = <string>req.body.location;
+    const postId = <string>req.body.postId;
+    const myLocation = await getMyLocation();
+    if (myLocation !== creatorPost) {
+        const url = getFullIPv6ApiLocation(creatorPost, `/posts/typing`);
+        await axios.put(url, {
+            ...req.body,
+        });
+        res.json({ status: 'OK' });
+        return;
+    }
+
+    for (const contact of contacts) {
+        const url = getFullIPv6ApiLocation(contact.location, `/posts/someoneIsTyping`);
+        axios.post(url, req.body, {
+            timeout: 1000,
+        });
+    }
+    sendEventToConnectedSockets('post_typing', postId);
+    res.json({ status: 'OK' });
+});
+
+router.post('/someoneIsTyping', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const postId = <string>req.body.postId;
+    sendEventToConnectedSockets('post_typing', postId);
+    res.json({ status: 'OK' });
 });
 
 router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
