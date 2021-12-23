@@ -174,6 +174,14 @@ router.get('/download/:path', requiresAuthentication, async (req: express.Reques
     res.download(path);
 });
 
+router.put('/comment/like', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const postId = req.params.postId;
+    const creatorPost = req.body.owner;
+    const liker_location = req.body.liker_location;
+    const liker_id = req.body.liker_id;
+    const myLocation = await getMyLocation();
+});
+
 router.put('/like/:postId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const postId = req.params.postId;
     const creatorPost = req.body.owner;
