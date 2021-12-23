@@ -80,7 +80,6 @@ router.get('/:external', requiresAuthentication, async (req: express.Request, re
     if (fetchPostsFromExternals) {
         for (const contact of contacts) {
             //Checking if user is online
-            //console.log('Polling if user is online');
             try {
                 const url = getFullIPv6ApiLocation(contact.location, '/posts/false');
                 posts = (
@@ -105,6 +104,69 @@ router.get('/:external', requiresAuthentication, async (req: express.Request, re
     }
 
     res.json(posts);
+});
+
+router.get('/single/post', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const creatorPost = <string>req.query.location;
+    const postId = <string>req.query.postId;
+    const myLocation = await getMyLocation();
+
+    if (myLocation !== creatorPost) {
+        try {
+            const url = getFullIPv6ApiLocation(creatorPost, '/posts/single/post');
+            const post = (
+                await axios.get(url, {
+                    timeout: 2000,
+                    params: {
+                        location: creatorPost,
+                        postId: postId,
+                    },
+                })
+            ).data;
+            console.log(post);
+            res.json(post);
+            return;
+        } catch (e) {
+            //console.log("Can't make connection with other twin");
+            throw new Error(`Post couldn't be found`);
+        }
+    }
+
+    const path = PATH.join(socialDirectory, 'posts', postId);
+    if (!fs.existsSync(path)) throw new Error(`Post couldn't be found`);
+    //@ts-ignore
+    const post = JSON.parse(fs.readFileSync(`${path}/post.json`));
+
+    res.json(post);
+});
+
+router.put('/typing', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const creatorPost = <string>req.body.location;
+    const postId = <string>req.body.postId;
+    const myLocation = await getMyLocation();
+    if (myLocation !== creatorPost) {
+        const url = getFullIPv6ApiLocation(creatorPost, `/posts/typing`);
+        await axios.put(url, {
+            ...req.body,
+        });
+        res.json({ status: 'OK' });
+        return;
+    }
+
+    for (const contact of contacts) {
+        const url = getFullIPv6ApiLocation(contact.location, `/posts/someoneIsTyping`);
+        axios.post(url, req.body, {
+            timeout: 1000,
+        });
+    }
+    sendEventToConnectedSockets('post_typing', postId);
+    res.json({ status: 'OK' });
+});
+
+router.post('/someoneIsTyping', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const postId = <string>req.body.postId;
+    sendEventToConnectedSockets('post_typing', postId);
+    res.json({ status: 'OK' });
 });
 
 router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {

@@ -98,6 +98,6 @@ export const startSocketIo = (httpServer: http.Server) => {
 export const sendEventToConnectedSockets = (event: string, body: any) => {
     connections.getConnections().forEach((connection: string) => {
         io.to(connection).emit(event, body);
-        console.log(`send message to ${connection}`);
+        console.log(`send message to ${connection} with event: ${event}`);
     });
 };
