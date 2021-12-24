@@ -240,7 +240,6 @@ router.put('/comment/:postId', requiresAuthentication, async (req: express.Reque
         //console.log(postConfig?.replies[replyTo]);
         //@ts-ignore
         const parentCommentId = postConfig.replies.findIndex(obj => obj.id === replyTo);
-
         //console.log(postConfig.replies[parentCommentId]);
         postConfig?.replies[parentCommentId]?.replies.push(req.body);
         fs.writeFileSync(`${path}/post.json`, JSON.stringify(postConfig, null, 2));
@@ -251,6 +250,37 @@ router.put('/comment/:postId', requiresAuthentication, async (req: express.Reque
     fs.writeFileSync(`${path}/post.json`, JSON.stringify(postConfig, null, 2));
 
     res.json({ status: 'commented' });
+});
+
+router.put('/comments/like', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    console.log(req.body);
+    const liker_location = await getMyLocation();
+    const liker_id = <string>req.body.liker_id;
+    const postId = <string>req.body.postId;
+    const post_owner = <string>req.body.owner;
+    const commentId = <string>req.body.commentId;
+    const isReplyToComment: boolean = <string>req.body.isReplyToComment === 'true';
+    const replyTo = <string>req.body?.replyTo;
+    const myLocation = await getMyLocation();
+
+    /* WOIP
+
+    if (post_owner !== myLocation) {
+        //Sending to other twin
+        const url = getFullIPv6ApiLocation(post_owner, `/comments/like`);
+        const { data: status } = await axios.put(url, req.body);
+        return res.json({ ...status });
+    }
+
+    const path = PATH.join(socialDirectory, 'posts', postId);
+    if (!fs.existsSync(path)) return res.json({ status: 'post not found' });
+    //@ts-ignore
+    let postConfig = JSON.parse(fs.readFileSync(`${path}/post.json`));
+    console.log(postConfig);
+
+    */
+
+    res.json({ status: 'ok' });
 });
 
 //@TODO will need to use this later
