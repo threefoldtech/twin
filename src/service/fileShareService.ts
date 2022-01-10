@@ -180,12 +180,7 @@ export const getShareByPath = (
     path: string,
     shareStatus: ShareStatus
 ): SharedFileInterface => {
-    console.log(
-        allShares[shareStatus].forEach(e => {
-            // console.log("----------------------------------")
-            // console.log(e.permissions)
-        })
-    );
+    console.log(allShares[shareStatus].forEach(e => {}));
     // console.log(allShares[shareStatus].find(share => share.path === path));
     const share = allShares[shareStatus].reverse().find(share => share.path === path);
     return share;
