@@ -2,6 +2,7 @@ import { removeFilePermissions, SharedFileInterface, updateShareName } from './.
 import express, { json, Router } from 'express';
 import {
     copyWithRetry,
+    createDir,
     createDirectoryWithRetry,
     filterOnString,
     getFile,
@@ -65,6 +66,7 @@ import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
 import chat from '../models/chat';
 import { fromBuffer } from 'file-type';
 import * as PATH from 'path';
+import { pathExists } from 'fs-extra';
 
 const router = Router();
 
@@ -75,13 +77,14 @@ interface FileToken extends TokenData {
 
 router.get('/directories/content', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let p = req.query.path;
-
     let attachment = req.query.attachments === '1';
 
     if (!p || typeof p !== 'string') p = '/';
-    let path;
-    attachment ? (path = new Path(p, '/appdata/attachments')) : (path = new Path(p));
-
+    let path = new Path(p);
+    if (attachment) {
+        path = new Path(p, '/appdata/attachments');
+        if (!(await pathExists('/appdata/attachments' + p))) await createDir(path);
+    }
     const stats = await getStats(path);
     if (
         !stats.isDirectory() ||
@@ -147,7 +150,6 @@ router.get('/files/info', requiresAuthentication, async (req: express.Request, r
         p = getShareWithId(shareId, ShareStatus.Shared).path;
     } else {
         p = req.query.path;
-        console.log('xxxxxxxxxxxxxxxxxx', req.query);
     }
     if (!p || typeof p !== 'string') throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
     let path;
