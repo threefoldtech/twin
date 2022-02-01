@@ -120,13 +120,23 @@ router.post('/directories', requiresAuthentication, async (req: express.Request,
     if (!dto.name) dto.name = 'New Folder';
     const path = new Path(dto.path);
     path.appendPath(dto.name);
-    const result = await createDirectoryWithRetry(path);
-    res.status(StatusCodes.CREATED);
-    res.json({
-        name: result.name,
-        isDirectory: true,
-        isFile: false,
-    } as DirectoryContent);
+    const conflict = await pathExists(path.securedPath); // path already exists
+    if(!conflict){
+        const result = await createDirectoryWithRetry(path);
+        res.status(StatusCodes.CREATED);
+        res.json({
+            name: result.name,
+            isDirectory: true,
+            isFile: false,
+        } as DirectoryContent);
+    }
+    if(conflict){
+        res.status(StatusCodes.OK)
+        res.json({
+            error: StatusCodes.CONFLICT
+        } );
+    }
+   
 });
 
 router.get('/files/info', requiresAuthentication, async (req: express.Request, res: express.Response) => {
