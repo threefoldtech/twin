@@ -11,6 +11,7 @@ import { httpLogger } from './logger';
 import errorMiddleware from './middlewares/errorHandlingMiddleware';
 import './utils/extensions';
 import { initAll } from './index';
+import './service/rmbService';
 
 const corsOptions: CorsOptions = {
     origin: '*',

@@ -8,12 +8,14 @@ import { httpLogger } from './logger';
 import './utils/extensions';
 import { startSocketIo } from './service/socketService';
 import { getKeyPair } from './service/encryptionService';
+import { initRmb } from './service/rmbService';
 
 const initAll = () => {
     initKeys();
     initUserData();
     initTokens();
     initYggdrasil();
+    initRmb();
 };
 
 export {

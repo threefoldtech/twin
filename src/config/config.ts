@@ -2,6 +2,13 @@ let userid = process.env.USER_ID || 'jensmeire';
 
 let appId = process.env.DIGITALTWIN_APPID || 'digitaltwin.jimbertesting.be';
 let environment = process.env.ENVIRONMENT || 'production';
+let twinId = Number(process.env.TWIN_ID) || -1;
+
+export enum Environment {
+    Production = 'production',
+    Staging = 'staging',
+    Development = 'development',
+}
 
 export const config = {
     appBackend: environment === 'production' ? 'https://login.threefold.me' : 'https://login.staging.jimber.io',
@@ -26,4 +33,6 @@ export const config = {
             'tls://213.188.197.95:10020',
         ],
     },
+    twinId,
+    environment: environment as Environment,
 };

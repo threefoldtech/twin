@@ -69,4 +69,6 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
     res.sendStatus(200);
 });
 
+router.get('/discover', (req: express.Request, resp: express.Response) => {});
+
 export default router;

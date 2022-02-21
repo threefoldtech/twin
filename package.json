@@ -5,8 +5,8 @@
     "description": "Digitaltwin backend",
     "scripts": {
         "prepublish": "tsc -d --declarationDir dist/lib --declarationMap ",
-        "dev": "concurrently 'tsc --watch' 'nodemon dist/src/server.js'",
-        "serve": "concurrently 'tsc --watch' 'nodemon dist/src/server.js'",
+        "dev": "concurrently 'tsc --watch' 'nodemon dist/src/server.js' 'node extensions/rmb.js'",
+        "serve": "concurrently 'tsc --watch --preserveWatchOutput' 'nodemon dist/src/server.js' 'node extensions/rmb.js'",
         "build": "tsc",
         "migrate": "tsc && node ./dist/migrator/migrator.js",
         "prepare": "husky install"
@@ -39,6 +39,7 @@
         "mime": "^2.5.2",
         "moment": "^2.29.1",
         "morgan": "^1.10.0",
+        "redis": "^4.0.3",
         "socket.io": "^3.1.0",
         "stream-buffers": "^3.0.2",
         "sync-request": "^6.1.0",

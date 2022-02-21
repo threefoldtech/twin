@@ -2,6 +2,7 @@ import axios from 'axios';
 import { config } from '../config/config';
 import nacl from 'tweetnacl';
 import { getKeyPair } from './encryptionService';
+import { cacheResolver } from './cacheSerice';
 
 const { exec } = require('child_process');
 
@@ -34,4 +35,17 @@ export const registerDigitaltwin = async (doubleName: string, derivedSeed: strin
         app_id: config.appId,
         signed_yggdrasil_ip_address: signedAddress,
     });
+};
+
+interface ILocationConfig {
+    locations: Array<{
+        id: number;
+        location: string;
+    }>;
+}
+
+const locationConfigFileName = 'locations.json';
+
+export const localLocations = () => {
+    return cacheResolver.get(loca);
 };
