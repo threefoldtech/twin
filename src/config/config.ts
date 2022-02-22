@@ -2,7 +2,7 @@ let userid = process.env.USER_ID || 'jensmeire';
 
 let appId = process.env.DIGITALTWIN_APPID || 'digitaltwin.jimbertesting.be';
 let environment = process.env.ENVIRONMENT || 'production';
-let twinId = Number(process.env.TWIN_ID) || -1;
+let twinId = 1;
 
 export enum Environment {
     Production = 'production',
