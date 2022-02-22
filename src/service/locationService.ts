@@ -36,16 +36,3 @@ export const registerDigitaltwin = async (doubleName: string, derivedSeed: strin
         signed_yggdrasil_ip_address: signedAddress,
     });
 };
-
-interface ILocationConfig {
-    locations: Array<{
-        id: number;
-        location: string;
-    }>;
-}
-
-const locationConfigFileName = 'locations.json';
-
-export const localLocations = () => {
-    return cacheResolver.get(loca);
-};

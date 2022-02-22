@@ -1,5 +1,6 @@
 import { createClient } from 'redis';
 import { uuidv4 } from '../common';
+import { config } from '../config/config';
 
 enum RmbQueue {
     Local = 'msgbus.system.local',
