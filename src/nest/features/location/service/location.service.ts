@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
-import { LocationResponse } from '../service/location.service';
+import { LocationResponse } from '../models/responses';
 
+@Injectable()
 export class LocationService {
-    constructor(private readonly _locationService) {}
-
     getLocations(): LocationResponse {
         return {
             data: [
