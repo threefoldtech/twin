@@ -1,10 +1,10 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import config from '../../config/config';
 import { LocationModule } from '../location/location.module';
 import Joi from 'joi';
 import LoggerMiddleware from '../../middleware/logger.middleware';
-import { RedisModule } from 'nestjs-redis';
+import { DbModule } from '../db/db.module';
 
 @Module({
     imports: [
@@ -21,10 +21,7 @@ import { RedisModule } from 'nestjs-redis';
             isGlobal: true,
             cache: true,
         }),
-        RedisModule.forRootAsync({
-            useFactory: (configService: ConfigService) => configService.get('redis'),
-            inject: [ConfigService],
-        }),
+        DbModule,
         LocationModule,
     ],
 })
