@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { LocationResponse } from '../dtos/location.dto';
+import { LocationResponse } from '../models/location.model';
 
 @Injectable()
 export class LocationService {

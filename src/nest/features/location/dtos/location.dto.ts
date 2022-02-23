@@ -5,10 +5,3 @@ export class LocationDTO extends FieldInitializer<LocationDTO> {
     id: number;
     location: string;
 }
-
-// Responses
-export class LocationResponse {
-    data: LocationDTO[];
-}
-
-// Requests
