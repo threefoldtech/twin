@@ -14,6 +14,8 @@ import { initAll } from './index';
 import mountNestApp from './nest/utils/mount-nest';
 import bootstrapNest from './nest/main';
 
+const PORT = process.env.PORT ?? 3000;
+
 const corsOptions: CorsOptions = {
     origin: '*',
     optionsSuccessStatus: 200,
@@ -70,7 +72,11 @@ app.use('/api/', routes);
 
 initAll();
 
-mountNestApp(app, '/nest', bootstrapNest).then(app => app.listen(process.env.PORT ?? 3000));
+mountNestApp({ app, mountPath: '/nest', bootstrapNest }).then(app =>
+    app.listen(PORT, () => {
+        console.log(`server started on port ${PORT}`);
+    })
+);
 
 // httpServer.listen(process.env.PORT ?? 3000, () => {
 //     console.log(`Server started on port ${process.env.PORT ?? 3000}`)
