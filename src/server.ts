@@ -11,6 +11,8 @@ import { httpLogger } from './logger';
 import errorMiddleware from './middlewares/errorHandlingMiddleware';
 import './utils/extensions';
 import { initAll } from './index';
+import mountNestApp from './nest/utils/mount-nest';
+import bootstrapNest from './nest/main';
 
 const corsOptions: CorsOptions = {
     origin: '*',
@@ -68,6 +70,8 @@ app.use('/api/', routes);
 
 initAll();
 
-httpServer.listen(process.env.PORT ?? 3000, () => {
-    console.log(`Server started on port ${process.env.PORT ?? 3000}`);
-});
+mountNestApp(app, '/nest', bootstrapNest).then(app => app.listen(process.env.PORT ?? 3000));
+
+// httpServer.listen(process.env.PORT ?? 3000, () => {
+//     console.log(`Server started on port ${process.env.PORT ?? 3000}`)
+// })
