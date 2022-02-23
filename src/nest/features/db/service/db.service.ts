@@ -1,23 +1,18 @@
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
-import { Cache } from 'cache-manager';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Client } from 'redis-om';
 
 @Injectable()
 export class DbService {
-    constructor(@Inject(CACHE_MANAGER) private readonly cache: Cache) {}
+    client: Client;
 
-    async get(key: string): Promise<any> {
-        return await this.cache.get(key);
+    constructor(private readonly _configService: ConfigService) {
+        this.client = new Client();
     }
 
-    async set({ key, value }: { key: string; value: string }): Promise<void> {
-        await this.cache.set(key, value, 1000);
-    }
-
-    async reset() {
-        await this.cache.reset();
-    }
-
-    async del(key: string) {
-        await this.cache.del(key);
+    async connect() {
+        if (!this.client.isOpen()) {
+            await this.client.open(this._configService.get<string>('REDIS_URL'));
+        }
     }
 }

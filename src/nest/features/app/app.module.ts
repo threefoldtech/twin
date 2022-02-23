@@ -12,10 +12,7 @@ import { DbModule } from '../db/db.module';
             validationSchema: Joi.object({
                 PORT: Joi.number().required(),
                 NODE_ENV: Joi.string().required(),
-                REDIS_HOST: Joi.string().required(),
-                REDIS_PORT: Joi.number().required(),
-                REDIS_DB: Joi.number().required(),
-                REDIS_PASSWORD: Joi.string().required(),
+                REDIS_URL: Joi.string().required(),
             }),
             load: [config],
             isGlobal: true,
