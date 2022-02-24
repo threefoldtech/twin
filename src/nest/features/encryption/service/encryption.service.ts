@@ -4,15 +4,6 @@ import { sign, box, hash, BoxKeyPair, SignKeyPair } from 'tweetnacl';
 @Injectable()
 export class EncryptionService {
     /**
-     * Generates a base64 string from a Uint8Array.
-     * @param {Uint8Array} uint8array - The Uint8Array.
-     * @return {string} base64 - The generated base64.
-     */
-    uint8ToBase64(uint8array: Uint8Array): string {
-        return Buffer.from(uint8array).toString('base64');
-    }
-
-    /**
      * Generates a new signed key pair from user seed.
      * @param {Uint8Array} seed.
      * @return {SignKeyPair} - The generated signed key pair values.
@@ -37,5 +28,32 @@ export class EncryptionService {
      */
     generateHashFromSeed(seed: string): Uint8Array {
         return hash(Buffer.from(seed)).slice(0, 32);
+    }
+
+    /**
+     * Generates a base64 string from a Uint8Array.
+     * @param {Uint8Array} uint8array - The Uint8Array.
+     * @return {string} base64 - The generated base64.
+     */
+    uint8ToBase64(uint8array: Uint8Array): string {
+        return Buffer.from(uint8array).toString('base64');
+    }
+
+    /**
+     * Encodes a Uint8Array to string.
+     * @param {Uint8Array} bytes - the HEX to encode.
+     * @return {string} - The encoded HEX.
+     */
+    encodeHex(bytes: Uint8Array): string {
+        return bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
+    }
+
+    /**
+     * Decodes a string to a Uint8Array.
+     * @param {string} hexString - the string to decode to HEX.
+     * @return {Uint8Array} - The decoded HEX string.
+     */
+    decodeHex(hexString: string): Uint8Array {
+        return new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
     }
 }
