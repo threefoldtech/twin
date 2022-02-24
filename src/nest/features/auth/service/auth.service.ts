@@ -1,12 +1,16 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { generateRandomString, ThreefoldLogin } from '@threefoldjimber/threefold_login/dist';
+import { EncryptionService } from '../../encryption/service/encryption.service';
 
 @Injectable()
 export class AuthService {
     tfLogin: ThreefoldLogin;
 
-    constructor(private readonly _configService: ConfigService) {}
+    constructor(
+        private readonly _configService: ConfigService,
+        private readonly _encryptionService: EncryptionService
+    ) {}
 
     /**
      * Generates threefold app login url.
@@ -48,7 +52,11 @@ export class AuthService {
             const derivedSeed: string = <string>profileData.derivedSeed;
             const userId = doubleName.replace('.3bot', '');
 
-            if (userId !== this._configService.get<string>('userId') || !derivedSeed) throw new UnauthorizedException();
+            if (userId !== this._configService.get<string>('userId') || !derivedSeed)
+                throw new UnauthorizedException('no user id or derived seed found');
+
+            const keyPair = this._encryptionService.getKeyPair(derivedSeed);
+            if (!keyPair) throw new UnauthorizedException('invalid key pair');
         } catch (error) {
             throw new UnauthorizedException(error);
         }

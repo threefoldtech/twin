@@ -5,6 +5,8 @@ import { LocationModule } from '../location/location.module';
 import Joi from 'joi';
 import LoggerMiddleware from '../../middleware/logger.middleware';
 import { DbModule } from '../db/db.module';
+import { AuthModule } from '../auth/auth.module';
+import { EncryptionModule } from '../encryption/encryption.module';
 
 @Module({
     imports: [
@@ -13,12 +15,16 @@ import { DbModule } from '../db/db.module';
                 PORT: Joi.number().required(),
                 NODE_ENV: Joi.string().required(),
                 REDIS_URL: Joi.string().required(),
+                USER_ID: Joi.string().required(),
+                SEED_PHRASE: Joi.string().required(),
             }),
             load: [config],
             isGlobal: true,
             cache: true,
         }),
         DbModule,
+        AuthModule,
+        EncryptionModule,
         LocationModule,
     ],
 })
