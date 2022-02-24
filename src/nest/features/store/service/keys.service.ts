@@ -14,7 +14,7 @@ export class KeyService {
         private readonly _dbService: DbService,
         private readonly _encryptionService: EncryptionService
     ) {
-        this.keyRepo = new Repository(keySchema, _dbService.client);
+        this.keyRepo = _dbService.createRepository(keySchema);
     }
 
     async updateKey(pk: Uint8Array, keyType: string) {
