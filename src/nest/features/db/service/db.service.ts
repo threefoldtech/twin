@@ -10,17 +10,29 @@ export class DbService {
         this.client = new Client();
     }
 
-    async connect() {
+    /**
+     * Connects redis-om client to Redis.
+     */
+    async connect(): Promise<void> {
         if (!this.client.isOpen()) {
             await this.client.open(this._configService.get<string>('REDIS_URL'));
         }
     }
 
-    createRepository<T extends Entity>(schema: Schema<T>) {
+    /**
+     * Creates a repository for given schema.
+     * @param {Schema>} schema - Schema to make a repository from.
+     * @return {Repository} - The created repository.
+     */
+    createRepository<T extends Entity>(schema: Schema<T>): Repository<T> {
         return new Repository(schema, this.client);
     }
 
-    async createIndex<T extends Entity>(repo: Repository<T>) {
+    /**
+     * Creates indexes based on the repository's schema
+     * @param {Repository} repo - The repository to make indexes on
+     */
+    async createIndex<T extends Entity>(repo: Repository<T>): Promise<void> {
         await this.connect();
         await repo.createIndex();
     }

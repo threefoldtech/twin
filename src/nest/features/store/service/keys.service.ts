@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 import { DbService } from '../../db/service/db.service';
 import { EncryptionService } from '../../encryption/service/encryption.service';
-import { Key, keySchema } from '../models/key.model';
+import { Key, keySchema, KeyType } from '../models/key.model';
 
 @Injectable()
 export class KeyService {
@@ -17,7 +17,12 @@ export class KeyService {
         this.keyRepo = _dbService.createRepository(keySchema);
     }
 
-    async updateKey(pk: Uint8Array, keyType: string) {
+    /**
+     * Updates either private or public key based on the key type.
+     * @param {Uint8Array} pk - Private/Public key in Uint8Array format.
+     * @param {KeyType} keyType - Identifies a key as public or private.
+     */
+    async updateKey(pk: Uint8Array, keyType: KeyType) {
         const pkString = this._encryptionService.uint8ToBase64(pk);
         try {
             await this._dbService.createIndex(this.keyRepo);

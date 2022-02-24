@@ -13,3 +13,9 @@ export const keySchema = new Schema(
         dataStructure: 'JSON',
     }
 );
+
+export enum KeyType {
+    Public,
+    Private,
+    Secret,
+}
