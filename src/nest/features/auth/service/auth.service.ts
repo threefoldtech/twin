@@ -4,6 +4,7 @@ import { generateRandomString, ThreefoldLogin } from '@threefoldjimber/threefold
 import { EncryptionService } from '../../encryption/service/encryption.service';
 import { KeyType } from '../../store/models/key.model';
 import { KeyService } from '../../store/service/keys.service';
+import { decodeBase64 } from 'tweetnacl-util';
 
 @Injectable()
 export class AuthService {
@@ -58,7 +59,8 @@ export class AuthService {
             if (userId !== this._configService.get<string>('userId') || !derivedSeed)
                 throw new UnauthorizedException('no user id or derived seed found');
 
-            const keyPair = this._encryptionService.getKeyPair(derivedSeed);
+            const seed = new Uint8Array(decodeBase64(derivedSeed));
+            const keyPair = this._encryptionService.getKeyPair(seed);
             if (!keyPair) throw new UnauthorizedException('invalid key pair');
 
             try {

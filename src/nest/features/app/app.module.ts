@@ -8,6 +8,7 @@ import { DbModule } from '../db/db.module';
 import { AuthModule } from '../auth/auth.module';
 import { FileModule } from '../file/file.module';
 import { EncryptionModule } from '../encryption/encryption.module';
+import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
 
 @Module({
     imports: [
@@ -27,6 +28,7 @@ import { EncryptionModule } from '../encryption/encryption.module';
         AuthModule,
         EncryptionModule,
         FileModule,
+        YggdrasilModule,
         LocationModule,
     ],
 })

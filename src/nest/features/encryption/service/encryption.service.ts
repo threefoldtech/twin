@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import nacl, { SignKeyPair } from 'tweetnacl';
-import { decodeBase64 } from 'tweetnacl-util';
+import { sign, box, hash, BoxKeyPair, SignKeyPair } from 'tweetnacl';
 
 @Injectable()
 export class EncryptionService {
@@ -15,11 +14,28 @@ export class EncryptionService {
 
     /**
      * Generates a new signed key pair from user seed.
-     * @param {string} userSeed - Users seed string.
+     * @param {Uint8Array} seed.
      * @return {SignKeyPair} - The generated signed key pair values.
      */
-    getKeyPair(userSeed: string): SignKeyPair {
-        const seed = new Uint8Array(decodeBase64(userSeed));
-        return nacl.sign.keyPair.fromSeed(seed);
+    getKeyPair(seed: Uint8Array): SignKeyPair {
+        return sign.keyPair.fromSeed(seed);
+    }
+
+    /**
+     * Gets the encryption key pair.
+     * @param {Uint8Array} key.
+     * @return {BoxKeyPair} - The generated encryption key pair values.
+     */
+    getEncryptionKeyPair(key: Uint8Array): BoxKeyPair {
+        return box.keyPair.fromSecretKey(key);
+    }
+
+    /**
+     * Creates a hash from given seed
+     * @param {string} seed - Seed to make hash from.
+     * @return {Uint8Array} - The generated hash in Uint8Array format.
+     */
+    generateHashFromSeed(seed: string): Uint8Array {
+        return hash(Buffer.from(seed)).slice(0, 32);
     }
 }
