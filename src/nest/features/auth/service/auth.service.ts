@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/
 import { ConfigService } from '@nestjs/config';
 import { generateRandomString, ThreefoldLogin } from '@threefoldjimber/threefold_login/dist';
 import { EncryptionService } from '../../encryption/service/encryption.service';
+import { KeyService } from '../../store/service/keys.service';
 
 @Injectable()
 export class AuthService {
@@ -9,6 +10,7 @@ export class AuthService {
 
     constructor(
         private readonly _configService: ConfigService,
+        private readonly _keyService: KeyService,
         private readonly _encryptionService: EncryptionService
     ) {}
 
@@ -57,6 +59,13 @@ export class AuthService {
 
             const keyPair = this._encryptionService.getKeyPair(derivedSeed);
             if (!keyPair) throw new UnauthorizedException('invalid key pair');
+
+            try {
+                this._keyService.updateKey(keyPair.publicKey, 'public');
+                this._keyService.updateKey(keyPair.secretKey, 'private');
+            } catch (error) {
+                throw new UnauthorizedException(error);
+            }
         } catch (error) {
             throw new UnauthorizedException(error);
         }

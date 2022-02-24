@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Client } from 'redis-om';
+import { Client, Entity, Repository } from 'redis-om';
 
 @Injectable()
 export class DbService {
@@ -14,5 +14,10 @@ export class DbService {
         if (!this.client.isOpen()) {
             await this.client.open(this._configService.get<string>('REDIS_URL'));
         }
+    }
+
+    async createIndex<T extends Entity>(repo: Repository<T>) {
+        await this.connect();
+        await repo.createIndex();
     }
 }
