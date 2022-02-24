@@ -6,6 +6,7 @@ import Joi from 'joi';
 import LoggerMiddleware from '../../middleware/logger.middleware';
 import { DbModule } from '../db/db.module';
 import { AuthModule } from '../auth/auth.module';
+import { FileModule } from '../file/file.module';
 import { EncryptionModule } from '../encryption/encryption.module';
 
 @Module({
@@ -25,6 +26,7 @@ import { EncryptionModule } from '../encryption/encryption.module';
         DbModule,
         AuthModule,
         EncryptionModule,
+        FileModule,
         LocationModule,
     ],
 })
