@@ -48,7 +48,7 @@ export class AuthService {
      * @param {URL} redirectUrl - Redirection Url.
      * @param {string} sessionState - Current session state.
      */
-    async getProfileData({ redirectUrl, sessionState }: { redirectUrl: URL; sessionState: string }) {
+    async getProfileData({ redirectUrl, sessionState }: { redirectUrl: URL; sessionState: string }): Promise<void> {
         try {
             const profileData = (await this.tfLogin.parseAndValidateRedirectUrl(redirectUrl, sessionState))?.profile;
 
