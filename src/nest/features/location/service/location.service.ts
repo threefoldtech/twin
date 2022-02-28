@@ -32,13 +32,18 @@ export class LocationService {
         };
     }
 
-    getOwnLocation(): Promise<unknown> {
+    /**
+     * Gets current location of own connection.
+     * @return {string} - Own address.
+     * @return {Error} - Error.
+     */
+    getOwnLocation(): Promise<string | Error> {
         return new Promise((res, rej) => {
             exec(
                 "yggdrasilctl -v getSelf | sed -n -e 's/^.*IPv^ address.* //p'",
                 (err: Error, stdout: string, sterr: string) => {
-                    if (err) return rej();
-                    if (sterr) return rej();
+                    if (err) return rej(err);
+                    if (sterr) return rej(sterr);
                     const address = stdout.replace(/(\r\n|\n|\r)/gm, '').trim();
                     res(address);
                 }
@@ -46,7 +51,18 @@ export class LocationService {
         });
     }
 
-    async registerDigitalTwin(doubleName: string, derivedSeed: string, yggdrasilAddress: string) {
+    /**
+     * Registers a digital twin to the users
+     */
+    async registerDigitalTwin({
+        doubleName,
+        derivedSeed,
+        yggdrasilAddress,
+    }: {
+        doubleName: string;
+        derivedSeed: string;
+        yggdrasilAddress: string;
+    }): Promise<void> {
         const seed = this._encryptionService.decodeSeed(derivedSeed);
         const keyPair = this._encryptionService.getKeyPair(seed);
         const data = this._encryptionService.decodeAddress(yggdrasilAddress);
