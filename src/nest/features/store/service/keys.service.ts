@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
+
 import { DbService } from '../../db/service/db.service';
 import { EncryptionService } from '../../encryption/service/encryption.service';
 import { Key, keySchema, KeyType } from '../models/key.model';

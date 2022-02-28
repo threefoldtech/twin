@@ -1,6 +1,6 @@
-import { createLogger, format, transports } from 'winston';
+import { italic, underline, white } from 'chalk';
 import { TransformableInfo } from 'logform';
-import { underline, italic, white } from 'chalk';
+import { createLogger, format, transports } from 'winston';
 
 const getDetailsFromFile = (fileDetails: any) => {
     const fileAndRow = fileDetails.split('at ').pop().split('(').pop().replace(')', '').split(':');

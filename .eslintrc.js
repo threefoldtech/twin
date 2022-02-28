@@ -4,7 +4,7 @@ module.exports = {
         es2021: true,
         node: true,
     },
-    extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:import/recommended'],
+    extends: ['prettier', 'eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:import/recommended'],
     parser: '@typescript-eslint/parser',
     parserOptions: {
         ecmaVersion: 'latest',
@@ -12,12 +12,20 @@ module.exports = {
     },
     plugins: ['@typescript-eslint', 'simple-import-sort', 'import'],
     rules: {
-        quotes: ['error', 'single'],
-        semi: ['error', 'always'],
         'simple-import-sort/imports': 'error',
         'simple-import-sort/exports': 'error',
         'import/first': 'error',
         'import/newline-after-import': 'error',
         'import/no-duplicates': 'error',
+        'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+        'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    },
+    ignorePatterns: ['Dockerfile'],
+    settings: {
+        'import/resolver': {
+            node: {
+                extensions: ['.js', '.jsx', '.ts', '.tsx'],
+            },
+        },
     },
 };

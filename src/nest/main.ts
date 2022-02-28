@@ -1,7 +1,8 @@
 import { ClassSerializerInterceptor, INestApplication, ValidationPipe } from '@nestjs/common';
-import { NestFactory, Reflector } from '@nestjs/core';
-import { AppModule } from './features/app/app.module';
 import { ConfigService } from '@nestjs/config';
+import { NestFactory, Reflector } from '@nestjs/core';
+
+import { AppModule } from './features/app/app.module';
 import getLogLevels from './utils/get-log-levels';
 
 /**

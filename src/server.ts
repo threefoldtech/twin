@@ -1,18 +1,20 @@
-import express, { Application } from 'express';
-import http from 'http';
+import './utils/extensions';
+
 import bodyParser from 'body-parser';
-import fileupload from 'express-fileupload';
 import cors, { CorsOptions } from 'cors';
+import express, { Application } from 'express';
+import fileupload from 'express-fileupload';
 import session from 'express-session';
-import { startSocketIo } from './service/socketService';
-import routes from './routes';
+import http from 'http';
 import morgan from 'morgan';
+
+import { initAll } from './index';
 import { httpLogger } from './logger';
 import errorMiddleware from './middlewares/errorHandlingMiddleware';
-import './utils/extensions';
-import { initAll } from './index';
-import mountNestApp from './nest/utils/mount-nest';
 import bootstrapNest from './nest/main';
+import mountNestApp from './nest/utils/mount-nest';
+import routes from './routes';
+import { startSocketIo } from './service/socketService';
 
 const PORT = process.env.PORT ?? 3000;
 

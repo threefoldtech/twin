@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { sign, box, hash, BoxKeyPair, SignKeyPair } from 'tweetnacl';
+import { box, BoxKeyPair, hash, sign, SignKeyPair } from 'tweetnacl';
 
 @Injectable()
 export class EncryptionService {

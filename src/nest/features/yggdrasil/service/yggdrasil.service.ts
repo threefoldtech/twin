@@ -1,19 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { FileService } from '../../file/service/file.service';
-import PATH from 'path';
-import { EncryptionService } from '../../encryption/service/encryption.service';
-import { YggdrasilConfig } from '../models/yggdrasil.model';
 import { execSync, spawn } from 'child_process';
+import PATH from 'path';
+
+import { EncryptionService } from '../../encryption/service/encryption.service';
+import { FileService } from '../../file/service/file.service';
 import { LocationService } from '../../location/service/location.service';
+import { YggdrasilConfig } from '../models/yggdrasil.model';
 
 @Injectable()
 export class YggdrasilService {
-    private initialised: boolean = false;
+    private initialised = false;
 
-    private configPath: string = '';
-    private jsonPath: string = '';
-    private logPath: string = '';
+    private configPath = '';
+    private jsonPath = '';
+    private logPath = '';
 
     private yggdrasilPeers = [
         'tcp://45.138.172.192:5001',
@@ -68,7 +69,7 @@ export class YggdrasilService {
         // return promise with a timeout of 30 seconds
         // to try and get our location from yggdrasil
         // stop when address is found
-        return new Promise<void>(async (res, rej) => {
+        return new Promise<void>((res, rej) => {
             let done = false;
             setTimeout(() => {
                 if (done) return;
@@ -76,12 +77,12 @@ export class YggdrasilService {
                 done = true;
             }, 30000);
             while (!done) {
-                const address = await this._locationService.getOwnLocation();
-                if (address) {
-                    res();
-                    done = true;
-                    break;
-                }
+                this._locationService.getOwnLocation().then(address => {
+                    if (address) {
+                        res();
+                        done = true;
+                    }
+                });
             }
         });
     }
@@ -94,7 +95,7 @@ export class YggdrasilService {
      */
     private getReplacements(seed: string): string | YggdrasilConfig {
         if (this._fileService.fileExists(this.jsonPath)) {
-            console.log(`Existing replacements for yggdrasil found`);
+            console.log('Existing replacements for yggdrasil found');
             return this._fileService.readJSONFile(this.jsonPath);
         }
         const hash = this._encryptionService.generateHashFromSeed(seed);

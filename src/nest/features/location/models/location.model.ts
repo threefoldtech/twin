@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+
 import { FieldInitializer } from '../../../utils/field-initializer';
 
 // Model

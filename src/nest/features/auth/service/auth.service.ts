@@ -1,10 +1,11 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { generateRandomString, ThreefoldLogin } from '@threefoldjimber/threefold_login/dist';
+import { decodeBase64 } from 'tweetnacl-util';
+
 import { EncryptionService } from '../../encryption/service/encryption.service';
 import { KeyType } from '../../store/models/key.model';
 import { KeyService } from '../../store/service/keys.service';
-import { decodeBase64 } from 'tweetnacl-util';
 
 @Injectable()
 export class AuthService {

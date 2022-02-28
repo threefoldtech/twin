@@ -1,3 +1,4 @@
+import { INestApplication } from '@nestjs/common';
 import { Application } from 'express';
 
 /**
@@ -14,7 +15,7 @@ async function mountNestApp({
 }: {
     app: Application;
     mountPath: string;
-    bootstrapNest: Function;
+    bootstrapNest: { (): Promise<INestApplication> };
 }): Promise<Application> {
     const nestApp = await bootstrapNest();
     await nestApp.init();
