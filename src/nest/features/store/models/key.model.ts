@@ -6,8 +6,8 @@ export const keySchema = new Schema(
     Key,
     {
         userId: { type: 'string', textSearch: true },
-        key: { type: 'string', textSearch: true },
-        keyType: { type: 'string' },
+        key: { type: 'string' },
+        keyType: { type: 'string', textSearch: true },
     },
     {
         dataStructure: 'JSON',

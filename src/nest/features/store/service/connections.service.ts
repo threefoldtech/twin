@@ -26,9 +26,13 @@ export class ConnectionService {
         }
     }
 
+    /**
+     * Removes a twin connection from Redis.
+     * @param {string} ID - Twin ID to remove.
+     */
     async removeConnection(ID: string): Promise<void> {
         try {
-            await this.connectionRepo.remove(ID);
+            return await this.connectionRepo.remove(ID);
         } catch (error) {
             throw new NotFoundException(error);
         }
@@ -39,7 +43,7 @@ export class ConnectionService {
      * @param {number} pageSize - Amount of items to return, defaults to 20.
      * @return {Connection[]} - The connection list.
      */
-    async getConnections(pageSize = 20): Promise<Connection[]> {
+    async getConnections({ pageSize = 20 }: { pageSize?: number }): Promise<Connection[]> {
         try {
             return await this.connectionRepo.search().returnAll({ pageSize });
         } catch (error) {

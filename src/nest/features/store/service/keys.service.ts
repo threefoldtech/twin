@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
@@ -8,14 +8,14 @@ import { Key, keySchema, KeyType } from '../models/key.model';
 
 @Injectable()
 export class KeyService {
-    private keyRepo: Repository<Key>;
+    private _keyRepo: Repository<Key>;
 
     constructor(
         private readonly _configService: ConfigService,
         private readonly _dbService: DbService,
         private readonly _encryptionService: EncryptionService
     ) {
-        this.keyRepo = this._dbService.createRepository(keySchema);
+        this._keyRepo = this._dbService.createRepository(keySchema);
         // this._dbService.createIndex(this.keyRepo);
     }
 
@@ -29,9 +29,28 @@ export class KeyService {
         const pkString = this._encryptionService.uint8ToBase64(pk);
         const userId = this._configService.get<string>('userId');
         try {
-            return this.keyRepo.createAndSave({ userId, key: pkString, keyType });
+            return this._keyRepo.createAndSave({ userId, key: pkString, keyType });
         } catch (error) {
             throw new BadRequestException(error);
+        }
+    }
+
+    /**
+     * Gets the public key of user by given ID.
+     * @param {string} userId - User ID to get the public key of.
+     * @return {Key} - Public key.
+     */
+    async getPublicKey(userId: string): Promise<Key> {
+        try {
+            return this._keyRepo
+                .search()
+                .where('userId')
+                .equals(userId)
+                .and('keyType')
+                .equals(KeyType.Public)
+                .returnFirst();
+        } catch (error) {
+            throw new NotFoundException(error);
         }
     }
 }
