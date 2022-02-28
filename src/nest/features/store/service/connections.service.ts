@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Repository } from 'redis-om';
 
 import { DbService } from '../../db/service/db.service';
@@ -16,14 +16,21 @@ export class ConnectionService {
     /**
      * Adds a twin connection to Redis.
      * @param {string} connection - IPv6 to add.
-     * @return {string} - Entity ID.
+     * @return {Connection} - Created entity.
      */
-    async addConnection(connection: string): Promise<string> {
+    async addConnection(connection: string): Promise<Connection> {
         try {
-            const connectionEntity = this.connectionRepo.createEntity({ connection });
-            return await this.connectionRepo.save(connectionEntity);
+            return this.connectionRepo.createAndSave({ connection });
         } catch (error) {
             throw new BadRequestException(error);
+        }
+    }
+
+    async removeConnection(ID: string): Promise<void> {
+        try {
+            await this.connectionRepo.remove(ID);
+        } catch (error) {
+            throw new NotFoundException(error);
         }
     }
 

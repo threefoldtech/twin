@@ -23,14 +23,13 @@ export class KeyService {
      * Updates either private or public key based on the key type.
      * @param {Uint8Array} pk - Private/Public key in Uint8Array format.
      * @param {KeyType} keyType - Identifies a key as public or private.
-     * @return {string} - Entity ID.
+     * @return {Key} - Created entity.
      */
-    async updateKey({ pk, keyType }: { pk: Uint8Array; keyType: KeyType }): Promise<string> {
+    async updateKey({ pk, keyType }: { pk: Uint8Array; keyType: KeyType }): Promise<Key> {
         const pkString = this._encryptionService.uint8ToBase64(pk);
         const userId = this._configService.get<string>('userId');
         try {
-            const pkEntity = this.keyRepo.createEntity({ userId, key: pkString, keyType });
-            return await this.keyRepo.save(pkEntity);
+            return this.keyRepo.createAndSave({ userId, key: pkString, keyType });
         } catch (error) {
             throw new BadRequestException(error);
         }
