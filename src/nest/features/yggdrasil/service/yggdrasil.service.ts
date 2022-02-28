@@ -5,6 +5,7 @@ import PATH from 'path';
 import { EncryptionService } from '../../encryption/service/encryption.service';
 import { YggdrasilConfig } from '../models/yggdrasil.model';
 import { execSync, spawn } from 'child_process';
+import { LocationService } from '../../location/service/location.service';
 
 @Injectable()
 export class YggdrasilService {
@@ -30,6 +31,7 @@ export class YggdrasilService {
     constructor(
         private readonly _configService: ConfigService,
         private readonly _encryptionService: EncryptionService,
+        private readonly _locationService: LocationService,
         private readonly _fileService: FileService
     ) {
         const baseDir = this._configService.get<string>('baseDir');
@@ -63,7 +65,25 @@ export class YggdrasilService {
         });
         p.unref();
 
-        // TODO: CONTINUE HERE
+        // return promise with a timeout of 30 seconds
+        // to try and get our location from yggdrasil
+        // stop when address is found
+        return new Promise<void>(async (res, rej) => {
+            let done = false;
+            setTimeout(() => {
+                if (done) return;
+                rej();
+                done = true;
+            }, 30000);
+            while (!done) {
+                const address = await this._locationService.getOwnLocation();
+                if (address) {
+                    res();
+                    done = true;
+                    break;
+                }
+            }
+        });
     }
 
     /**
