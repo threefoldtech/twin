@@ -43,7 +43,7 @@ export class ConnectionService {
      * @param {number} pageSize - Amount of items to return, defaults to 20.
      * @return {Connection[]} - The connection list.
      */
-    async getConnections({ pageSize = 20 }: { pageSize?: number }): Promise<Connection[]> {
+    async getConnections(pageSize = 20): Promise<Connection[]> {
         try {
             return await this.connectionRepo.search().returnAll({ pageSize });
         } catch (error) {
