@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import Joi from 'joi';
 
 import config from '../../config/config';
-import LoggerMiddleware from '../../middleware/logger.middleware';
+import { LoggerMiddleware } from '../../middleware/logger.middleware';
 import { AuthModule } from '../auth/auth.module';
 import { DbModule } from '../db/db.module';
 import { EncryptionModule } from '../encryption/encryption.module';

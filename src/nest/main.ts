@@ -16,7 +16,7 @@ export default async function bootstrap(): Promise<INestApplication> {
     const configService = app.get<ConfigService>(ConfigService);
 
     // logger middleware depending on node environment
-    app.useLogger(getLogLevels(configService.get<string>('NODE_ENV') === 'production'));
+    app.useLogger(getLogLevels(configService.get<string>('node_env') === 'production'));
 
     // global validation pipe for class-validator
     app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));

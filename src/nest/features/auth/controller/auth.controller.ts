@@ -1,7 +1,7 @@
-import { Controller, Get, Query, Req, Res } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 
+import { AuthGuard } from '../../../guards/auth.guard';
 import { LocationService } from '../../location/service/location.service';
 import { YggdrasilService } from '../../yggdrasil/service/yggdrasil.service';
 import { AuthService } from '../service/auth.service';
@@ -10,23 +10,16 @@ import { SignInQuery } from '../types/queries';
 @Controller('auth')
 export class AuthController {
     constructor(
-        private readonly _configService: ConfigService,
         private readonly _authService: AuthService,
         private readonly _yggdrasilService: YggdrasilService,
         private readonly _locationService: LocationService
     ) {}
 
     @Get('authenticated')
+    @UseGuards(AuthGuard)
     async isLoggedIn(@Req() req: Request, @Res() res: Response) {
-        const hasSession = !!req.session.userId;
-        const isDevMode = this._configService.get<string>('node_env') === 'development';
-        const yggdrasilInitialised = this._yggdrasilService.isInitialised();
-        if (!hasSession && (!isDevMode || !yggdrasilInitialised)) {
-            return res.json({ status: false });
-        }
-
         return res.json({
-            status: true,
+            status: !!req.session.userId,
         });
     }
 
