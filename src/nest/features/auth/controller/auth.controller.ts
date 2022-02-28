@@ -16,9 +16,12 @@ export class AuthController {
         private readonly _locationService: LocationService
     ) {}
 
-    @Get()
+    @Get('authenticated')
     async isLoggedIn(@Req() req: Request, @Res() res: Response) {
-        if (!req.session.userId && this._configService.get<string>('node_env') !== 'development') {
+        const hasSession = !!req.session.userId;
+        const isDevMode = this._configService.get<string>('node_env') === 'development';
+        const yggdrasilInitialised = this._yggdrasilService.isInitialised();
+        if (!hasSession && (!isDevMode || !yggdrasilInitialised)) {
             return res.json({ status: false });
         }
 
@@ -28,7 +31,7 @@ export class AuthController {
     }
 
     @Get('signin')
-    async signIn(@Req() req: Request, @Res() res: Response, @Query() query: SignInQuery): Promise<void> {
+    async signIn(@Req() req: Request, @Res() res: Response, @Query() query: SignInQuery) {
         const appLogin = await this._authService.getAppLogin('/api/auth/callback');
         req.session.state = appLogin.loginState;
         const loginUrl = (appLogin.loginUrl += `&username=${query.username}`);
@@ -36,7 +39,7 @@ export class AuthController {
     }
 
     @Get('callback')
-    async authCallback(@Req() req: Request): Promise<void> {
+    async authCallback(@Req() req: Request, @Res() res: Response) {
         const appLogin = await this._authService.getAppLogin();
         const redirectUrl = new URL(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
         const profileData = await this._authService.getProfileData({ redirectUrl, sessionState: appLogin.loginState });
@@ -54,5 +57,8 @@ export class AuthController {
         });
 
         req.session.userId = profileData.userId;
+        req.session.save(() => {
+            res.redirect('/callback');
+        });
     }
 }
