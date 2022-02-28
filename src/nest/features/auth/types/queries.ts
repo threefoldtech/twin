@@ -1,7 +1,6 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-// Request interfaces
-export class SignInRequest {
+export class SignInQuery {
     @IsNotEmpty()
     @IsString()
     username: string;
