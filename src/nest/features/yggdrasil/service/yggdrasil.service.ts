@@ -49,7 +49,11 @@ export class YggdrasilService {
         return this.initialised;
     }
 
-    async setupYggdrasil(seed: string) {
+    /**
+     * Sets up Yggdrasil configurations based on chat seed.
+     * @param {string} seed - Chat seed.
+     */
+    async setupYggdrasil(seed: string): Promise<void> {
         const chatSeed = `${seed}-chat`;
         const keyReplacements = this.getReplacements(chatSeed);
         const generatedConfig = this.generateConfig();
@@ -57,7 +61,10 @@ export class YggdrasilService {
         this.saveConfigs({ config, replacements: keyReplacements as string });
     }
 
-    runYggdrasil() {
+    /**
+     * Runs Yggdrasil using the created configurations and an Yggdrasil spawner.
+     */
+    runYggdrasil(): Promise<void> {
         const out = this._fileService.openFile({ path: this.logPath, flags: 'a' });
         const err = this._fileService.openFile({ path: '/var/log/yggdrasil/err.log', flags: 'a' });
         const p = spawn('yggdrasil', ['-useconffile', this.configPath, '-logto', this.logPath], {

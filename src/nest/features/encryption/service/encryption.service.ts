@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { box, BoxKeyPair, hash, sign, SignKeyPair } from 'tweetnacl';
+import { decodeBase64 } from 'tweetnacl-util';
 
 @Injectable()
 export class EncryptionService {
@@ -55,5 +56,17 @@ export class EncryptionService {
      */
     decodeHex(hexString: string): Uint8Array {
         return new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    }
+
+    decodeSeed(seed: string): Uint8Array {
+        return new Uint8Array(decodeBase64(seed));
+    }
+
+    decodeAddress(address: string): Uint8Array {
+        return new Uint8Array(Buffer.from(address));
+    }
+
+    signAddress(data: Uint8Array, secretKey: Uint8Array): string {
+        return Buffer.from(sign(data, secretKey)).toString('base64');
     }
 }
