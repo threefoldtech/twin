@@ -1,14 +1,16 @@
-import { Controller, Get, Post, Query, Req, Res } from '@nestjs/common';
+import { Controller, Get, Query, Req, Res, Post } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 import { AuthService } from '../service/auth.service';
+import { SignInRequest } from '../types/requests';
 
 @Controller('auth')
 export class AuthController {
     constructor(private readonly _authService: AuthService) {}
 
     @Post('signin')
-    async signIn(@Req() req: Request, @Res() res: Response, @Query() username: string): Promise<void> {
+    async signIn(@Req() req: Request, @Res() res: Response, @Query() username: SignInRequest) {
+        console.log(username);
         const appLogin = await this._authService.getAppLogin(`/api/auth/callback`);
         req.session.state = appLogin.loginState;
         const loginUrl = (appLogin.loginUrl += `&username=${username}`);
