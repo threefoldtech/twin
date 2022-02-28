@@ -16,6 +16,7 @@ export class KeyService {
         private readonly _encryptionService: EncryptionService
     ) {
         this.keyRepo = _dbService.createRepository(keySchema);
+        this._dbService.createIndex(this.keyRepo);
     }
 
     /**
@@ -25,9 +26,8 @@ export class KeyService {
      */
     async updateKey({ pk, keyType }: { pk: Uint8Array; keyType: KeyType }): Promise<string> {
         const pkString = this._encryptionService.uint8ToBase64(pk);
+        const userId = this._configService.get<string>('userId');
         try {
-            await this._dbService.createIndex(this.keyRepo);
-            const userId = this._configService.get<string>('userId');
             const pkEntity = this.keyRepo.createEntity({ userId, key: pkString, keyType });
             return await this.keyRepo.save(pkEntity);
         } catch (error) {

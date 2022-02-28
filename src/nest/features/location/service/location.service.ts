@@ -10,7 +10,7 @@ export class LocationService {
     constructor(private readonly _encryptionService: EncryptionService, private readonly _apiService: ApiService) {}
 
     /**
-     * Gets locations.
+     * Gets locations (IPv6) of all registered Yggdrasil twins.
      * @return {LocationResponse} - The locations.
      */
     getLocations(): LocationResponse {

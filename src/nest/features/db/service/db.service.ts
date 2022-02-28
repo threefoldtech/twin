@@ -15,7 +15,7 @@ export class DbService {
      */
     async connect(): Promise<void> {
         if (!this.client.isOpen()) {
-            await this.client.open(this._configService.get<string>('REDIS_URL'));
+            await this.client.open(this._configService.get<string>('redis.url'));
         }
     }
 
