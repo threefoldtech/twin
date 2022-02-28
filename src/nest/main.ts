@@ -14,8 +14,6 @@ export default async function bootstrap(): Promise<INestApplication> {
     // init config service
     const configService = app.get<ConfigService>(ConfigService);
 
-    app.setGlobalPrefix('api');
-
     // logger middleware depending on node environment
     app.useLogger(getLogLevels(configService.get<string>('NODE_ENV') === 'production'));
 
