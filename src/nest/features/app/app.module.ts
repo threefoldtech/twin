@@ -4,6 +4,7 @@ import Joi from 'joi';
 
 import config from '../../config/config';
 import { LoggerMiddleware } from '../../middleware/logger.middleware';
+import { ApiModule } from '../api/api.module';
 import { AuthModule } from '../auth/auth.module';
 import { DbModule } from '../db/db.module';
 import { EncryptionModule } from '../encryption/encryption.module';
@@ -26,6 +27,7 @@ import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
             cache: true,
         }),
         DbModule,
+        ApiModule,
         AuthModule,
         EncryptionModule,
         FileModule,

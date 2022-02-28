@@ -23,7 +23,7 @@ export class KeyService {
      * @param {Uint8Array} pk - Private/Public key in Uint8Array format.
      * @param {KeyType} keyType - Identifies a key as public or private.
      */
-    async updateKey(pk: Uint8Array, keyType: KeyType) {
+    async updateKey({ pk, keyType }: { pk: Uint8Array; keyType: KeyType }): Promise<string> {
         const pkString = this._encryptionService.uint8ToBase64(pk);
         try {
             await this._dbService.createIndex(this.keyRepo);
