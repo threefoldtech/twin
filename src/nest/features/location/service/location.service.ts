@@ -33,7 +33,7 @@ export class LocationService {
     }
 
     /**
-     * Gets current location of own connection.
+     * Gets current location (IPv6) of own connection.
      * @return {string} - Own address.
      * @return {Error} - Error.
      */
@@ -52,7 +52,10 @@ export class LocationService {
     }
 
     /**
-     * Registers a digital twin to the users
+     * Registers a digital twin to the central users backend API.
+     * @param {string} doubleName - Username paired with .3bot.
+     * @param {string} derivedSeed - The derived seed.
+     * @param {string} yggdrasilAddress - Unsigned Yggdrasil address.
      */
     async registerDigitalTwin({
         doubleName,
