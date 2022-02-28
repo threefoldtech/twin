@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { generateRandomString, ThreefoldLogin } from '@threefoldjimber/threefold_login/dist';
-import { decodeBase64 } from 'tweetnacl-util';
 
 import { EncryptionService } from '../../encryption/service/encryption.service';
 import { KeyType } from '../../store/models/key.model';
@@ -49,7 +48,13 @@ export class AuthService {
      * @param {URL} redirectUrl - Redirection Url.
      * @param {string} sessionState - Current session state.
      */
-    async getProfileData({ redirectUrl, sessionState }: { redirectUrl: URL; sessionState: string }): Promise<void> {
+    async getProfileData({
+        redirectUrl,
+        sessionState,
+    }: {
+        redirectUrl: URL;
+        sessionState: string;
+    }): Promise<{ doubleName: string; derivedSeed: string; userId: string }> {
         try {
             const profileData = (await this.tfLogin.parseAndValidateRedirectUrl(redirectUrl, sessionState))?.profile;
 
@@ -60,7 +65,7 @@ export class AuthService {
             if (userId !== this._configService.get<string>('userId') || !derivedSeed)
                 throw new UnauthorizedException('no user id or derived seed found');
 
-            const seed = new Uint8Array(decodeBase64(derivedSeed));
+            const seed = this._encryptionService.decodeSeed(derivedSeed);
             const keyPair = this._encryptionService.getKeyPair(seed);
             if (!keyPair) throw new UnauthorizedException('invalid key pair');
 
@@ -70,6 +75,12 @@ export class AuthService {
             } catch (error) {
                 throw new UnauthorizedException(error);
             }
+
+            return {
+                doubleName,
+                derivedSeed,
+                userId,
+            };
         } catch (error) {
             throw new UnauthorizedException(error);
         }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { exec } from 'child_process';
@@ -70,9 +70,13 @@ export class LocationService {
         const keyPair = this._encryptionService.getKeyPair(seed);
         const data = this._encryptionService.decodeAddress(yggdrasilAddress);
         const signedAddress = this._encryptionService.signAddress(data, keyPair.secretKey);
-        await axios.put(`${this._configService.get<string>('appBackend')}/api/users/digitaltwin/${doubleName}`, {
-            app_id: this._configService.get<string>('appId'),
-            signed_yggdrasil_ip_address: signedAddress,
-        });
+        try {
+            await axios.put(`${this._configService.get<string>('appBackend')}/api/users/digitaltwin/${doubleName}`, {
+                app_id: this._configService.get<string>('appId'),
+                signed_yggdrasil_ip_address: signedAddress,
+            }); // TODO: implement in new (central) API service
+        } catch (error) {
+            throw new BadRequestException(error);
+        }
     }
 }
