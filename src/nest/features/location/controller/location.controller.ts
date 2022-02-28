@@ -1,7 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 
-import { LocationResponse } from '../models/location.model';
 import { LocationService } from '../service/location.service';
+import { LocationResponse } from '../types/responses';
 
 @Controller('locations')
 export class LocationController {
