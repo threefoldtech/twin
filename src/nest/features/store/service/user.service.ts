@@ -100,7 +100,7 @@ export class UserService {
         try {
             return (await this._userRepo.search().where('userId').equals(userId).returnFirst()).avatar;
         } catch (error) {
-            throw new NotFoundException(error);
+            throw new NotFoundException('avatar not found');
         }
     }
 }

@@ -6,16 +6,17 @@ import {
     Post,
     Req,
     StreamableFile,
-    UploadedFile,
+    UploadedFiles,
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
+import { Express } from 'express';
 import { createReadStream } from 'fs-extra';
 import { join } from 'path';
 
 import { AuthGuard } from '../../../guards/auth.guard';
 import { AuthenticatedRequest } from '../../../types/requests';
-import LocalFilesInterceptor from '../../file/interceptor/local-files.interceptor';
+import { LocalFilesInterceptor } from '../../file/interceptor/local-files.interceptor';
 import { Key } from '../../store/models/key.model';
 import { ConnectionService } from '../../store/service/connections.service';
 import { KeyService } from '../../store/service/keys.service';
@@ -30,6 +31,7 @@ export class UserController {
     ) {}
 
     @Get('publickey')
+    @UseGuards(AuthGuard)
     async getPublicKey(): Promise<Key> {
         return await this._keyService.getPublicKey();
     }
@@ -61,16 +63,17 @@ export class UserController {
             path: '/users/avatars',
             fileFilter: (_, file, callback) => {
                 if (!file.mimetype.includes('image')) {
-                    return callback(new BadRequestException('Provide a valid image'), false);
+                    return callback(new BadRequestException('provide an image less than 2MB in size'), false);
                 }
                 callback(null, true);
             },
             limits: {
-                fileSize: Math.pow(1024, 2), // 1MB
+                fileSize: Math.pow(2048, 2), // 2MB
             },
         })
     )
-    uploadAvatar(@Req() req: AuthenticatedRequest, @UploadedFile() file: Express.Multer.File): Promise<string> {
+    uploadAvatar(@Req() req: AuthenticatedRequest, @UploadedFiles() file: Express.Multer.File): Promise<string> {
+        if (!file) throw new BadRequestException('provide a valid image');
         return this._userService.addAvatar({ userId: req.userId, path: file.path });
     }
 }

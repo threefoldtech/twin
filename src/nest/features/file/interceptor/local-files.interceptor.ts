@@ -1,4 +1,4 @@
-import { Injectable, mixin, NestInterceptor } from '@nestjs/common';
+import { Injectable, mixin, NestInterceptor, Type } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
@@ -11,7 +11,7 @@ interface LocalFilesInterceptorOptions {
     limits?: MulterOptions['limits'];
 }
 
-const LocalFilesInterceptor = (options: LocalFilesInterceptorOptions) => {
+export function LocalFilesInterceptor(options: LocalFilesInterceptorOptions): Type<NestInterceptor> {
     @Injectable()
     class Interceptor implements NestInterceptor {
         fileInterceptor: NestInterceptor;
@@ -37,6 +37,4 @@ const LocalFilesInterceptor = (options: LocalFilesInterceptorOptions) => {
     }
 
     return mixin(Interceptor);
-};
-
-export default LocalFilesInterceptor;
+}
