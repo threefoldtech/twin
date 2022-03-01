@@ -6,10 +6,10 @@ import { Connection, connectionSchema } from '../models/connection.model';
 
 @Injectable()
 export class ConnectionService {
-    private connectionRepo: Repository<Connection>;
+    private _connectionRepo: Repository<Connection>;
 
     constructor(private readonly _dbService: DbService) {
-        this.connectionRepo = this._dbService.createRepository(connectionSchema);
+        this._connectionRepo = this._dbService.createRepository(connectionSchema);
         // this._dbService.createIndex(this.connectionRepo);
     }
 
@@ -20,7 +20,7 @@ export class ConnectionService {
      */
     async addConnection(connection: string): Promise<Connection> {
         try {
-            return this.connectionRepo.createAndSave({ connection });
+            return this._connectionRepo.createAndSave({ connection });
         } catch (error) {
             throw new BadRequestException(error);
         }
@@ -32,7 +32,7 @@ export class ConnectionService {
      */
     async removeConnection(ID: string): Promise<void> {
         try {
-            return await this.connectionRepo.remove(ID);
+            return await this._connectionRepo.remove(ID);
         } catch (error) {
             throw new NotFoundException(error);
         }
@@ -45,7 +45,7 @@ export class ConnectionService {
      */
     async getConnections(pageSize = 20): Promise<Connection[]> {
         try {
-            return await this.connectionRepo.search().returnAll({ pageSize });
+            return await this._connectionRepo.search().returnAll({ pageSize });
         } catch (error) {
             throw new InternalServerErrorException(error);
         }
