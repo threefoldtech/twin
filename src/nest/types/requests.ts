@@ -1,5 +1,5 @@
 import { Request } from 'express';
 
-export class AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request {
     userId: string;
 }

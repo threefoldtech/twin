@@ -5,9 +5,9 @@ export class Key extends Entity {}
 export const keySchema = new Schema(
     Key,
     {
-        userId: { type: 'string', textSearch: true },
+        userId: { type: 'string' },
         key: { type: 'string' },
-        keyType: { type: 'string', textSearch: true },
+        keyType: { type: 'string' },
     },
     {
         dataStructure: 'JSON',

@@ -8,6 +8,7 @@ export class DbService {
 
     constructor(private readonly _configService: ConfigService) {
         this.client = new Client();
+        this.connect();
     }
 
     /**
@@ -33,7 +34,6 @@ export class DbService {
      * @param {Repository} repo - The repository to make indexes on
      */
     async createIndex<T extends Entity>(repo: Repository<T>): Promise<void> {
-        await this.connect();
         await repo.createIndex();
     }
 }

@@ -34,6 +34,7 @@ export class UserService {
         try {
             return await this._userRepo.createAndSave({ userId, status, avatar, lastSeen });
         } catch (error) {
+            console.log('ERR', error);
             throw new BadRequestException(error);
         }
     }
@@ -49,10 +50,10 @@ export class UserService {
             return await this._userRepo.search().where('userId').equals(userId).returnFirst();
         } catch (error) {
             return await this.addUserData({
-                userId,
+                userId: '1',
                 status: 'Exploring the new DigitalTwin',
                 avatar: 'default',
-                lastSeen: new Date().toUTCString(),
+                lastSeen: new Date().toString(),
             });
         }
     }
@@ -85,6 +86,7 @@ export class UserService {
             const userToUpdate = await this.getUserData();
             userToUpdate.userId = userId;
             userToUpdate.avatar = path;
+            userToUpdate.lastSeen = new Date().toUTCString();
             return await this._userRepo.save(userToUpdate);
         } catch (error) {
             throw new NotFoundException(error);

@@ -9,15 +9,9 @@ export interface User {
 
 export class User extends Entity {}
 
-export const userSchema = new Schema(
-    User,
-    {
-        userId: { type: 'string', textSearch: true },
-        status: { type: 'string' },
-        avatar: { type: 'string' },
-        lastSeen: { type: 'string' },
-    },
-    {
-        dataStructure: 'JSON',
-    }
-);
+export const userSchema = new Schema(User, {
+    userId: { type: 'string' },
+    status: { type: 'string' },
+    avatar: { type: 'string' },
+    lastSeen: { type: 'string' },
+});
