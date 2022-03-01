@@ -37,10 +37,10 @@ export class KeyService {
 
     /**
      * Gets the public key of user by given ID.
-     * @param {string} userId - User ID to get the public key of.
      * @return {Key} - Public key.
      */
-    async getPublicKey(userId: string): Promise<Key> {
+    async getPublicKey(): Promise<Key> {
+        const userId = this._configService.get<string>('userId');
         try {
             return this._keyRepo
                 .search()

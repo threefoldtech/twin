@@ -43,7 +43,8 @@ export class UserService {
      * @param {string} ID - User data entity ID.
      * @return {User} - Found User data.
      */
-    async getUserData({ userId }: { userId: string }): Promise<User> {
+    async getUserData(): Promise<User> {
+        const userId = this._configService.get<string>('userId');
         try {
             return await this._userRepo.search().where('userId').equals(userId).returnFirst();
         } catch (error) {
@@ -63,7 +64,7 @@ export class UserService {
      */
     async updateUserData(userData: User): Promise<string> {
         try {
-            const userToUpdate = await this.getUserData({ userId: this._configService.get<string>('userId') });
+            const userToUpdate = await this.getUserData();
             userToUpdate.status = userData.status;
             userToUpdate.avatar = userData.avatar;
             userToUpdate.lastSeen = userData.lastSeen;

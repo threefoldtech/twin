@@ -1,23 +1,34 @@
-import { Controller, Get, NotImplementedException, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Controller, Get, NotImplementedException, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
 
+import { AuthGuard } from '../../../guards/auth.guard';
 import { Key } from '../../store/models/key.model';
 import { ConnectionService } from '../../store/service/connections.service';
 import { KeyService } from '../../store/service/keys.service';
+import { UserService } from '../../store/service/user.service';
 
 @Controller('user')
 export class UserController {
-    constructor(private readonly _connectionService: ConnectionService, private readonly _keyService: KeyService) {}
+    constructor(
+        private readonly _connectionService: ConnectionService,
+        private readonly _keyService: KeyService,
+        private readonly _userService: UserService
+    ) {}
 
     @Get('publickey')
-    async getPublicKey(userID: string): Promise<Key> {
-        return await this._keyService.getPublicKey(userID);
+    async getPublicKey(): Promise<Key> {
+        return await this._keyService.getPublicKey();
     }
 
     @Get('status')
+    @UseGuards(AuthGuard)
     async getStatus() {
-        // TODO: continue here
         const isOnline = (await this._connectionService.getConnections()).length ? true : false;
-        throw new NotImplementedException();
+        const userData = await this._userService.getUserData();
+
+        return {
+            userData,
+            isOnline,
+        };
     }
 
     @Get('avatar/:avatarID')
@@ -26,6 +37,7 @@ export class UserController {
     }
 
     @Post('avatar')
+    @UseGuards(AuthGuard)
     uploadAvatar() {
         throw new NotImplementedException();
     }

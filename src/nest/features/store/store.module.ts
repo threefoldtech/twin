@@ -4,10 +4,11 @@ import { DbModule } from '../db/db.module';
 import { EncryptionModule } from '../encryption/encryption.module';
 import { ConnectionService } from './service/connections.service';
 import { KeyService } from './service/keys.service';
+import { UserService } from './service/user.service';
 
 @Module({
     imports: [DbModule, EncryptionModule],
-    providers: [KeyService, ConnectionService],
-    exports: [KeyService, ConnectionService],
+    providers: [KeyService, ConnectionService, UserService],
+    exports: [KeyService, ConnectionService, UserService],
 })
 export class StoreModule {}
