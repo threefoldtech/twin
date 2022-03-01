@@ -15,6 +15,7 @@ export class UserController {
 
     @Get('status')
     async getStatus() {
+        // TODO: continue here
         const isOnline = (await this._connectionService.getConnections()).length ? true : false;
         throw new NotImplementedException();
     }

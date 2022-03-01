@@ -1,4 +1,3 @@
-// Responses
 export class YggdrasilConfig {
     signingPrivateKey: string;
     signingPublicKey: string;
