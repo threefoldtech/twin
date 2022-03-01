@@ -90,4 +90,17 @@ export class UserService {
             throw new NotFoundException(error);
         }
     }
+
+    /**
+     * Gets the saved avatar linked with UserID.
+     * @param {string} userId - Users ID to get the avatar from.
+     * @return {string} - Users avatar
+     */
+    async getAvatar(userId: string): Promise<string> {
+        try {
+            return (await this._userRepo.search().where('userId').equals(userId).returnFirst()).avatar;
+        } catch (error) {
+            throw new NotFoundException(error);
+        }
+    }
 }

@@ -1,15 +1,16 @@
 import {
     Controller,
     Get,
-    NotImplementedException,
     Param,
-    ParseIntPipe,
     Post,
     Req,
+    StreamableFile,
     UploadedFile,
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
+import { createReadStream } from 'fs-extra';
+import { join } from 'path';
 
 import { AuthGuard } from '../../../guards/auth.guard';
 import { AuthenticatedRequest } from '../../../types/requests';
@@ -44,9 +45,11 @@ export class UserController {
         };
     }
 
-    @Get('avatar/:avatarID')
-    getAvatar(@Param('id', ParseIntPipe) id: number) {
-        throw new NotImplementedException();
+    @Get('avatar/:userId')
+    async getAvatar(@Param('userId') userId: string): Promise<StreamableFile> {
+        const filePath = await this._userService.getAvatar(userId);
+        const stream = createReadStream(join(process.cwd(), filePath));
+        return new StreamableFile(stream);
     }
 
     @Post('avatar')
