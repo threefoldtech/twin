@@ -1,6 +1,19 @@
-import { Controller, Get, NotImplementedException, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    NotImplementedException,
+    Param,
+    ParseIntPipe,
+    Post,
+    Req,
+    UploadedFile,
+    UseGuards,
+    UseInterceptors,
+} from '@nestjs/common';
 
 import { AuthGuard } from '../../../guards/auth.guard';
+import { AuthenticatedRequest } from '../../../types/requests';
+import LocalFilesInterceptor from '../../file/interceptor/local-files.interceptor';
 import { Key } from '../../store/models/key.model';
 import { ConnectionService } from '../../store/service/connections.service';
 import { KeyService } from '../../store/service/keys.service';
@@ -38,7 +51,13 @@ export class UserController {
 
     @Post('avatar')
     @UseGuards(AuthGuard)
-    uploadAvatar() {
-        throw new NotImplementedException();
+    @UseInterceptors(
+        LocalFilesInterceptor({
+            fieldName: 'file',
+            path: '/users/avatars',
+        })
+    )
+    uploadAvatar(@Req() req: AuthenticatedRequest, @UploadedFile() file: Express.Multer.File): Promise<string> {
+        return this._userService.addAvatar({ userId: req.userId, path: file.path });
     }
 }

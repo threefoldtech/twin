@@ -59,8 +59,8 @@ export class UserService {
 
     /**
      * Updates user data to Redis.
-     * @param {UserData} userData - Data to update UserData with.
-     * @return {User} - Updated User data.
+     * @param {UserData} userData - Data to update user data with.
+     * @return {string} - Updated user data ID.
      */
     async updateUserData(userData: User): Promise<string> {
         try {
@@ -68,6 +68,23 @@ export class UserService {
             userToUpdate.status = userData.status;
             userToUpdate.avatar = userData.avatar;
             userToUpdate.lastSeen = userData.lastSeen;
+            return await this._userRepo.save(userToUpdate);
+        } catch (error) {
+            throw new NotFoundException(error);
+        }
+    }
+
+    /**
+     * Adds the avatar path to user data.
+     * @param {string} userId - Users ID to add avatar to.
+     * @param {string} path - Image location.
+     * @return {string} - Updated user data ID.
+     */
+    async addAvatar({ userId, path }: { userId: string; path: string }): Promise<string> {
+        try {
+            const userToUpdate = await this.getUserData();
+            userToUpdate.userId = userId;
+            userToUpdate.avatar = path;
             return await this._userRepo.save(userToUpdate);
         } catch (error) {
             throw new NotFoundException(error);
