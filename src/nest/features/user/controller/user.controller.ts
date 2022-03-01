@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     Controller,
     Get,
     Param,
@@ -58,6 +59,15 @@ export class UserController {
         LocalFilesInterceptor({
             fieldName: 'file',
             path: '/users/avatars',
+            fileFilter: (_, file, callback) => {
+                if (!file.mimetype.includes('image')) {
+                    return callback(new BadRequestException('Provide a valid image'), false);
+                }
+                callback(null, true);
+            },
+            limits: {
+                fileSize: Math.pow(1024, 2), // 1MB
+            },
         })
     )
     uploadAvatar(@Req() req: AuthenticatedRequest, @UploadedFile() file: Express.Multer.File): Promise<string> {
