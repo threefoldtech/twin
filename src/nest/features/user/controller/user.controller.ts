@@ -12,7 +12,7 @@ import {
     UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Express } from 'express';
+import { Express, Request } from 'express';
 import { createReadStream } from 'fs-extra';
 import { join } from 'path';
 
@@ -57,6 +57,7 @@ export class UserController {
         return new StreamableFile(stream);
     }
 
+    // TODO: create avatar.png and fetch like this.
     @Post('avatar')
     // @UseGuards(AuthGuard)
     @UseInterceptors(
@@ -74,16 +75,18 @@ export class UserController {
             },
         })
     )
-    uploadAvatar(@Req() req: AuthenticatedRequest, @UploadedFiles() uploads: Array<Express.Multer.File>) {
+    uploadAvatar(
+        @Req() req: AuthenticatedRequest,
+        @UploadedFile() uploads: Array<Express.Multer.File>
+    ): Promise<string> {
         if (!uploads) throw new BadRequestException('provide a valid image');
-        console.log(uploads);
-        return this._userService.addAvatar({ userId: '1', path: '' });
+        return this._userService.addAvatar({ userId: req.userId, path: '' });
     }
 
     // TODO: remove this (testing)
     @Post('upload')
-    @UseInterceptors(FileInterceptor('image'))
+    @UseInterceptors(FileInterceptor('file'))
     uploadFile(@UploadedFile() file: Express.Multer.File) {
-        console.log(file); // undefined??
+        console.log(file);
     }
 }

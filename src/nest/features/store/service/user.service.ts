@@ -50,10 +50,10 @@ export class UserService {
             return await this._userRepo.search().where('userId').equals(userId).returnFirst();
         } catch (error) {
             return await this.addUserData({
-                userId: '1',
+                userId,
                 status: 'Exploring the new DigitalTwin',
                 avatar: 'default',
-                lastSeen: new Date().toString(),
+                lastSeen: new Date().toUTCString(),
             });
         }
     }
