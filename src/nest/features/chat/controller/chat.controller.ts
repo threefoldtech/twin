@@ -10,24 +10,29 @@ export class ChatController {
     @Post()
     async createChat() {
         // TODO: get data from body request
+        // IMPORTANT: Incoming body data will need to be parsed like this or it will not be able
+        // to be stored in Redis.
         const createdChat = await this._chatService.createChat({
             name: 'test',
-            contacts: ['edward', 'jens'],
+            contacts: ['{"id": "1", "location": "localhost"}', '{"id": "2", "location": "localhost"}'],
             messages: [
-                '{"chatId": "testchat", "from": "edward", "to": "jens", "body": "Test message", "timestamp": "2022-03-02", "type": "MESSAGE", "subject": "Subject", "signatures": "", "replies": ""}',
+                '{"chatId": "testchat", "from": "edward", "to": "jens", "body": "Test message", "timestamp": "2022-03-02", "type": "MESSAGE", "subject": "Subject", "signatures": ["edward"], "replies": [{"chatId": "testchat", "from": "jens", "to": "edward", "body": "Test reply message", "timestamp": "2022-03-02", "type": "MESSAGE", "subject": "Reply", "signatures": ["jens"], "replies": []}]}',
+                '{"chatId": "testchat", "from": "jens", "to": "edward", "body": "Test reply message", "timestamp": "2022-03-02", "type": "MESSAGE", "subject": "Reply", "signatures": ["jens"], "replies": []}',
             ],
             acceptedChat: true,
             adminId: 'edward',
             read: ['edward'],
             isGroup: false,
-            draft: [],
+            draft: [
+                '{"chatId": "testchat", "from": "edward", "to": "jens", "body": "Test draft message", "timestamp": "2022-03-02", "type": "MESSAGE", "subject": "Draft", "signatures": ["edward"], "replies": []}',
+            ],
         });
 
         return {
-            entityData: {
-                ...createdChat,
-                messages: createdChat.parseMessages(),
-            },
+            ...createdChat.entityData,
+            messages: createdChat.parseMessages(),
+            contacts: createdChat.parseContacts(),
+            draft: createdChat.parseMessages(true),
         };
     }
 
