@@ -40,10 +40,18 @@ export class Chat extends Entity {
     }
 }
 
+/**
+ * Stringifies contact JSON to a string for Redis.
+ * @return {string[]} - The stringified contacts.
+ */
 export function stringifyMessages(messages: Message[]): string[] {
     return messages.map(msg => JSON.stringify(msg));
 }
 
+/**
+ * Stringifies message JSON to a string for Redis.
+ * @return {string[]} - The stringified messages.
+ */
 export function stringifyContacts(contacts: Contact[]): string[] {
     return contacts.map(contact => JSON.stringify(contact));
 }

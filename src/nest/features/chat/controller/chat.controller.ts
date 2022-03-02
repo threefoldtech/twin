@@ -12,7 +12,6 @@ export class ChatController {
     @Post()
     @UseGuards(AuthGuard)
     async createChat(@Body() createChatDTO: CreateChatDTO) {
-        console.log(createChatDTO);
         const createdChat = await this._chatService.createChat({
             name: createChatDTO.name,
             contacts: stringifyContacts(createChatDTO.contacts),
