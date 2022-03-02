@@ -47,7 +47,7 @@ export class UserService {
     async getUserData(): Promise<User> {
         const userId = this._configService.get<string>('userId');
         try {
-            return await this._userRepo.search().where('userId').equals(userId).returnFirst();
+            return await this._userRepo.search().where('userId').equals(userId).return.first();
         } catch (error) {
             return await this.addUserData({
                 userId,
@@ -83,7 +83,6 @@ export class UserService {
      */
     async addAvatar({ userId, path }: { userId: string; path: string }): Promise<string> {
         try {
-            // TODO: update entity instead of creating if exists
             const userToUpdate = await this.getUserData();
             userToUpdate.userId = userId;
             userToUpdate.avatar = path;

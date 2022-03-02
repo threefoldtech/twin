@@ -11,9 +11,4 @@ export class LocationController {
     getLocations(): LocationResponse {
         return this._locationService.getLocations();
     }
-
-    @Get('test')
-    getTest() {
-        return { data: 'test' };
-    }
 }
