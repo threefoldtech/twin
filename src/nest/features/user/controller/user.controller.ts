@@ -2,7 +2,6 @@ import {
     BadRequestException,
     Controller,
     Get,
-    Param,
     Post,
     Req,
     StreamableFile,
@@ -10,6 +9,7 @@ import {
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { createReadStream } from 'fs-extra';
 import { join } from 'path';
 
@@ -25,6 +25,7 @@ import { UserService } from '../../store/service/user.service';
 @Controller('user')
 export class UserController {
     constructor(
+        private readonly _configService: ConfigService,
         private readonly _connectionService: ConnectionService,
         private readonly _keyService: KeyService,
         private readonly _userService: UserService
@@ -48,16 +49,15 @@ export class UserController {
         };
     }
 
-    @Get('avatar/:userId')
-    async getAvatar(@Param('userId') userId: string): Promise<StreamableFile> {
-        const filePath = await this._userService.getAvatar(userId);
+    @Get('avatar')
+    async getAvatar(): Promise<StreamableFile> {
+        const filePath = `${this._configService.get<string>('uploadDestination')}/users/avatars/avatar.png`;
         const stream = createReadStream(join(process.cwd(), filePath));
         return new StreamableFile(stream);
     }
 
-    // TODO: create avatar.png and fetch like this.
     @Post('avatar')
-    // @UseGuards(AuthGuard)
+    @UseGuards(AuthGuard)
     @UseInterceptors(
         LocalFilesInterceptor({
             fieldName: 'file',
@@ -69,9 +69,8 @@ export class UserController {
             },
         })
     )
-    uploadAvatar(@Req() req: AuthenticatedRequest, @UploadedFile() file: Express.Multer.File) {
+    uploadAvatar(@Req() req: AuthenticatedRequest, @UploadedFile() file: Express.Multer.File): Promise<string> {
         if (!file) throw new BadRequestException('provide a valid image');
-        console.log(file);
         return this._userService.addAvatar({ userId: req.userId, path: file.path });
     }
 }

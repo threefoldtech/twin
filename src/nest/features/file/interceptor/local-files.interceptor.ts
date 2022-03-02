@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
 
 interface LocalFilesInterceptorOptions {
     fieldName: string;
@@ -26,9 +25,10 @@ export function LocalFilesInterceptor(options: LocalFilesInterceptorOptions): Ty
                 storage: diskStorage({
                     destination,
                     filename: (_, file, callback) => {
-                        if (options.isAvatar) callback(null, `avatar${extname(file.originalname)}`);
+                        if (options.isAvatar)
+                            return callback(null, `${this._configService.get<string>('userId')}-avatar.png`);
 
-                        callback(null, file.originalname);
+                        return callback(null, file.originalname);
                     },
                 }),
                 fileFilter: options.fileFilter,
