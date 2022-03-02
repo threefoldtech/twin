@@ -6,6 +6,7 @@ import config from '../../config/config';
 import { LoggerMiddleware } from '../../middleware/logger.middleware';
 import { ApiModule } from '../api/api.module';
 import { AuthModule } from '../auth/auth.module';
+import { ChatModule } from '../chat/chat.module';
 import { DbModule } from '../db/db.module';
 import { EncryptionModule } from '../encryption/encryption.module';
 import { FileModule } from '../file/file.module';
@@ -38,6 +39,7 @@ import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
         YggdrasilModule,
         LocationModule,
         UserModule,
+        ChatModule,
     ],
 })
 export class AppModule {
