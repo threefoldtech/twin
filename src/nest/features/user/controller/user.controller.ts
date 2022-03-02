@@ -68,6 +68,7 @@ export class UserController {
                 if (!file.mimetype.includes('image')) {
                     return callback(new BadRequestException('provide an image less than 2MB in size'), false);
                 }
+                file.filename = 'avatar';
                 callback(null, true);
             },
             limits: {
@@ -75,18 +76,9 @@ export class UserController {
             },
         })
     )
-    uploadAvatar(
-        @Req() req: AuthenticatedRequest,
-        @UploadedFile() uploads: Array<Express.Multer.File>
-    ): Promise<string> {
+    uploadAvatar(@Req() req: AuthenticatedRequest, @UploadedFiles() uploads: Array<Express.Multer.File>) {
         if (!uploads) throw new BadRequestException('provide a valid image');
-        return this._userService.addAvatar({ userId: req.userId, path: '' });
-    }
-
-    // TODO: remove this (testing)
-    @Post('upload')
-    @UseInterceptors(FileInterceptor('file'))
-    uploadFile(@UploadedFile() file: Express.Multer.File) {
-        console.log(file);
+        console.log(uploads);
+        // return this._userService.addAvatar({ userId: req.userId, fileName: '' });
     }
 }
