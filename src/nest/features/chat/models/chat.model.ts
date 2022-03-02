@@ -26,28 +26,26 @@ export class Chat extends Entity {
      *
      */
     parseMessages(draft = false): Message[] {
-        const parsedMessages: Message[] = [];
-        if (draft && this.draft.length)
-            this.draft.forEach(msg => {
-                parsedMessages.push(JSON.parse(msg));
-            });
-        else
-            this.messages.forEach(msg => {
-                parsedMessages.push(JSON.parse(msg));
-            });
-        return parsedMessages;
+        if (draft && this.draft.length) return this.draft.map(msg => JSON.parse(msg));
+
+        return this.messages.map(msg => JSON.parse(msg));
     }
 
     /**
      * Parses contact strings to valid JSON.
+     * @return {Contact[]} - The parsed contacts.
      */
     parseContacts(): Contact[] {
-        const parsedContacts: Contact[] = [];
-        this.contacts.forEach(contact => {
-            parsedContacts.push(JSON.parse(contact));
-        });
-        return parsedContacts;
+        return this.contacts.map(contact => JSON.parse(contact));
     }
+}
+
+export function stringifyMessages(messages: Message[]): string[] {
+    return messages.map(msg => JSON.stringify(msg));
+}
+
+export function stringifyContacts(contacts: Contact[]): string[] {
+    return contacts.map(contact => JSON.stringify(contact));
 }
 
 export const chatSchema = new Schema(Chat, {

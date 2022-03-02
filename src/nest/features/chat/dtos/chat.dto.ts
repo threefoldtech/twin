@@ -1,29 +1,30 @@
-import { IsArray, IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsString } from 'class-validator';
+
+import { Contact } from '../models/contact.model';
+import { Message } from '../models/message.model';
 
 export class CreateChatDTO {
-    @IsNotEmpty()
     @IsString()
     name: string;
 
-    @IsNotEmpty()
     @IsArray()
-    contacts: string[];
+    contacts: Contact[];
 
-    @IsNotEmpty()
     @IsArray()
-    messages: string[];
+    messages: Message[];
 
-    @IsNotEmpty()
     @IsBoolean()
     acceptedChat: boolean;
 
-    @IsNotEmpty()
     @IsString()
     adminId: string;
 
-    read: string[] = [];
+    @IsArray()
+    read: string[];
 
-    isGroup = false;
+    @IsBoolean()
+    isGroup: boolean;
 
-    draft?: string[] = [];
+    @IsArray()
+    draft?: Message[];
 }

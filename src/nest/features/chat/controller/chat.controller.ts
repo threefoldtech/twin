@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../../../guards/auth.guard';
 import { CreateChatDTO } from '../dtos/chat.dto';
-import { Chat } from '../models/chat.model';
+import { Chat, stringifyContacts, stringifyMessages } from '../models/chat.model';
 import { ChatService } from '../service/chat.service';
 
 @Controller('chats')
@@ -12,28 +12,16 @@ export class ChatController {
     @Post()
     @UseGuards(AuthGuard)
     async createChat(@Body() createChatDTO: CreateChatDTO) {
-        // IMPORTANT: Incoming body data will need to be parsed like this or it will not be able
-        // to be stored in Redis.
-        // EXAMPLE
-        // name: 'test',
-        // contacts: ['{"id": "1", "location": "localhost"}', '{"id": "2", "location": "localhost"}'],
-        // messages: [
-        //     '{"chatId": "testchat", "from": "edward", "to": "jens", "body": "Test message", "timestamp": "2022-03-02", "type": "MESSAGE", "subject": "Subject", "signatures": ["edward"], "replies": []}',
-        // ],
-        // acceptedChat: true,
-        // adminId: 'edward',
-        // read: ['edward'],
-        // isGroup: false,
-        // draft: [],
+        console.log(createChatDTO);
         const createdChat = await this._chatService.createChat({
             name: createChatDTO.name,
-            contacts: createChatDTO.contacts,
-            messages: createChatDTO.messages,
+            contacts: stringifyContacts(createChatDTO.contacts),
+            messages: stringifyMessages(createChatDTO.messages),
             acceptedChat: createChatDTO.acceptedChat,
             adminId: createChatDTO.adminId,
             read: createChatDTO.read,
             isGroup: createChatDTO.isGroup,
-            draft: createChatDTO.draft,
+            draft: stringifyMessages(createChatDTO.draft),
         });
 
         // TODO: send new chat event to socket.io
