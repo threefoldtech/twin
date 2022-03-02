@@ -1,11 +1,16 @@
 import { Module } from '@nestjs/common';
 
-import { StoreModule } from '../store/store.module';
+import { ConnectionModule } from '../connection/connection.module';
+import { DbModule } from '../db/db.module';
+import { KeyModule } from '../key/key.module';
 import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
 import { UserController } from './controller/user.controller';
+import { UserService } from './service/user.service';
 
 @Module({
-    imports: [StoreModule, YggdrasilModule],
+    imports: [DbModule, ConnectionModule, KeyModule, YggdrasilModule],
     controllers: [UserController],
+    providers: [UserService],
+    exports: [UserService],
 })
 export class UserModule {}

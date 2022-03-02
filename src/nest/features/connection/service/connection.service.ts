@@ -43,6 +43,7 @@ export class ConnectionService {
      * @param {number} pageSize - Amount of items to return, defaults to 20.
      * @return {Connection[]} - The connection list.
      */
+    // TODO: use redis-om pagination instead of pageSize
     async getConnections(pageSize = 20): Promise<Connection[]> {
         try {
             return await this._connectionRepo.search().returnAll({ pageSize });

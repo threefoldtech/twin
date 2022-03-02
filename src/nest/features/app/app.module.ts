@@ -7,9 +7,11 @@ import { LoggerMiddleware } from '../../middleware/logger.middleware';
 import { ApiModule } from '../api/api.module';
 import { AuthModule } from '../auth/auth.module';
 import { ChatModule } from '../chat/chat.module';
+import { ConnectionModule } from '../connection/connection.module';
 import { DbModule } from '../db/db.module';
 import { EncryptionModule } from '../encryption/encryption.module';
 import { FileModule } from '../file/file.module';
+import { KeyModule } from '../key/key.module';
 import { LocationModule } from '../location/location.module';
 import { UserModule } from '../user/user.module';
 import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
@@ -38,6 +40,8 @@ import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
         FileModule,
         YggdrasilModule,
         LocationModule,
+        KeyModule,
+        ConnectionModule,
         UserModule,
         ChatModule,
     ],

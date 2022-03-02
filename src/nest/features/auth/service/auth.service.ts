@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { generateRandomString, ThreefoldLogin } from '@threefoldjimber/threefold_login/dist';
 
 import { EncryptionService } from '../../encryption/service/encryption.service';
-import { KeyType } from '../../store/models/key.model';
-import { KeyService } from '../../store/service/keys.service';
+import { KeyType } from '../../key/models/key.model';
+import { KeyService } from '../../key/service/key.service';
 
 @Injectable()
 export class AuthService {

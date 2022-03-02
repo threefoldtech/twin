@@ -16,11 +16,11 @@ import { join } from 'path';
 import { AuthGuard } from '../../../guards/auth.guard';
 import { AuthenticatedRequest } from '../../../types/requests';
 import { imageFileFilter } from '../../../utils/image-file-filter';
+import { ConnectionService } from '../../connection/service/connection.service';
 import { LocalFilesInterceptor } from '../../file/interceptor/local-files.interceptor';
-import { Key } from '../../store/models/key.model';
-import { ConnectionService } from '../../store/service/connections.service';
-import { KeyService } from '../../store/service/keys.service';
-import { UserService } from '../../store/service/user.service';
+import { Key } from '../../key/models/key.model';
+import { KeyService } from '../../key/service/key.service';
+import { UserService } from '../service/user.service';
 
 @Controller('user')
 export class UserController {
