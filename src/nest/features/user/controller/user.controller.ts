@@ -6,18 +6,16 @@ import {
     Post,
     Req,
     StreamableFile,
-    UploadedFile,
     UploadedFiles,
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { Express, Request } from 'express';
 import { createReadStream } from 'fs-extra';
 import { join } from 'path';
 
 import { AuthGuard } from '../../../guards/auth.guard';
 import { AuthenticatedRequest } from '../../../types/requests';
+import { imageFileFilter } from '../../../utils/image-file-filter';
 import { LocalFilesInterceptor } from '../../file/interceptor/local-files.interceptor';
 import { Key } from '../../store/models/key.model';
 import { ConnectionService } from '../../store/service/connections.service';
@@ -64,13 +62,8 @@ export class UserController {
         LocalFilesInterceptor({
             fieldName: 'file',
             path: '/users/avatars',
-            fileFilter: (_, file, callback) => {
-                if (!file.mimetype.includes('image')) {
-                    return callback(new BadRequestException('provide an image less than 2MB in size'), false);
-                }
-                file.filename = 'avatar';
-                callback(null, true);
-            },
+            isAvatar: true,
+            fileFilter: imageFileFilter,
             limits: {
                 fileSize: Math.pow(2048, 2), // 2MB
             },
