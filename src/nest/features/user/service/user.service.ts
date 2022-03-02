@@ -34,7 +34,6 @@ export class UserService {
         try {
             return await this._userRepo.createAndSave({ userId, status, avatar, lastSeen });
         } catch (error) {
-            console.log('ERR', error);
             throw new BadRequestException(error);
         }
     }

@@ -1,17 +1,14 @@
 import { Entity, Schema } from 'redis-om';
 
-import { Contact } from './contact.model';
-import { Message } from './message.model';
-
 export interface Chat {
     name: string;
-    contacts: Contact[];
-    messages: Message[];
+    contacts: string[];
+    messages: string[];
     acceptedChat: boolean;
     adminId: string;
     read: string[];
     isGroup: boolean;
-    draft?: Message;
+    draft?: string;
 }
 
 export class Chat extends Entity {}
