@@ -1,6 +1,6 @@
 import { Entity, Schema } from 'redis-om';
 
-import Contact from '../../../../models/contact';
+import { Contact } from './contact.model';
 import { Message } from './message.model';
 
 /**

@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 
+import { CreateChatDTO } from '../dtos/chat.dto';
 import { Chat } from '../models/chat.model';
 import { ChatService } from '../service/chat.service';
 
@@ -8,7 +9,7 @@ export class ChatController {
     constructor(private readonly _chatService: ChatService) {}
 
     @Post()
-    async createChat() {
+    async createChat(@Body() createChatDTO: CreateChatDTO) {
         // TODO: get data from body request
         // IMPORTANT: Incoming body data will need to be parsed like this or it will not be able
         // to be stored in Redis.
