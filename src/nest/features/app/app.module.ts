@@ -15,6 +15,7 @@ import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
 
 @Module({
     imports: [
+        // TODO: update env variables
         ConfigModule.forRoot({
             validationSchema: Joi.object({
                 PORT: Joi.number().required(),

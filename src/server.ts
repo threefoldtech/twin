@@ -3,7 +3,6 @@ import './utils/extensions';
 import bodyParser from 'body-parser';
 import cors, { CorsOptions } from 'cors';
 import express, { Application } from 'express';
-import fileupload from 'express-fileupload';
 import session from 'express-session';
 import http from 'http';
 import morgan from 'morgan';
@@ -63,12 +62,12 @@ app.use(bodyParser.raw());
 app.use(bodyParser.urlencoded({ limit: '100mb', extended: false }));
 app.use(bodyParser.json({ limit: '100mb' }));
 
-app.use(
-    fileupload({
-        useTempFiles: true,
-        parseNested: true,
-    })
-);
+// app.use(
+//     fileupload({
+//         useTempFiles: true,
+//         parseNested: true,
+//     })
+// );
 
 app.use('/api/', routes);
 

@@ -6,15 +6,11 @@ import { extname } from 'path';
  * @param {File} file - Original uploaded express multer file.
  * @param {Function} callback - Callback function.
  */
-export function editFileName({
-    req,
-    file,
-    callback,
-}: {
-    req: unknown;
-    file: Express.Multer.File;
-    callback: (error: Error, newFileName: string) => void;
-}): void {
+export function editFileName(
+    _: unknown,
+    file: Express.Multer.File,
+    callback: (error: Error, newFileName: string) => void
+): void {
     const fileExtName = extname(file.originalname);
 
     const name = file.originalname.split('.')[0];

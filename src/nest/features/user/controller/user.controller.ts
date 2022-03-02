@@ -6,7 +6,7 @@ import {
     Post,
     Req,
     StreamableFile,
-    UploadedFiles,
+    UploadedFile,
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
@@ -69,9 +69,9 @@ export class UserController {
             },
         })
     )
-    uploadAvatar(@Req() req: AuthenticatedRequest, @UploadedFiles() uploads: Array<Express.Multer.File>) {
-        if (!uploads) throw new BadRequestException('provide a valid image');
-        console.log(uploads);
-        // return this._userService.addAvatar({ userId: req.userId, fileName: '' });
+    uploadAvatar(@Req() req: AuthenticatedRequest, @UploadedFile() file: Express.Multer.File) {
+        if (!file) throw new BadRequestException('provide a valid image');
+        console.log(file);
+        return this._userService.addAvatar({ userId: req.userId, path: file.path });
     }
 }

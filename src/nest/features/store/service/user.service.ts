@@ -78,14 +78,14 @@ export class UserService {
     /**
      * Adds the avatar path to user data.
      * @param {string} userId - Users ID to add avatar to.
-     * @param {string} fileName - Image name.
+     * @param {string} path - Avatar path.
      * @return {string} - Updated user data ID.
      */
-    async addAvatar({ userId, fileName }: { userId: string; fileName: string }): Promise<string> {
+    async addAvatar({ userId, path }: { userId: string; path: string }): Promise<string> {
         try {
             const userToUpdate = await this.getUserData();
             userToUpdate.userId = userId;
-            userToUpdate.avatar = fileName;
+            userToUpdate.avatar = path;
             userToUpdate.lastSeen = new Date().toUTCString();
             return await this._userRepo.save(userToUpdate);
         } catch (error) {
