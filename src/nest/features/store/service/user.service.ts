@@ -83,6 +83,7 @@ export class UserService {
      */
     async addAvatar({ userId, path }: { userId: string; path: string }): Promise<string> {
         try {
+            // TODO: update entity instead of creating if exists
             const userToUpdate = await this.getUserData();
             userToUpdate.userId = userId;
             userToUpdate.avatar = path;
