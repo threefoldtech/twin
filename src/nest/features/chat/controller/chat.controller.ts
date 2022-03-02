@@ -9,11 +9,12 @@ export class ChatController {
 
     @Post()
     async createChat() {
-        return await this._chatService.createChat({
+        // TODO: get data from body request
+        const createdChat = await this._chatService.createChat({
             name: 'test',
             contacts: ['edward', 'jens'],
             messages: [
-                '{"chatId": "testchat", "from": "edward", "to": "jens", "body": "Test message", "timestamp": "2022-03-02", "type": "MESSAGE", "subject": "Subject", "signatures": "", replies: ""}',
+                '{"chatId": "testchat", "from": "edward", "to": "jens", "body": "Test message", "timestamp": "2022-03-02", "type": "MESSAGE", "subject": "Subject", "signatures": "", "replies": ""}',
             ],
             acceptedChat: true,
             adminId: 'edward',
@@ -21,6 +22,13 @@ export class ChatController {
             isGroup: false,
             draft: [],
         });
+
+        return {
+            entityData: {
+                ...createdChat,
+                messages: createdChat.parseMessages(),
+            },
+        };
     }
 
     @Get()
