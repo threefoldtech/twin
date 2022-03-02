@@ -51,7 +51,9 @@ export class UserController {
 
     @Get('avatar')
     async getAvatar(): Promise<StreamableFile> {
-        const filePath = `${this._configService.get<string>('uploadDestination')}/users/avatars/avatar.png`;
+        const filePath = `${this._configService.get<string>(
+            'uploadDestination'
+        )}/users/avatars/${this._configService.get<string>('userId')}-avatar.png`;
         const stream = createReadStream(join(process.cwd(), filePath));
         return new StreamableFile(stream);
     }
