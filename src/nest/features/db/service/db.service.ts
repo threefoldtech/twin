@@ -26,7 +26,7 @@ export class DbService {
      * @return {Repository} - The created repository.
      */
     createRepository<T extends Entity>(schema: Schema<T>): Repository<T> {
-        return new Repository(schema, this.client);
+        return this.client.fetchRepository(schema);
     }
 
     /**

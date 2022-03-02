@@ -29,7 +29,7 @@ export class UserService {
         userId: string;
         status: string;
         avatar: string;
-        lastSeen: string;
+        lastSeen: Date;
     }): Promise<User> {
         try {
             return await this._userRepo.createAndSave({ userId, status, avatar, lastSeen });
@@ -53,7 +53,7 @@ export class UserService {
                 userId,
                 status: 'Exploring the new DigitalTwin',
                 avatar: 'default',
-                lastSeen: new Date().toUTCString(),
+                lastSeen: new Date(),
             });
         }
     }
@@ -86,7 +86,7 @@ export class UserService {
             const userToUpdate = await this.getUserData();
             userToUpdate.userId = userId;
             userToUpdate.avatar = path;
-            userToUpdate.lastSeen = new Date().toUTCString();
+            userToUpdate.lastSeen = new Date();
             return await this._userRepo.save(userToUpdate);
         } catch (error) {
             throw new BadRequestException(error);

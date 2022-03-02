@@ -1,14 +1,30 @@
-export interface Message<T> {
+import { Entity, Schema } from 'redis-om';
+
+export interface Message {
     chatId: string;
     from: string;
     to: string;
-    body: T;
-    timestamp: string;
+    body: string;
+    timestamp: Date;
     type: MessageType;
     subject: string;
     signatures: string[];
-    replies: Message<T>[];
+    replies: Message[];
 }
+
+export class Message extends Entity {}
+
+export const messageSchema = new Schema(Message, {
+    chatId: { type: 'string' },
+    from: { type: 'string' },
+    to: { type: 'string' },
+    body: { type: 'text' },
+    timestamp: { type: 'date' },
+    type: { type: 'string' },
+    subject: { type: 'string' },
+    signatures: { type: 'string[]' },
+    replies: { type: 'string[]' },
+});
 
 export enum MessageType {
     STRING,
