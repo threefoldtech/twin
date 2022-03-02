@@ -1,3 +1,4 @@
+// TODO: add comments to each module explaining what it is doing.
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import Joi from 'joi';
