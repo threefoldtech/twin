@@ -27,7 +27,5 @@ export default async function bootstrap(): Promise<INestApplication> {
     // global class serialization for class-transformer
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-    // await app.listen(3000);
-
     return app;
 }

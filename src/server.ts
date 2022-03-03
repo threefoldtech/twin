@@ -75,6 +75,6 @@ initAll();
 
 mountNestApp({ app, mountPath: '/nest', bootstrapNest }).then(app =>
     app.listen(PORT, () => {
-        console.log(`server started on port ${PORT}`);
+        console.log(`express server started on port ${PORT}`);
     })
 );

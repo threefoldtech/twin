@@ -17,10 +17,16 @@ async function mountNestApp({
     mountPath: string;
     bootstrapNest: { (): Promise<INestApplication> };
 }): Promise<Application> {
+    const PORT = process.env.PORT ?? 3000;
+
     const nestApp = await bootstrapNest();
+    nestApp.setGlobalPrefix(mountPath);
+    nestApp.listen(+PORT + 1, () => {
+        console.log(`nestjs server started on port ${+PORT + 1}`);
+    });
+
     await nestApp.init();
 
-    app.use(mountPath, nestApp.getHttpAdapter().getInstance());
     return app;
 }
 
