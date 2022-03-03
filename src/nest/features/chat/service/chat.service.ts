@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { Repository } from 'redis-om';
 
 import { DbService } from '../../db/service/db.service';
+import { SocketService } from '../../socket/service/socket.service';
 import { Chat, chatSchema } from '../models/chat.model';
 import { Message, stringifyMessage } from '../models/message.model';
 
@@ -9,7 +10,7 @@ import { Message, stringifyMessage } from '../models/message.model';
 export class ChatService {
     private _chatRepo: Repository<Chat>;
 
-    constructor(private readonly _dbService: DbService) {
+    constructor(private readonly _dbService: DbService, private readonly _socketService: SocketService) {
         this._chatRepo = this._dbService.createRepository(chatSchema);
     }
 
@@ -45,7 +46,7 @@ export class ChatService {
         draft: string[];
     }): Promise<Chat> {
         try {
-            return await this._chatRepo.createAndSave({
+            const chat = this._chatRepo.createEntity({
                 name,
                 contacts,
                 messages,
@@ -55,6 +56,10 @@ export class ChatService {
                 isGroup,
                 draft,
             });
+            const chatId = await this._chatRepo.save(chat);
+            // TODO: change chat ID
+            this._socketService.server.to(chatId).emit('new_chat', chat);
+            return chat;
         } catch (error) {
             console.error(error);
             throw new BadRequestException(`unable to create chat: ${error}`);
@@ -88,7 +93,7 @@ export class ChatService {
         }
     }
 
-    async addMessage({ chat, message }: { chat: Chat; message: Message }) {
+    async addMessageToChat({ chat, message }: { chat: Chat; message: Message }) {
         try {
             chat.messages
                 ? chat.messages.push(stringifyMessage(message))

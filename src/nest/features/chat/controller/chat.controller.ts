@@ -23,8 +23,8 @@ export class ChatController {
             draft: stringifyMessages(createChatDTO.draft),
         });
 
-        // TODO: send new chat event to socket.io
         return {
+            id: createdChat.entityId,
             ...createdChat.entityData,
             messages: createdChat.parseMessages(),
             contacts: createdChat.parseContacts(),

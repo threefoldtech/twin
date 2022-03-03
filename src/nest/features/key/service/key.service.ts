@@ -56,6 +56,7 @@ export class KeyService {
      * @param {Message} message - Message to add signature to.
      */
     async appendSignatureToMessage(message: Message): Promise<Message> {
+        // TODO: use secret key
         // const secretKey = await this.getKey(KeyType.Private);
         // if (!secretKey) return;
         const signature = this._encryptionService.createBase64Signature(message, encodeBase64(randomBytes(64)));

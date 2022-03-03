@@ -14,6 +14,7 @@ import { EncryptionModule } from '../encryption/encryption.module';
 import { FileModule } from '../file/file.module';
 import { KeyModule } from '../key/key.module';
 import { LocationModule } from '../location/location.module';
+import { SocketModule } from '../socket/socket.module';
 import { UserModule } from '../user/user.module';
 import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
 
@@ -44,6 +45,7 @@ import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
         KeyModule,
         ConnectionModule,
         UserModule,
+        SocketModule,
         ChatModule,
     ],
 })

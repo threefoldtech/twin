@@ -4,26 +4,25 @@ import {
     MessageBody,
     OnGatewayConnection,
     OnGatewayDisconnect,
+    OnGatewayInit,
     SubscribeMessage,
     WebSocketGateway,
-    WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
 import { ConnectionService } from '../../connection/service/connection.service';
 import { KeyService } from '../../key/service/key.service';
-import { Message, MessageType } from '../models/message.model';
+import { SocketService } from '../../socket/service/socket.service';
+import { Message } from '../models/message.model';
 import { ChatService } from '../service/chat.service';
 
 @WebSocketGateway({ cors: '*', namespace: 'chat' })
-export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-    @WebSocketServer()
-    server: Server;
-
+export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
     private logger: Logger = new Logger('ChatGateway');
     private connectionID = '';
 
     constructor(
+        private readonly _socketService: SocketService,
         private readonly _configService: ConfigService,
         private readonly _connectionService: ConnectionService,
         private readonly _keyService: KeyService,
@@ -33,6 +32,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     /**
      * TODO: WIP
      * Sends a new incoming message to all connected clients.
+     * create chat if first message
      */
     @SubscribeMessage('message')
     async handleIncomingMessage(@MessageBody() message: Message) {
@@ -43,12 +43,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const signedMessage = await this._keyService.appendSignatureToMessage(message);
 
         // emit message to connected users
-        this.server.to(message.chatId).emit('message', signedMessage);
+        this._socketService.server.to(message.chatId).emit('message', signedMessage);
 
-        // // get chat data
+        // get chat data
         const chat = await this._chatService.getChat(message.chatId);
-        // // update chat messages
-        this._chatService.addMessage({ chat, message: signedMessage });
+        // set accepted to true
+        chat.acceptedChat = true;
+        // update chat messages
+        this._chatService.addMessageToChat({ chat, message: signedMessage });
 
         // const location = chat.contacts.find(c => c == chat.adminId);
 
@@ -76,6 +78,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     //     client.leave(chatId);
     //     client.emit('left_chat', chatId);
     // }
+
+    /**
+     * Handles socket initialization.
+     * @param {Server} server - socket.io server.
+     */
+    afterInit(server: Server) {
+        this._socketService.server = server;
+    }
 
     /**
      * Handles a new socket.io client connection.
