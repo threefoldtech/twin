@@ -1,4 +1,5 @@
 import { INestApplication } from '@nestjs/common';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { Application } from 'express';
 
 /**
@@ -20,6 +21,8 @@ async function mountNestApp({
     const nestApp = await bootstrapNest();
     await nestApp.init();
 
+    const httpServer = nestApp.getHttpServer();
+    nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
     app.use(mountPath, nestApp.getHttpAdapter().getInstance());
     return app;
 }
