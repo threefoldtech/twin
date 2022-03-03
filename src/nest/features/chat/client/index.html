@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Socket.io tester</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+    </head>
+
+    <body>
+        <div>
+            <ul id="messages"></ul>
+        </div>
+
+        <div>
+            <input type="text" id="message" />
+            <button onclick="handleSubmitNewMessage()">Submit</button>
+        </div>
+
+        <script
+            src="https://cdn.socket.io/4.4.1/socket.io.min.js"
+            integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H"
+            crossorigin="anonymous"
+        ></script>
+        <script src="./chat-socket.js"></script>
+    </body>
+</html>
