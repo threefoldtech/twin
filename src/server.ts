@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import cors, { CorsOptions } from 'cors';
 import express, { Application } from 'express';
 import session from 'express-session';
-import http from 'http';
+// import http from 'http';
 import morgan from 'morgan';
 
 import { initAll } from './index';
@@ -23,7 +23,7 @@ const corsOptions: CorsOptions = {
 };
 
 const app: Application = express();
-const httpServer: http.Server = http.createServer(app);
+// const httpServer: http.Server = http.createServer(app);
 
 // startSocketIo(httpServer);
 
@@ -78,7 +78,3 @@ mountNestApp({ app, mountPath: '/nest', bootstrapNest }).then(app =>
         console.log(`server started on port ${PORT}`);
     })
 );
-
-// httpServer.listen(process.env.PORT ?? 3000, () => {
-//     console.log(`Server started on port ${process.env.PORT ?? 3000}`)
-// })

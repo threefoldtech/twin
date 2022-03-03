@@ -1,6 +1,7 @@
 import { ClassSerializerInterceptor, INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 import { AppModule } from './features/app/app.module';
 import getLogLevels from './utils/get-log-levels';
@@ -11,6 +12,9 @@ import getLogLevels from './utils/get-log-levels';
  */
 export default async function bootstrap(): Promise<INestApplication> {
     const app = await NestFactory.create(AppModule);
+
+    // CORS
+    app.enableCors({ origin: '*' });
 
     // init config service
     const configService = app.get<ConfigService>(ConfigService);
@@ -23,6 +27,9 @@ export default async function bootstrap(): Promise<INestApplication> {
 
     // global class serialization for class-transformer
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
+    // socket.io adapter
+    app.useWebSocketAdapter(new IoAdapter(app));
 
     return app;
 }
