@@ -21,7 +21,7 @@ export interface Chat {
 export class Chat extends Entity {
     /**
      * Parses message or draft strings to valid JSON.
-     * @param {boolean} draft - Parse drafts of messages if false. Defaults to false.
+     * @param draft - Parse drafts of messages if false. Defaults to false.
      * @return {Message[]} - The parsed messages.
      *
      */
