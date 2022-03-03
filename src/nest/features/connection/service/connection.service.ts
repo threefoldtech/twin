@@ -40,7 +40,7 @@ export class ConnectionService {
 
     /**
      * Gets all connections stored in Redis.
-     * @param {number} pageSize - Amount of items to return, defaults to 20.
+     * @param pageSize - Amount of items to return, defaults to 20.
      * @return {Connection[]} - The connection list.
      */
     // TODO: use redis-om pagination instead of pageSize
