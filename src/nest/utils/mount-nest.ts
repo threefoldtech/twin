@@ -17,14 +17,15 @@ async function mountNestApp({
     app: Application;
     mountPath: string;
     bootstrapNest: { (): Promise<INestApplication> };
-}): Promise<Application> {
+}) {
     const nestApp = await bootstrapNest();
     await nestApp.init();
 
-    const httpServer = nestApp.getHttpServer();
-    nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
+    nestApp.useWebSocketAdapter(new IoAdapter(app));
+
     app.use(mountPath, nestApp.getHttpAdapter().getInstance());
-    return app;
+    // TODO: fix socket.io connection issues to return app instead of nestApp
+    return nestApp;
 }
 
 export default mountNestApp;
