@@ -20,7 +20,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     private logger: Logger = new Logger('ChatGateway');
     private connectionID = '';
-    private connections: string[] = [];
 
     constructor(
         private readonly _configService: ConfigService,
@@ -29,16 +28,38 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     /**
      * TODO: WIP
-     * Sends a new incoming message to all connection clients.
+     * Sends a new incoming message to all connected clients.
      */
     @SubscribeMessage('message')
     handleIncomingMessage(@MessageBody() message: CreateMessageDTO): void {
         message.from = this._configService.get<string>('userId');
-        console.log(message);
-
         this.server.to(message.chatId).emit('message', message);
 
+        // get chat by id (message.chatId)
+
+        // get location
+
         // update chat
+    }
+
+    /**
+     * Adds a user to a chat for socket io.
+     * @param {string} chatId - The chat ID to join.
+     */
+    @SubscribeMessage('join_chat')
+    handleJoinChat(client: Socket, chatId: string) {
+        client.join(chatId);
+        client.emit('joined_chat', chatId);
+    }
+
+    /**
+     * Removes a user from a chat for socket io.
+     * @param {string} chatId - The chat ID to join.
+     */
+    @SubscribeMessage('leave_chat')
+    handleLeaveChat(client: Socket, chatId: string) {
+        client.leave(chatId);
+        client.emit('left_chat', chatId);
     }
 
     /**
@@ -49,7 +70,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.logger.log(`new client connection: ${client.id}`);
         const newConnection = await this._connectionService.addConnection(client.id);
         this.connectionID = newConnection.entityId;
-        this.connections.push(newConnection.connection);
     }
 
     /**
