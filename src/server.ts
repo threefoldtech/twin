@@ -13,7 +13,7 @@ import errorMiddleware from './middlewares/errorHandlingMiddleware';
 import bootstrapNest from './nest/main';
 import mountNestApp from './nest/utils/mount-nest';
 import routes from './routes';
-import { startSocketIo } from './service/socketService';
+// import { startSocketIo } from './service/socketService';
 
 const PORT = process.env.PORT ?? 3000;
 
@@ -25,7 +25,7 @@ const corsOptions: CorsOptions = {
 const app: Application = express();
 const httpServer: http.Server = http.createServer(app);
 
-startSocketIo(httpServer);
+// startSocketIo(httpServer);
 
 app.use(
     morgan('short', {
