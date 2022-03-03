@@ -12,7 +12,8 @@ import { Server, Socket } from 'socket.io';
 
 import { ConnectionService } from '../../connection/service/connection.service';
 import { KeyService } from '../../key/service/key.service';
-import { Message } from '../models/message.model';
+import { Message, MessageType } from '../models/message.model';
+import { ChatService } from '../service/chat.service';
 
 @WebSocketGateway({ cors: '*', namespace: 'chat' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -25,7 +26,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     constructor(
         private readonly _configService: ConfigService,
         private readonly _connectionService: ConnectionService,
-        private readonly _keyService: KeyService
+        private readonly _keyService: KeyService,
+        private readonly _chatService: ChatService
     ) {}
 
     /**
@@ -33,18 +35,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
      * Sends a new incoming message to all connected clients.
      */
     @SubscribeMessage('message')
-    handleIncomingMessage(@MessageBody() message: Message): void {
+    async handleIncomingMessage(@MessageBody() message: Message) {
+        // correct from to message
         message.from = this._configService.get<string>('userId');
 
-        const signedMessage = this._keyService.appendSignatureToMessage(message);
+        // sign message
+        const signedMessage = await this._keyService.appendSignatureToMessage(message);
 
-        this.server.to(message.chatId).emit('message', message);
+        // emit message to connected users
+        this.server.to(message.chatId).emit('message', signedMessage);
 
-        // get chat by id (message.chatId)
+        // // get chat data
+        const chat = await this._chatService.getChat(message.chatId);
+        // // update chat messages
+        this._chatService.addMessage({ chat, message: signedMessage });
 
-        // get location
+        // const location = chat.contacts.find(c => c == chat.adminId);
 
-        // update chat
+        // if (signedMessage.type === MessageType.READ) {
+        //     // TODO: handle read
+        // }
     }
 
     /**

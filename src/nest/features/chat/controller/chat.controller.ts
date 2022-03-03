@@ -10,7 +10,7 @@ export class ChatController {
     constructor(private readonly _chatService: ChatService) {}
 
     @Post()
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
     async createChat(@Body() createChatDTO: CreateChatDTO) {
         const createdChat = await this._chatService.createChat({
             name: createChatDTO.name,
@@ -34,6 +34,6 @@ export class ChatController {
 
     @Get()
     async getAcceptedChats(@Query('offset') offset = 0, @Query('count') count = 25): Promise<Chat[]> {
-        return await this._chatService.getAcceptedChats(offset, count);
+        return await this._chatService.getAcceptedChats({ offset, count });
     }
 }

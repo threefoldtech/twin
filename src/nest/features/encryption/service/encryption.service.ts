@@ -121,7 +121,11 @@ export class EncryptionService {
      */
     createSignature({ data, secretKey }: { data: unknown; secretKey: string }): Uint8Array {
         if (!data || !secretKey) throw new BadRequestException('invalid signature data or secret key');
-        return sign.detached(this.objectToUint8Array(data), decodeBase64(secretKey));
+        try {
+            return sign.detached(this.objectToUint8Array(data), decodeBase64(secretKey));
+        } catch (error) {
+            throw new BadRequestException(error);
+        }
     }
 
     /**

@@ -14,6 +14,10 @@ export interface Message {
 
 export class Message extends Entity {}
 
+export function stringifyMessage(message: Message): string {
+    return JSON.stringify(message);
+}
+
 export const messageSchema = new Schema(Message, {
     chatId: { type: 'string' },
     from: { type: 'string' },

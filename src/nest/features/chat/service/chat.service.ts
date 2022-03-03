@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException, NotImplementedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'redis-om';
 
 import { DbService } from '../../db/service/db.service';
 import { Chat, chatSchema } from '../models/chat.model';
+import { Message, stringifyMessage } from '../models/message.model';
 
 @Injectable()
 export class ChatService {
@@ -60,15 +61,41 @@ export class ChatService {
         }
     }
 
-    saveMessage(chatId: string, message: string) {
-        throw new NotImplementedException();
-    }
-
-    async getAcceptedChats(offset = 0, count = 25) {
+    /**
+     * Gets accepted chats using pagination.
+     * @param offset - Chat offset, defaults to 0.
+     * @param count - Amount of chats to fetch, defaults to 25.
+     * @return {Chat[]} - Found chats.
+     */
+    async getAcceptedChats({ offset = 0, count = 25 }: { offset?: number; count?: number } = {}): Promise<Chat[]> {
         try {
             return await this._chatRepo.search().where('acceptedChat').true().return.page(offset, count);
         } catch (error) {
             throw new NotFoundException('no accepted chats found');
+        }
+    }
+
+    /**
+     * Gets a chat by its ID.
+     * @param {string} ID - Chat ID.
+     * @return {Chat} - Found chat.
+     */
+    async getChat(ID: string): Promise<Chat> {
+        try {
+            return await this._chatRepo.fetch(ID);
+        } catch (error) {
+            throw new NotFoundException('chat not found');
+        }
+    }
+
+    async addMessage({ chat, message }: { chat: Chat; message: Message }) {
+        try {
+            chat.messages
+                ? chat.messages.push(stringifyMessage(message))
+                : (chat.messages = [stringifyMessage(message)]);
+            return await this._chatRepo.save(chat);
+        } catch (error) {
+            throw new BadRequestException(error);
         }
     }
 }
