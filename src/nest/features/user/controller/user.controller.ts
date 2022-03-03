@@ -18,7 +18,7 @@ import { AuthenticatedRequest } from '../../../types/requests';
 import { imageFileFilter } from '../../../utils/image-file-filter';
 import { ConnectionService } from '../../connection/service/connection.service';
 import { LocalFilesInterceptor } from '../../file/interceptor/local-files.interceptor';
-import { Key } from '../../key/models/key.model';
+import { Key, KeyType } from '../../key/models/key.model';
 import { KeyService } from '../../key/service/key.service';
 import { UserService } from '../service/user.service';
 
@@ -34,7 +34,7 @@ export class UserController {
     @Get('publickey')
     @UseGuards(AuthGuard)
     async getPublicKey(): Promise<Key> {
-        return await this._keyService.getPublicKey();
+        return await this._keyService.getKey(KeyType.Public);
     }
 
     @Get('status')

@@ -24,7 +24,6 @@ export class ChatController {
         });
 
         // TODO: send new chat event to socket.io
-        // TODO: create socket.io service and connection with NestJS app
         return {
             ...createdChat.entityData,
             messages: createdChat.parseMessages(),
