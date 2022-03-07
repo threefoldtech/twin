@@ -49,10 +49,9 @@
                             signatures: [],
                             replies: [],
                         };
-                        messages.push(newMessage);
-                        console.log(`send message: ${JSON.stringify(newMessage)}`);
-                        socket.emit('message_to_server', newMessage);
                         message.value = '';
+                        socket.emit('message_to_server', newMessage);
+                        console.log(`send message: ${JSON.stringify(newMessage)}`);
                     };
 
                     const handleReceivedMessage = msg => {
