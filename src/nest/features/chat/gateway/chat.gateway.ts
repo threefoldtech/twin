@@ -34,7 +34,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      * Sends a new incoming message to all connected clients.
      * create chat if first message
      */
-    @SubscribeMessage('message')
+    @SubscribeMessage('new_message')
     async handleIncomingMessage(@MessageBody() message: Message) {
         // correct from to message
         message.from = this._configService.get<string>('userId');
