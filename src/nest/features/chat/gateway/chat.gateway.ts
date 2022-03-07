@@ -10,7 +10,6 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-import { ConnectionService } from '../../connection/service/connection.service';
 import { KeyService } from '../../key/service/key.service';
 import { SocketService } from '../../socket/service/socket.service';
 import { Chat, stringifyContacts } from '../models/chat.model';
@@ -21,12 +20,10 @@ import { ChatService } from '../service/chat.service';
 @WebSocketGateway({ cors: '*', namespace: 'chat' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
     private logger: Logger = new Logger('ChatGateway');
-    private connectionID = '';
 
     constructor(
         private readonly _socketService: SocketService,
         private readonly _configService: ConfigService,
-        private readonly _connectionService: ConnectionService,
         private readonly _keyService: KeyService,
         private readonly _chatService: ChatService
     ) {}
@@ -36,7 +33,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      * Sends a new incoming message to all connected clients.
      */
     @SubscribeMessage('message_to_server')
-    async handleIncomingMessage(client: Socket, @MessageBody() message: Message) {
+    async handleIncomingMessage(@MessageBody() message: Message) {
         // correct from to message
         message.from = this._configService.get<string>('userId');
 
@@ -50,14 +47,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         }
 
         // set correct chatId to message
-        signedMessage.chatId = client.id;
+        signedMessage.chatId = message.chatId;
 
         // notify contacts about creation of new chat
-        this._socketService.server.to(client.id).emit('message_to_client', signedMessage);
+        this._socketService.server.to('chat').emit('message_to_client', signedMessage);
 
-        const contacts = chat.parseContacts();
+        // const contacts = chat.parseContacts();
 
-        const location = contacts.find(c => c.id == chat.adminId).location;
+        // const location = contacts.find(c => c.id == chat.adminId).location;
 
         // if (signedMessage.type === MessageType.READ) {
         //     // TODO: handle read
@@ -69,22 +66,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     /**
      * Adds a user to a chat for socket io.
-     * @param {string} chatId - The chat ID to join.
+     * @param {Socket} client - socket.io client.
      */
     @SubscribeMessage('join_chat')
-    handleJoinChat(client: Socket, chatId: string): void {
-        client.join(chatId);
-        client.emit('joined_chat', chatId);
+    handleJoinChat(client: Socket): void {
+        client.join('chat');
+        client.emit('joined_chat', 'chat');
     }
 
     /**
      * Removes a user from a chat for socket io.
-     * @param {string} chatId - The chat ID to join.
+     * @param {Socket} client - socket.io client.
      */
     @SubscribeMessage('leave_chat')
-    handleLeaveChat(client: Socket, chatId: string): void {
-        client.leave(chatId);
-        client.emit('left_chat', chatId);
+    handleLeaveChat(client: Socket): void {
+        client.leave('chat');
+        client.emit('left_chat', 'chat');
     }
 
     /**
@@ -101,9 +98,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      */
     handleConnection(client: Socket): void {
         this.logger.log(`new client connection: ${client.id}`);
-        // const newConnection = await this._connectionService.addConnection(client.id);
-        this.handleJoinChat(client, client.id);
-        this.connectionID = client.id;
+        this.handleJoinChat(client);
     }
 
     /**
@@ -112,9 +107,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      */
     handleDisconnect(client: Socket): void {
         this.logger.log(`client disconnected: ${client.id}`);
-        // await this._connectionService.removeConnection(this.connectionID);
-        this.handleLeaveChat(client, client.id);
-        this.connectionID = '';
+        this.handleLeaveChat(client);
     }
 
     /**
