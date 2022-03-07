@@ -13,6 +13,8 @@ import { Server, Socket } from 'socket.io';
 import { ConnectionService } from '../../connection/service/connection.service';
 import { KeyService } from '../../key/service/key.service';
 import { SocketService } from '../../socket/service/socket.service';
+import { Chat, stringifyContacts } from '../models/chat.model';
+import { Contact } from '../models/contact.model';
 import { Message } from '../models/message.model';
 import { ChatService } from '../service/chat.service';
 
@@ -34,40 +36,35 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      * Sends a new incoming message to all connected clients.
      */
     @SubscribeMessage('message_to_server')
-    async handleIncomingMessage(@MessageBody() message: Message) {
-        console.log(message);
+    async handleIncomingMessage(client: Socket, @MessageBody() message: Message) {
         // correct from to message
         message.from = this._configService.get<string>('userId');
 
         // sign message
         const signedMessage = await this._keyService.appendSignatureToMessage(message);
 
-        // emit message to connected users
-        this._socketService.server.to(message.chatId).emit('message_to_client', signedMessage);
-
         // get chat data
         let chat = await this._chatService.getChat(message.chatId);
-        // create new chat if not found
         if (!chat) {
-            chat = await this._chatService.createChat({
-                name: `${message.from}-${message.to}`,
-                contacts: [],
-                messages: [],
-                acceptedChat: false,
-                adminId: message.from,
-                read: [],
-                isGroup: false,
-                draft: [],
-            });
+            chat = await this.createNewChat(signedMessage);
         }
-        // update chat messages
-        this._chatService.addMessageToChat({ chat, message: signedMessage });
 
-        // const location = chat.contacts.find(c => c == chat.adminId);
+        // set correct chatId to message
+        signedMessage.chatId = client.id;
+
+        // notify contacts about creation of new chat
+        this._socketService.server.to(client.id).emit('message_to_client', signedMessage);
+
+        const contacts = chat.parseContacts();
+
+        const location = contacts.find(c => c.id == chat.adminId).location;
 
         // if (signedMessage.type === MessageType.READ) {
         //     // TODO: handle read
         // }
+
+        // persist message
+        this._chatService.addMessageToChat({ chat, message: signedMessage });
     }
 
     /**
@@ -105,6 +102,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     handleConnection(client: Socket): void {
         this.logger.log(`new client connection: ${client.id}`);
         // const newConnection = await this._connectionService.addConnection(client.id);
+        this.handleJoinChat(client, client.id);
         this.connectionID = client.id;
     }
 
@@ -115,6 +113,36 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     handleDisconnect(client: Socket): void {
         this.logger.log(`client disconnected: ${client.id}`);
         // await this._connectionService.removeConnection(this.connectionID);
+        this.handleLeaveChat(client, client.id);
         this.connectionID = '';
+    }
+
+    /**
+     * Creates a new chat if chat is not found.
+     * @param {string} from - From id.
+     * @param {string} to - To id.
+     * @return {Chat} - The created chat.
+     */
+    private async createNewChat({ from, to }: { from: string; to: string }): Promise<Chat> {
+        const contacts = [
+            {
+                id: from,
+                location: 'localhost',
+            },
+            {
+                id: to,
+                location: 'localhost',
+            },
+        ];
+        return await this._chatService.createChat({
+            name: `${from}-${to}`,
+            contacts: stringifyContacts(contacts as Contact[]),
+            messages: [],
+            acceptedChat: false,
+            adminId: from,
+            read: [],
+            isGroup: false,
+            draft: [],
+        });
     }
 }

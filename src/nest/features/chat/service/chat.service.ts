@@ -46,7 +46,7 @@ export class ChatService {
         draft: string[];
     }): Promise<Chat> {
         try {
-            const chat = this._chatRepo.createEntity({
+            return await this._chatRepo.createAndSave({
                 name,
                 contacts,
                 messages,
@@ -56,10 +56,6 @@ export class ChatService {
                 isGroup,
                 draft,
             });
-            const chatId = await this._chatRepo.save(chat);
-            // TODO: change chat ID
-            this._socketService.server.to(chatId).emit('new_chat', chat);
-            return chat;
         } catch (error) {
             console.error(error);
             throw new BadRequestException(`unable to create chat: ${error}`);
@@ -95,8 +91,11 @@ export class ChatService {
 
     /**
      * Adds a message to a chat.
+     * @param {Chat} chat - Chat to add messages to.
+     * @param {Message} message - Signed message to add to chat.
+     * @return {string} - Chat entity ID.
      */
-    async addMessageToChat({ chat, message }: { chat: Chat; message: Message }) {
+    async addMessageToChat({ chat, message }: { chat: Chat; message: Message }): Promise<string> {
         try {
             chat.messages
                 ? chat.messages.push(stringifyMessage(message))
