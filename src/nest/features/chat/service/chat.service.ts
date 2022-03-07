@@ -27,6 +27,7 @@ export class ChatService {
      * @return {Chat} - Created entity.
      */
     async createChat({
+        chatId,
         name,
         contacts,
         messages,
@@ -36,6 +37,7 @@ export class ChatService {
         isGroup,
         draft,
     }: {
+        chatId: string;
         name: string;
         contacts: string[];
         messages: string[];
@@ -47,6 +49,7 @@ export class ChatService {
     }): Promise<Chat> {
         try {
             return await this._chatRepo.createAndSave({
+                chatId,
                 name,
                 contacts,
                 messages,
@@ -78,12 +81,12 @@ export class ChatService {
 
     /**
      * Gets a chat by its ID.
-     * @param {string} ID - Chat ID.
+     * @param {string} chatID - Chat ID.
      * @return {Chat} - Found chat.
      */
-    async getChat(ID: string): Promise<Chat> {
+    async getChat(chatID: string): Promise<Chat> {
         try {
-            return await this._chatRepo.fetch(ID);
+            return await this._chatRepo.search().where('chatId').eq(chatID).return.first();
         } catch (error) {
             return null;
         }

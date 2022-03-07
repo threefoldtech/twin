@@ -41,16 +41,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         const signedMessage = await this._keyService.appendSignatureToMessage(message);
 
         // get chat data
-        let chat = await this._chatService.getChat(message.chatId);
+        let chat = await this._chatService.getChat(`${message.from}-${message.to}`);
         if (!chat) {
             chat = await this.createNewChat(signedMessage);
         }
 
         // set correct chatId to message
-        signedMessage.chatId = message.chatId;
+        signedMessage.chatId = chat.chatId;
 
         // notify contacts about creation of new chat
-        this._socketService.server.to('chat').emit('message_to_client', signedMessage);
+        this._socketService.server.emit('message_to_client', signedMessage);
 
         // const contacts = chat.parseContacts();
 
@@ -128,6 +128,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             },
         ];
         return await this._chatService.createChat({
+            chatId: `${from}-${to}`,
             name: `${from}-${to}`,
             contacts: stringifyContacts(contacts as Contact[]),
             messages: [],

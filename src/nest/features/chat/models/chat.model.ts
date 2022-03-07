@@ -8,6 +8,7 @@ import { Message } from './message.model';
  * string[] is needed for Redis.
  */
 export interface Chat {
+    chatId: string;
     name: string;
     contacts: string[];
     messages: string[];
@@ -57,6 +58,7 @@ export function stringifyContacts(contacts: Contact[]): string[] {
 }
 
 export const chatSchema = new Schema(Chat, {
+    chatId: { type: 'string' },
     name: { type: 'string' },
     contacts: { type: 'string[]' },
     messages: { type: 'string[]' },
