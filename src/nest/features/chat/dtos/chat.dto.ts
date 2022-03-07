@@ -5,6 +5,9 @@ import { Message } from '../models/message.model';
 
 export class CreateChatDTO {
     @IsString()
+    chatId: string;
+
+    @IsString()
     name: string;
 
     @IsArray()

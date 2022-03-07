@@ -13,6 +13,7 @@ export class ChatController {
     // @UseGuards(AuthGuard)
     async createChat(@Body() createChatDTO: CreateChatDTO) {
         const createdChat = await this._chatService.createChat({
+            chatId: createChatDTO.chatId,
             name: createChatDTO.name,
             contacts: stringifyContacts(createChatDTO.contacts),
             messages: stringifyMessages(createChatDTO.messages),
