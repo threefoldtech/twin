@@ -32,24 +32,34 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     /**
      * TODO: WIP
      * Sends a new incoming message to all connected clients.
-     * create chat if first message
      */
     @SubscribeMessage('message_to_server')
     async handleIncomingMessage(@MessageBody() message: Message) {
         console.log(message);
         // correct from to message
-        // message.from = this._configService.get<string>('userId');
+        message.from = this._configService.get<string>('userId');
 
         // sign message
         const signedMessage = await this._keyService.appendSignatureToMessage(message);
 
         // emit message to connected users
-        this._socketService.server.emit('message_to_client', signedMessage);
+        this._socketService.server.to(message.chatId).emit('message_to_client', signedMessage);
 
         // get chat data
-        const chat = await this._chatService.getChat(message.chatId);
-        // set accepted to true
-        chat.acceptedChat = true;
+        let chat = await this._chatService.getChat(message.chatId);
+        // create new chat if not found
+        if (!chat) {
+            chat = await this._chatService.createChat({
+                name: `${message.from}-${message.to}`,
+                contacts: [],
+                messages: [],
+                acceptedChat: false,
+                adminId: message.from,
+                read: [],
+                isGroup: false,
+                draft: [],
+            });
+        }
         // update chat messages
         this._chatService.addMessageToChat({ chat, message: signedMessage });
 
@@ -92,18 +102,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      * Handles a new socket.io client connection.
      * @param {Socket} client - socket.io client.
      */
-    async handleConnection(client: Socket): Promise<void> {
+    handleConnection(client: Socket): void {
         this.logger.log(`new client connection: ${client.id}`);
-        const newConnection = await this._connectionService.addConnection(client.id);
-        this.connectionID = newConnection.entityId;
+        // const newConnection = await this._connectionService.addConnection(client.id);
+        this.connectionID = client.id;
     }
 
     /**
      * Handles a socket.io client disconnection.
      * @param {Socket} client - socket.io client.
      */
-    async handleDisconnect(client: Socket): Promise<void> {
+    handleDisconnect(client: Socket): void {
         this.logger.log(`client disconnected: ${client.id}`);
-        await this._connectionService.removeConnection(this.connectionID);
+        // await this._connectionService.removeConnection(this.connectionID);
+        this.connectionID = '';
     }
 }

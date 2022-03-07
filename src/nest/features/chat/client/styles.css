@@ -4,10 +4,10 @@ main#app {
     grid-template-areas: 'chat chats';
 }
 
-section.chat {
+section.current-chat {
     grid-area: chat;
 }
 
-section.chats {
+section.chat-list {
     grid-area: chats;
 }

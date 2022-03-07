@@ -11,13 +11,13 @@
 
     <body>
         <main id="app">
-            <section class="chats">
+            <section class="chat-list">
                 <h1>{{ capitalizeString(username) }}'s gesprekken</h1>
                 <ul>
                     <li v-for="chat in chats">{{ chat }}</li>
                 </ul>
             </section>
-            <section class="chat">
+            <section class="current-chat">
                 <h1>{{ title }}</h1>
                 <ul>
                     <li v-for="msg in messages"><strong>{{ msg.from }}</strong> {{ msg.body }}</li>
@@ -70,6 +70,11 @@
                         return str.charAt(0).toUpperCase() + str.slice(1);
                     };
 
+                    const joinChat = chatId => {
+                        console.log(`joining chat: ${chatId}`);
+                        socket.chat.emit('join_chat', chatId);
+                    };
+
                     onMounted(() => {
                         username.value = prompt('What is your username');
                         socket.chat = io(`${BASE_URL}/chat`);
@@ -85,6 +90,7 @@
                         messages,
                         chats,
                         submitMessage,
+                        joinChat,
                         capitalizeString,
                     };
                 },

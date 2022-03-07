@@ -89,10 +89,13 @@ export class ChatService {
         try {
             return await this._chatRepo.fetch(ID);
         } catch (error) {
-            throw new NotFoundException('chat not found');
+            return null;
         }
     }
 
+    /**
+     * Adds a message to a chat.
+     */
     async addMessageToChat({ chat, message }: { chat: Chat; message: Message }) {
         try {
             chat.messages
