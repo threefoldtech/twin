@@ -63,21 +63,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      * Adds a user to a chat for socket io.
      * @param {string} chatId - The chat ID to join.
      */
-    // @SubscribeMessage('join_chat')
-    // handleJoinChat(client: Socket, chatId: string): void {
-    //     client.join(chatId);
-    //     client.emit('joined_chat', chatId);
-    // }
+    @SubscribeMessage('join_chat')
+    handleJoinChat(client: Socket, chatId: string): void {
+        client.join(chatId);
+        client.emit('joined_chat', chatId);
+    }
 
     /**
      * Removes a user from a chat for socket io.
      * @param {string} chatId - The chat ID to join.
      */
-    // @SubscribeMessage('leave_chat')
-    // handleLeaveChat(client: Socket, chatId: string): void {
-    //     client.leave(chatId);
-    //     client.emit('left_chat', chatId);
-    // }
+    @SubscribeMessage('leave_chat')
+    handleLeaveChat(client: Socket, chatId: string): void {
+        client.leave(chatId);
+        client.emit('left_chat', chatId);
+    }
 
     /**
      * Handles socket initialization.
