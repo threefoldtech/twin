@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Websocket tester</title>
+        <title>WebSocket tester</title>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <script src="https://unpkg.com/vue@3"></script>
+        <script src="http://unpkg.com/vue@next"></script>
+        <script src="http://localhost:3001/socket.io/socket.io.js"></script>
     </head>
 
     <body>
         <div id="app">
             <h1>{{ title }}</h1>
-            <form>
+            <form @submit.prevent="submitMessage">
                 <input type="text" v-model="message" />
-                <button>Send</button>
+                <button type="submit">Send</button>
             </form>
             <ul>
                 <li v-for="msg in messages">{{ msg }}</li>
@@ -20,15 +21,46 @@
         </div>
 
         <script>
-            Vue.createApp({
-                data() {
+            const { createApp, ref, onMounted } = Vue;
+            const socket = io('http://localhost:3001');
+
+            const Chat = {
+                name: 'Chat',
+
+                setup() {
+                    const title = 'WebSocket Tester';
+                    const message = ref('');
+                    const messages = ref(['First message', 'Second message']);
+
+                    const submitMessage = () => {
+                        messages.value.push(message.value);
+                        console.log(`send message: ${message.value}`);
+                        socket.value.emit('message_to_server', message.value);
+                        message.value = '';
+                    };
+
+                    const handleReceivedMessage = msg => {
+                        messages.value.push(msg);
+                        console.log(`received message: ${msg}`);
+                    };
+
+                    onMounted(() => {
+                        socket.value = io(`http://localhost:3001`);
+                        socket.value.on('message_to_client', msg => {
+                            handleReceivedMessage(msg);
+                        });
+                    });
+
                     return {
-                        title: 'Websocket Tester',
-                        message: '',
-                        messages: ['First message', 'Second message'],
+                        title,
+                        message,
+                        messages,
+                        submitMessage,
                     };
                 },
-            }).mount('#app');
+            };
+
+            createApp(Chat).mount('#app');
         </script>
     </body>
 </html>

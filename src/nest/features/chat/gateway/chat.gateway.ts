@@ -16,7 +16,7 @@ import { SocketService } from '../../socket/service/socket.service';
 import { Message } from '../models/message.model';
 import { ChatService } from '../service/chat.service';
 
-@WebSocketGateway({ cors: '*', namespace: 'chat' })
+@WebSocketGateway({ cors: '*' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
     private logger: Logger = new Logger('ChatGateway');
     private connectionID = '';
