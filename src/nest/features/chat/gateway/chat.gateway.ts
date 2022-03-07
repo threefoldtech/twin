@@ -16,7 +16,7 @@ import { SocketService } from '../../socket/service/socket.service';
 import { Message } from '../models/message.model';
 import { ChatService } from '../service/chat.service';
 
-@WebSocketGateway({ cors: '*' })
+@WebSocketGateway({ cors: '*', namespace: 'chat' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
     private logger: Logger = new Logger('ChatGateway');
     private connectionID = '';
@@ -34,8 +34,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      * Sends a new incoming message to all connected clients.
      * create chat if first message
      */
-    @SubscribeMessage('new_message')
+    @SubscribeMessage('message_to_server')
     async handleIncomingMessage(@MessageBody() message: Message) {
+        console.log(message);
         // correct from to message
         message.from = this._configService.get<string>('userId');
 
@@ -43,7 +44,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         const signedMessage = await this._keyService.appendSignatureToMessage(message);
 
         // emit message to connected users
-        this._socketService.server.to(message.chatId).emit('message', signedMessage);
+        this._socketService.server.emit('message_to_client', signedMessage);
 
         // get chat data
         const chat = await this._chatService.getChat(message.chatId);
