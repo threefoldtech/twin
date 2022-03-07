@@ -4,29 +4,35 @@
         <title>WebSocket tester</title>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" type="text/css" href="./styles.css" />
         <script src="http://unpkg.com/vue@next"></script>
         <script src="http://localhost:3001/socket.io/socket.io.js"></script>
     </head>
 
     <body>
-        <div id="app">
-            <h1>{{ title }}</h1>
-            <div>
-                <input type="text" placeholder="username" v-model="username" />
-                <h3>Username: {{ username }}</h3>
-            </div>
-            <form @submit.prevent="submitMessage">
-                <input type="text" v-model="message" />
-                <button type="submit">Send</button>
-            </form>
-            <ul>
-                <li v-for="msg in messages">{{ msg.body }}</li>
-            </ul>
-        </div>
+        <main id="app">
+            <section class="chats">
+                <h1>{{ capitalizeString(username) }}'s gesprekken</h1>
+                <ul>
+                    <li v-for="chat in chats">{{ chat }}</li>
+                </ul>
+            </section>
+            <section class="chat">
+                <h1>{{ title }}</h1>
+                <ul>
+                    <li v-for="msg in messages"><strong>{{ msg.from }}</strong> {{ msg.body }}</li>
+                </ul>
+                <form @submit.prevent="submitMessage">
+                    <input type="text" v-model="message" />
+                    <button type="submit">Send</button>
+                </form>
+            </section>
+        </main>
 
         <script>
-            const { createApp, ref, reactive, onMounted } = Vue;
-            const socket = io('http://localhost:3001/chat');
+            const BASE_URL = 'http://localhost:3001';
+            const { createApp, ref, reactive, onMounted, component } = Vue;
+            let socket = { chat: null, alerts: null };
 
             const Chat = {
                 name: 'Chat',
@@ -36,11 +42,12 @@
                     const message = ref('');
                     const username = ref('');
                     const messages = reactive([]);
+                    const chats = reactive([]);
 
                     const submitMessage = () => {
                         const newMessage = {
                             chatId: '1',
-                            from: username.value,
+                            from: username,
                             to: 'test',
                             body: message.value,
                             timestamp: new Date(),
@@ -50,7 +57,7 @@
                             replies: [],
                         };
                         message.value = '';
-                        socket.emit('message_to_server', newMessage);
+                        socket.chat.emit('message_to_server', newMessage);
                         console.log(`send message: ${JSON.stringify(newMessage)}`);
                     };
 
@@ -59,8 +66,14 @@
                         console.log(`received message: ${JSON.stringify(msg)}`);
                     };
 
+                    const capitalizeString = str => {
+                        return str.charAt(0).toUpperCase() + str.slice(1);
+                    };
+
                     onMounted(() => {
-                        socket.on('message_to_client', msg => {
+                        username.value = prompt('What is your username');
+                        socket.chat = io(`${BASE_URL}/chat`);
+                        socket.chat.on('message_to_client', msg => {
                             handleReceivedMessage(msg);
                         });
                     });
@@ -70,12 +83,15 @@
                         message,
                         username,
                         messages,
+                        chats,
                         submitMessage,
+                        capitalizeString,
                     };
                 },
             };
 
-            createApp(Chat).mount('#app');
+            const app = createApp(Chat);
+            app.mount('#app');
         </script>
     </body>
 </html>

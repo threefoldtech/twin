@@ -1,0 +1,13 @@
+main#app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: 'chat chats';
+}
+
+section.chat {
+    grid-area: chat;
+}
+
+section.chats {
+    grid-area: chats;
+}

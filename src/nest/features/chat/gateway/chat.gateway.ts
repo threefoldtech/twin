@@ -38,7 +38,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     async handleIncomingMessage(@MessageBody() message: Message) {
         console.log(message);
         // correct from to message
-        message.from = this._configService.get<string>('userId');
+        // message.from = this._configService.get<string>('userId');
 
         // sign message
         const signedMessage = await this._keyService.appendSignatureToMessage(message);
