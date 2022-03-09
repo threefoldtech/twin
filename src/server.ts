@@ -3,7 +3,7 @@ import './utils/extensions';
 import bodyParser from 'body-parser';
 import cors, { CorsOptions } from 'cors';
 import express, { Application } from 'express';
-import session from 'express-session';
+// import session from 'express-session';
 // import http from 'http';
 import morgan from 'morgan';
 
@@ -43,20 +43,20 @@ app.use(cors(corsOptions));
 // app.enable('trust proxy');
 app.set('trust proxy', 1);
 
-app.use(
-    session({
-        name: 'sessionId',
-        secret: 'secretpassphrase',
-        resave: false,
-        saveUninitialized: false,
-        proxy: true,
-        cookie: {
-            path: '/',
-            httpOnly: false,
-            secure: false,
-        },
-    })
-);
+// app.use(
+//     session({
+//         name: 'sessionId',
+//         secret: 'secretpassphrase',
+//         resave: false,
+//         saveUninitialized: false,
+//         proxy: true,
+//         cookie: {
+//             path: '/',
+//             httpOnly: false,
+//             secure: false,
+//         },
+//     })
+// );
 
 app.use(bodyParser.raw());
 app.use(bodyParser.urlencoded({ limit: '100mb', extended: false }));

@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Req, Res, Session, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 import { AuthGuard } from '../../../guards/auth.guard';
@@ -24,9 +24,9 @@ export class AuthController {
     }
 
     @Get('signin')
-    async signIn(@Req() req: Request, @Res() res: Response, @Query() query: SignInQuery) {
+    async signIn(@Session() session: Record<string, unknown>, @Res() res: Response, @Query() query: SignInQuery) {
         const appLogin = await this._authService.getAppLogin('/api/auth/callback');
-        req.session.state = appLogin.loginState;
+        session.state = appLogin.loginState;
         const loginUrl = (appLogin.loginUrl += `&username=${query.username}`);
         res.redirect(loginUrl);
     }

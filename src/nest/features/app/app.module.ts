@@ -29,6 +29,7 @@ import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
                 DIGITALTWIN_APPID: Joi.string().required(),
                 USER_ID: Joi.string().required(),
                 SEED_PHRASE: Joi.string().required(),
+                SESSION_SECRET: Joi.string().required(),
             }),
             load: [config],
             isGlobal: true,

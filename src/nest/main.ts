@@ -1,6 +1,7 @@
 import { ClassSerializerInterceptor, INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
+import session from 'express-session';
 
 import { AppModule } from './features/app/app.module';
 import getLogLevels from './utils/get-log-levels';
@@ -26,6 +27,22 @@ export default async function bootstrap(): Promise<INestApplication> {
 
     // global class serialization for class-transformer
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
+    // sessions
+    app.use(
+        session({
+            name: 'sessionId',
+            secret: configService.get<string>('session_secret'),
+            resave: false,
+            saveUninitialized: false,
+            proxy: true,
+            cookie: {
+                path: '/',
+                httpOnly: false,
+                secure: false,
+            },
+        })
+    );
 
     return app;
 }
