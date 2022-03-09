@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 import { randomBytes } from 'tweetnacl';
-import { decodeBase64, encodeBase64 } from 'tweetnacl-util';
+import { encodeBase64 } from 'tweetnacl-util';
 
 import { Message } from '../../chat/models/message.model';
 import { DbService } from '../../db/service/db.service';
@@ -19,7 +19,6 @@ export class KeyService {
         private readonly _encryptionService: EncryptionService
     ) {
         this._keyRepo = this._dbService.createRepository(keySchema);
-        // this._dbService.createIndex(this.keyRepo);
     }
 
     /**

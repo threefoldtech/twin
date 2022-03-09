@@ -27,11 +27,12 @@ export class AuthService {
                 this._configService.get<string>('appBackend'),
                 this._configService.get<string>('appId'),
                 this._configService.get<string>('seedPhrase'),
-                redirectUrl,
+                redirectUrl ?? '',
                 this._configService.get<string>('kycBackend')
             );
             await this.tfLogin.init();
             const loginState = generateRandomString();
+            console.log(loginState);
             return {
                 loginState,
                 loginUrl: this.tfLogin.generateLoginUrl(loginState, {
@@ -55,6 +56,7 @@ export class AuthService {
         redirectUrl: URL;
         sessionState: string;
     }): Promise<{ doubleName: string; derivedSeed: string; userId: string }> {
+        console.log(sessionState);
         try {
             const profileData = (await this.tfLogin.parseAndValidateRedirectUrl(redirectUrl, sessionState))?.profile;
 
@@ -73,7 +75,7 @@ export class AuthService {
                 this._keyService.updateKey({ pk: keyPair.publicKey, keyType: KeyType.Public });
                 this._keyService.updateKey({ pk: keyPair.secretKey, keyType: KeyType.Secret });
             } catch (error) {
-                throw new UnauthorizedException(error);
+                throw new UnauthorizedException(`${error}`);
             }
 
             return {
@@ -82,7 +84,7 @@ export class AuthService {
                 userId,
             };
         } catch (error) {
-            throw new UnauthorizedException(error);
+            throw new BadRequestException(`${error}`);
         }
     }
 }

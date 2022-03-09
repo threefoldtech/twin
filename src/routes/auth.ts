@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { appCallback, getAppLoginUrl } from '../service/authService';
+
 import { yggdrasilIsInitialized } from '../index';
-import { HttpError } from '../types/errors/httpError';
-import { StatusCodes } from 'http-status-codes';
+import { appCallback, getAppLoginUrl } from '../service/authService';
+
 const router = Router();
 
 router.get('/', async (request, response) => {
