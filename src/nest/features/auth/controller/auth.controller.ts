@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Req, Res, Session, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Redirect, Req, Res, Session, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 import { AuthGuard } from '../../../guards/auth.guard';
@@ -24,18 +24,22 @@ export class AuthController {
     }
 
     @Get('signin')
-    async signIn(@Session() session: Record<string, unknown>, @Res() res: Response, @Query() query: SignInQuery) {
-        const appLogin = await this._authService.getAppLogin('/api/auth/callback');
+    @Redirect()
+    async signIn(@Session() session: Record<string, unknown>, @Query() query: SignInQuery) {
+        const appLogin = await this._authService.getAppLogin('/nest/auth/callback');
         session.state = appLogin.loginState;
         const loginUrl = (appLogin.loginUrl += `&username=${query.username}`);
-        res.redirect(loginUrl);
+        return { url: loginUrl };
     }
 
     @Get('callback')
     async authCallback(@Req() req: Request, @Res() res: Response) {
         const appLogin = await this._authService.getAppLogin();
+        console.log(`App Login: ${appLogin}`);
         const redirectUrl = new URL(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
+        console.log(`Redirect Url: ${redirectUrl}`);
         const profileData = await this._authService.getProfileData({ redirectUrl, sessionState: appLogin.loginState });
+        console.log(`Profile Data: ${profileData}`);
 
         delete req.session.state;
 
@@ -50,8 +54,8 @@ export class AuthController {
         });
 
         req.session.userId = profileData.userId;
-        req.session.save(() => {
-            res.redirect('/callback');
+        req.session.save(err => {
+            if (!err) res.redirect('/callback');
         });
     }
 }

@@ -27,7 +27,7 @@ export class AuthService {
                 this._configService.get<string>('appBackend'),
                 this._configService.get<string>('appId'),
                 this._configService.get<string>('seedPhrase'),
-                redirectUrl ?? '',
+                redirectUrl,
                 this._configService.get<string>('kycBackend')
             );
             await this.tfLogin.init();
