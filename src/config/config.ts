@@ -1,4 +1,4 @@
-const userid = process.env.USER_ID || 'edward';
+const userid = process.env.USER_ID || 'patatje';
 
 const appId = process.env.DIGITALTWIN_APPID || 'digitaltwin.jimbertesting.be';
 const environment = process.env.ENVIRONMENT || 'production';

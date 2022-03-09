@@ -77,4 +77,4 @@ app.listen(PORT, () => {
     console.log(`express server started on port ${PORT}`);
 });
 
-mountNestApp({ mountPath: '/nest', bootstrapNest });
+mountNestApp({ mountPath: '/api/nest', bootstrapNest });
