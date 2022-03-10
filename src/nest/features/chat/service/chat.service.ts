@@ -59,8 +59,21 @@ export class ChatService {
                 draft,
             });
         } catch (error) {
-            console.error(error);
             throw new BadRequestException(`unable to create chat: ${error}`);
+        }
+    }
+
+    /**
+     * Gets chats using pagination.
+     * @param offset - Chat offset, defaults to 0.
+     * @param count - Amount of chats to fetch, defaults to 25.
+     * @return {Chat[]} - Found chats.
+     */
+    async getChats({ offset = 0, count = 25 }: { offset?: number; count?: number } = {}): Promise<Chat[]> {
+        try {
+            return await this._chatRepo.search().return.page(offset, count);
+        } catch (error) {
+            throw new NotFoundException('no chats found');
         }
     }
 

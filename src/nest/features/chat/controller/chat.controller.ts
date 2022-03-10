@@ -10,7 +10,7 @@ export class ChatController {
     constructor(private readonly _chatService: ChatService) {}
 
     @Post()
-    // @UseGuards(AuthGuard)
+    @UseGuards(AuthGuard)
     async createChat(@Body() createChatDTO: CreateChatDTO) {
         const createdChat = await this._chatService.createChat({
             chatId: createChatDTO.chatId,
