@@ -8,6 +8,7 @@ import { ApiModule } from '../api/api.module';
 import { AuthModule } from '../auth/auth.module';
 import { ChatModule } from '../chat/chat.module';
 import { ConnectionModule } from '../connection/connection.module';
+import { ContactModule } from '../contact/contact.module';
 import { DbModule } from '../db/db.module';
 import { EncryptionModule } from '../encryption/encryption.module';
 import { FileModule } from '../file/file.module';
@@ -45,6 +46,7 @@ import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
         KeyModule,
         ConnectionModule,
         UserModule,
+        ContactModule,
         SocketModule,
         ChatModule,
     ],
