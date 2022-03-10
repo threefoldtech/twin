@@ -3,7 +3,7 @@ import { Repository } from 'redis-om';
 
 import { DbService } from '../../db/service/db.service';
 import { CreateMessageDTO } from '../dtos/message.dto';
-import { Message, messageSchema, stringifyMessageBody, stringifyReplies } from '../models/message.model';
+import { Message, MessageBody, messageSchema, stringifyMessageBody, stringifyReplies } from '../models/message.model';
 
 @Injectable()
 export class MessageService {
@@ -29,7 +29,7 @@ export class MessageService {
         subject,
         type,
         signatures,
-    }: CreateMessageDTO): Promise<Message> {
+    }: CreateMessageDTO<MessageBody>): Promise<Message> {
         try {
             return await this._messageRepo.createAndSave({
                 id,

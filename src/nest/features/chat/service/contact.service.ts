@@ -6,6 +6,7 @@ import { DbService } from '../../db/service/db.service';
 import { LocationService } from '../../location/service/location.service';
 import { CreateContactDTO } from '../dtos/contact.dto';
 import { Contact, contactSchema } from '../models/contact.model';
+import { MessageBody } from '../models/message.model';
 import { ChatService } from './chat.service';
 import { MessageService } from './message.service';
 
@@ -43,7 +44,7 @@ export class ContactService {
      * @param {string} location - Contact IPv6.
      * @return {Contact} - Created entity.
      */
-    async createContact({ id, location, message }: CreateContactDTO): Promise<Contact> {
+    async createContact({ id, location, message }: CreateContactDTO<MessageBody>): Promise<Contact> {
         // send message
         const yggdrasilAddress = await this._locationService.getOwnLocation();
         // createEntity without saving to Redis
