@@ -6,7 +6,7 @@ export interface MessageBody {
 }
 
 export interface Message {
-    chatId: string;
+    id: string;
     from: string;
     to: string;
     body: string;
@@ -44,7 +44,7 @@ export function stringifyMessageBody(body: MessageBody): string {
 }
 
 export const messageSchema = new Schema(Message, {
-    chatId: { type: 'string' },
+    id: { type: 'string' },
     from: { type: 'string' },
     to: { type: 'string' },
     body: { type: 'text' },

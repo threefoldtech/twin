@@ -47,7 +47,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         }
 
         // set correct chatId to message
-        signedMessage.chatId = chat.chatId;
+        signedMessage.id = message.id;
 
         // notify contacts about creation of new chat
         this._socketService.server.emit('message_to_client', signedMessage);

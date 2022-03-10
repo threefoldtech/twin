@@ -23,6 +23,11 @@ export class ContactController {
             location: createContactDTO.location,
         });
 
+        // create message
+        // get own location
+        // create chat
+        // send message
+
         return newContact;
     }
 }

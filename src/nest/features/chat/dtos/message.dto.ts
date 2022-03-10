@@ -4,7 +4,7 @@ import { Message, MessageBody, MessageType } from '../models/message.model';
 
 export class CreateMessageDTO {
     @IsString()
-    chatId: string;
+    id: string;
 
     @IsString()
     from: string;
