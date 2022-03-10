@@ -9,10 +9,11 @@ import { ContactController } from './controller/contact.controller';
 import { ChatGateway } from './gateway/chat.gateway';
 import { ChatService } from './service/chat.service';
 import { ContactService } from './service/contact.service';
+import { MessageService } from './service/message.service';
 
 @Module({
     imports: [DbModule, YggdrasilModule, ConnectionModule, KeyModule],
     controllers: [ChatController, ContactController],
-    providers: [ChatService, ContactService, ChatGateway],
+    providers: [ChatService, ContactService, MessageService, ChatGateway],
 })
 export class ChatModule {}

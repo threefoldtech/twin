@@ -10,7 +10,7 @@ export interface Message {
     from: string;
     to: string;
     body: string;
-    timestamp: Date;
+    timeStamp: Date;
     type: MessageType;
     subject: string;
     signatures: string[];
@@ -33,6 +33,14 @@ export class Message extends Entity {
  */
 export function stringifyMessage(message: Message): string {
     return JSON.stringify(message);
+}
+
+/**
+ * Stringifies the replies JSON to a string for Redis.
+ * @return {string} - The stringified replies.
+ */
+export function stringifyReplies(replies: Message[]): string[] {
+    return replies.map(reply => JSON.stringify(reply));
 }
 
 /**

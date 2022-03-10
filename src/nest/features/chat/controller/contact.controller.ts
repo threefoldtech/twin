@@ -21,6 +21,7 @@ export class ContactController {
         const newContact = await this._contactService.createContact({
             id: createContactDTO.id,
             location: createContactDTO.location,
+            message: createContactDTO.message,
         });
 
         // create message

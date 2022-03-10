@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../../../guards/auth.guard';
 import { CreateChatDTO } from '../dtos/chat.dto';
-import { Chat, stringifyContacts, stringifyMessages } from '../models/chat.model';
+import { Chat } from '../models/chat.model';
 import { Contact } from '../models/contact.model';
 import { Message } from '../models/message.model';
 import { ChatService } from '../service/chat.service';
@@ -19,13 +19,13 @@ export class ChatController {
         const createdChat = await this._chatService.createChat({
             chatId: createChatDTO.chatId,
             name: createChatDTO.name,
-            contacts: stringifyContacts(createChatDTO.contacts),
-            messages: stringifyMessages(createChatDTO.messages),
+            contacts: createChatDTO.contacts,
+            messages: createChatDTO.messages,
             acceptedChat: createChatDTO.acceptedChat,
             adminId: createChatDTO.adminId,
             read: createChatDTO.read,
             isGroup: createChatDTO.isGroup,
-            draft: stringifyMessages(createChatDTO.draft),
+            draft: createChatDTO.draft,
         });
 
         return {

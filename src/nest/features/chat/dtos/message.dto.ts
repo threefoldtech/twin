@@ -16,7 +16,7 @@ export class CreateMessageDTO {
     body: MessageBody;
 
     @IsNotEmpty()
-    timestamp: Date;
+    timeStamp: Date;
 
     @IsNotEmpty()
     type: MessageType;

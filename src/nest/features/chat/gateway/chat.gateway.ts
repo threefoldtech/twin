@@ -12,7 +12,7 @@ import { Server, Socket } from 'socket.io';
 
 import { KeyService } from '../../key/service/key.service';
 import { SocketService } from '../../socket/service/socket.service';
-import { Chat, stringifyContacts } from '../models/chat.model';
+import { Chat } from '../models/chat.model';
 import { Contact } from '../models/contact.model';
 import { Message } from '../models/message.model';
 import { ChatService } from '../service/chat.service';
@@ -130,7 +130,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         return await this._chatService.createChat({
             chatId: `${from}-${to}`,
             name: `${from}-${to}`,
-            contacts: stringifyContacts(contacts as Contact[]),
+            contacts: contacts as Contact[],
             messages: [],
             acceptedChat: false,
             adminId: from,

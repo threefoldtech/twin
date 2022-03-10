@@ -2,7 +2,8 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { Repository } from 'redis-om';
 
 import { DbService } from '../../db/service/db.service';
-import { Chat, chatSchema } from '../models/chat.model';
+import { CreateChatDTO } from '../dtos/chat.dto';
+import { Chat, chatSchema, stringifyContacts, stringifyMessages } from '../models/chat.model';
 import { Message, stringifyMessage } from '../models/message.model';
 
 @Injectable()
@@ -35,28 +36,18 @@ export class ChatService {
         read,
         isGroup,
         draft,
-    }: {
-        chatId: string;
-        name: string;
-        contacts: string[];
-        messages: string[];
-        acceptedChat: boolean;
-        adminId: string;
-        read: string[];
-        isGroup: boolean;
-        draft: string[];
-    }): Promise<Chat> {
+    }: CreateChatDTO): Promise<Chat> {
         try {
             return await this._chatRepo.createAndSave({
                 chatId,
                 name,
-                contacts,
-                messages,
+                contacts: stringifyContacts(contacts),
+                messages: stringifyMessages(messages),
                 acceptedChat,
                 adminId,
                 read,
                 isGroup,
-                draft,
+                draft: stringifyMessages(draft),
             });
         } catch (error) {
             throw new BadRequestException(`unable to create chat: ${error}`);
