@@ -3,6 +3,8 @@ import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../../guards/auth.guard';
 import { CreateChatDTO } from '../dtos/chat.dto';
 import { Chat, stringifyContacts, stringifyMessages } from '../models/chat.model';
+import { Contact } from '../models/contact.model';
+import { Message } from '../models/message.model';
 import { ChatService } from '../service/chat.service';
 
 @Controller('chats')
@@ -11,7 +13,9 @@ export class ChatController {
 
     @Post()
     @UseGuards(AuthGuard)
-    async createChat(@Body() createChatDTO: CreateChatDTO) {
+    async createChat(
+        @Body() createChatDTO: CreateChatDTO
+    ): Promise<{ messages: Message[]; contacts: Contact[]; draft: Message[]; id: string }> {
         const createdChat = await this._chatService.createChat({
             chatId: createChatDTO.chatId,
             name: createChatDTO.name,

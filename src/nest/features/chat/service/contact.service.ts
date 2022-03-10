@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'redis-om';
 
 import { DbService } from '../../db/service/db.service';
@@ -6,15 +6,35 @@ import { Contact, contactSchema } from '../models/contact.model';
 
 @Injectable()
 export class ContactService {
-    private _contactService: Repository<Contact>;
+    private _contactRepo: Repository<Contact>;
 
     constructor(private readonly _dbService: DbService) {
-        this._contactService = this._dbService.createRepository(contactSchema);
+        this._contactRepo = this._dbService.createRepository(contactSchema);
     }
 
+    /**
+     * Gets contacts using pagination.
+     * @param offset - Contact offset, defaults to 0.
+     * @param count - Amount of contacts to fetch, defaults to 25.
+     * @return {Contact[]} - Found contacts.
+     */
+    async getContacts({ offset = 0, count = 25 }: { offset?: number; count?: number } = {}): Promise<Contact[]> {
+        try {
+            return await this._contactRepo.search().return.page(offset, count);
+        } catch (error) {
+            throw new NotFoundException('no contacts found');
+        }
+    }
+
+    /**
+     * Creates a new contact.
+     * @param {string} id - Contact ID.
+     * @param {string} location - Contact IPv6.
+     * @return {Contact} - Created entity.
+     */
     async createContact({ id, location }: { id: string; location: string }): Promise<Contact> {
         try {
-            return await this._contactService.createAndSave({
+            return await this._contactRepo.createAndSave({
                 id,
                 location,
             });
