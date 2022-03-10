@@ -40,13 +40,13 @@ export class ConnectionService {
 
     /**
      * Gets all connections stored in Redis.
-     * @param pageSize - Amount of items to return, defaults to 20.
+     * @param offset - Chat offset, defaults to 0.
+     * @param count - Amount of chats to fetch, defaults to 25.
      * @return {Connection[]} - The connection list.
      */
-    // TODO: use redis-om pagination instead of pageSize
-    async getConnections(pageSize = 20): Promise<Connection[]> {
+    async getConnections({ offset = 0, count = 25 }: { offset?: number; count?: number } = {}): Promise<Connection[]> {
         try {
-            return await this._connectionRepo.search().returnAll({ pageSize });
+            return await this._connectionRepo.search().return.page(offset, count);
         } catch (error) {
             throw new InternalServerErrorException(error);
         }

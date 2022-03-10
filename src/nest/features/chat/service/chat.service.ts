@@ -2,7 +2,6 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { Repository } from 'redis-om';
 
 import { DbService } from '../../db/service/db.service';
-import { SocketService } from '../../socket/service/socket.service';
 import { Chat, chatSchema } from '../models/chat.model';
 import { Message, stringifyMessage } from '../models/message.model';
 
@@ -10,7 +9,7 @@ import { Message, stringifyMessage } from '../models/message.model';
 export class ChatService {
     private _chatRepo: Repository<Chat>;
 
-    constructor(private readonly _dbService: DbService, private readonly _socketService: SocketService) {
+    constructor(private readonly _dbService: DbService) {
         this._chatRepo = this._dbService.createRepository(chatSchema);
     }
 

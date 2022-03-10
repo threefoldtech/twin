@@ -1,8 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
-import { randomBytes } from 'tweetnacl';
-import { encodeBase64 } from 'tweetnacl-util';
 
 import { Message } from '../../chat/models/message.model';
 import { DbService } from '../../db/service/db.service';
@@ -55,10 +53,9 @@ export class KeyService {
      * @param {Message} message - Message to add signature to.
      */
     async appendSignatureToMessage(message: Message): Promise<Message> {
-        // TODO: use secret key
-        // const secretKey = await this.getKey(KeyType.Private);
-        // if (!secretKey) return;
-        const signature = this._encryptionService.createBase64Signature(message, encodeBase64(randomBytes(64)));
+        const { key } = await this.getKey(KeyType.Private);
+        if (!key) return;
+        const signature = this._encryptionService.createBase64Signature(message, key);
         message.signatures.unshift(signature);
         return message;
     }
