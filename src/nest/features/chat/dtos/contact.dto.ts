@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsString } from 'class-validator';
 
 import { CreateMessageDTO } from './message.dto';
 
@@ -9,6 +9,5 @@ export class CreateContactDTO {
     @IsString()
     location: string;
 
-    @IsNotEmpty()
-    message: CreateMessageDTO;
+    message?: CreateMessageDTO;
 }

@@ -16,14 +16,13 @@ export class ChatService {
 
     /**
      * Creates a new chat.
-     * All entities like: contacts, messages are models but need to be parsed as strings for Redis.
      * @param {string} name - The name of the new chat.
-     * @param {string[]} contacts - List of chat contacts.
-     * @param {string[]} messages - List of chat messages.
+     * @param {Contact[]} contacts - List of chat contacts.
+     * @param {Message[]} messages - List of chat messages.
      * @param {string} adminId - Admin ID of the chat.
      * @param {string[]} read - Group of user IDs that have read the last messages in chat.
      * @param {boolean} isGroup - Group chat or not.
-     * @param {string[]} draft - List of draft messages.
+     * @param {Message[]} draft - List of draft messages.
      * @return {Chat} - Created entity.
      */
     async createChat({

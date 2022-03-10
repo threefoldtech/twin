@@ -5,6 +5,11 @@ export interface MessageBody {
     type: MessageType;
 }
 
+export interface ContactRequest {
+    id: string;
+    location: string;
+}
+
 export interface Message {
     id: string;
     from: string;
@@ -22,7 +27,7 @@ export class Message extends Entity {
      * Parses message body string to valid JSON.
      * @return {MessageBody} - The parsed message body.
      */
-    parseBody(): MessageBody {
+    parseBody<T>(): T {
         return JSON.parse(this.body);
     }
 }
@@ -47,7 +52,7 @@ export function stringifyReplies(replies: Message[]): string[] {
  * Stringifies the message body JSON to a string for Redis.
  * @return {string} - The stringified message body.
  */
-export function stringifyMessageBody(body: MessageBody): string {
+export function stringifyMessageBody<T>(body: T): string {
     return JSON.stringify(body);
 }
 

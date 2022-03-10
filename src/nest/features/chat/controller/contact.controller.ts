@@ -1,15 +1,15 @@
-import { Body, Controller, Post, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../../../guards/auth.guard';
 import { CreateContactDTO } from '../dtos/contact.dto';
 import { Contact } from '../models/contact.model';
 import { ContactService } from '../service/contact.service';
 
-@Controller()
+@Controller('contacts')
 export class ContactController {
     constructor(private readonly _contactService: ContactService) {}
 
-    @Post()
+    @Get()
     @UseGuards(AuthGuard)
     async getContacts(@Query('offset') offset = 0, @Query('count') count = 25): Promise<Contact[]> {
         return await this._contactService.getContacts({ offset, count });
@@ -17,18 +17,12 @@ export class ContactController {
 
     @Post()
     @UseGuards(AuthGuard)
-    async createContact(@Body() createContactDTO: CreateContactDTO): Promise<Contact> {
-        const newContact = await this._contactService.createContact({
-            id: createContactDTO.id,
-            location: createContactDTO.location,
-            message: createContactDTO.message,
+    async createContact(@Body() { id, location, message }: CreateContactDTO): Promise<Contact> {
+        if (!message) throw new BadRequestException(`please provide a valid message`);
+        return await this._contactService.createContact({
+            id,
+            location,
+            message,
         });
-
-        // create message
-        // get own location
-        // create chat
-        // send message
-
-        return newContact;
     }
 }
