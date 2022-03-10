@@ -24,7 +24,6 @@ export class Chat extends Entity {
      * Parses message or draft strings to valid JSON.
      * @param draft - Parse drafts of messages if false. Defaults to false.
      * @return {Message[]} - The parsed messages.
-     *
      */
     parseMessages(draft = false): Message[] {
         if (draft && this.draft.length) return this.draft.map(msg => JSON.parse(msg));
@@ -42,16 +41,16 @@ export class Chat extends Entity {
 }
 
 /**
- * Stringifies contact JSON to a string for Redis.
- * @return {string[]} - The stringified contacts.
+ * Stringifies messages JSON to a string for Redis.
+ * @return {string[]} - The stringified messages.
  */
 export function stringifyMessages(messages: Message[]): string[] {
     return messages.map(msg => JSON.stringify(msg));
 }
 
 /**
- * Stringifies message JSON to a string for Redis.
- * @return {string[]} - The stringified messages.
+ * Stringifies contacts JSON to a string for Redis.
+ * @return {string[]} - The stringified contacts.
  */
 export function stringifyContacts(contacts: Contact[]): string[] {
     return contacts.map(contact => JSON.stringify(contact));

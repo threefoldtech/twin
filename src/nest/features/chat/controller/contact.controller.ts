@@ -18,9 +18,11 @@ export class ContactController {
     @Post()
     @UseGuards(AuthGuard)
     async createContact(@Body() createContactDTO: CreateContactDTO): Promise<Contact> {
-        return await this._contactService.createContact({
+        const newContact = await this._contactService.createContact({
             id: createContactDTO.id,
             location: createContactDTO.location,
         });
+
+        return newContact;
     }
 }

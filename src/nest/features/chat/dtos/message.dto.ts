@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-import { Message, MessageType } from '../models/message.model';
+import { Message, MessageBody, MessageType } from '../models/message.model';
 
 export class CreateMessageDTO {
     @IsString()
@@ -13,7 +13,7 @@ export class CreateMessageDTO {
     to: string;
 
     @IsNotEmpty()
-    body: string;
+    body: MessageBody;
 
     @IsNotEmpty()
     timestamp: Date;

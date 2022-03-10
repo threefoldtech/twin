@@ -1,5 +1,10 @@
 import { Entity, Schema } from 'redis-om';
 
+export interface MessageBody {
+    message: string;
+    type: MessageType;
+}
+
 export interface Message {
     chatId: string;
     from: string;
@@ -12,10 +17,30 @@ export interface Message {
     replies: Message[];
 }
 
-export class Message extends Entity {}
+export class Message extends Entity {
+    /**
+     * Parses message body string to valid JSON.
+     * @return {MessageBody} - The parsed message body.
+     */
+    parseBody(): MessageBody {
+        return JSON.parse(this.body);
+    }
+}
 
+/**
+ * Stringifies the message JSON to a string for Redis.
+ * @return {string} - The stringified message.
+ */
 export function stringifyMessage(message: Message): string {
     return JSON.stringify(message);
+}
+
+/**
+ * Stringifies the message body JSON to a string for Redis.
+ * @return {string} - The stringified message body.
+ */
+export function stringifyMessageBody(body: MessageBody): string {
+    return JSON.stringify(body);
 }
 
 export const messageSchema = new Schema(Message, {
