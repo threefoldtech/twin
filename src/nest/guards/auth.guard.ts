@@ -13,13 +13,13 @@ export class AuthGuard implements CanActivate {
     async canActivate(context: ExecutionContext) {
         const req = context.switchToHttp().getRequest();
 
-        const hasSession = !!req.session?.userId;
+        const userId = req.session?.userId;
         const isDevMode = this._configService.get<string>('node_env') === 'development';
         const yggdrasilInitialised = this._yggdrasilService.isInitialised();
-        if (!hasSession && (!isDevMode || !yggdrasilInitialised)) {
+        if (!userId && (!isDevMode || !yggdrasilInitialised)) {
             return false;
         }
 
-        return true;
+        return userId === this._configService.get<string>('userId');
     }
 }
