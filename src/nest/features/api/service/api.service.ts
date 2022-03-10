@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
+import axios, { ResponseType } from 'axios';
+
+import { CreateMessageDTO } from '../../chat/dtos/message.dto';
 
 @Injectable()
 export class ApiService {
@@ -22,6 +24,25 @@ export class ApiService {
             );
         } catch (error) {
             throw new BadRequestException(`unable to register digital twin to external API: ${error}`);
+        }
+    }
+
+    async sendMessageToApi<T>({
+        location,
+        message,
+        responseType,
+    }: {
+        location: string;
+        message: CreateMessageDTO<T>;
+        responseType: ResponseType;
+    }) {
+        try {
+            // TODO: change to /nest/messages when implemented
+            return await axios.put(`http://[${location}/api/messages`, message, {
+                responseType: responseType || 'json',
+            });
+        } catch (error) {
+            throw new BadRequestException(`unable to send message to external API: ${error}`);
         }
     }
 }
