@@ -35,13 +35,14 @@ export class LocationService {
      */
     getOwnLocation(): Promise<string | Error> {
         return new Promise((res, rej) => {
-            exec('yggdrasilctl -v getSelf | grep "IPv[0-9] address"', (err: Error, stdout: string, sterr: string) => {
-                console.log(`stdout: ${stdout}`);
-                if (err) return rej(err);
-                if (sterr) return rej(sterr);
-                const address = stdout.replace(/(\r\n|\n|\r)/gm, '').trim();
-                res(address);
-            });
+            exec(
+                "yggdrasilctl -v getSelf | sed -n -e 's/^.*IPv6 address.* //p'",
+                (err: Error, stdout: string, sterr: string) => {
+                    if (err) return rej(err);
+                    if (sterr) return rej(sterr);
+                    res(stdout);
+                }
+            );
         });
     }
 
