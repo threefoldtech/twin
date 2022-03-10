@@ -27,6 +27,12 @@ export class ApiService {
         }
     }
 
+    /**
+     * Sends a message to another digital twin.
+     * @param {string} location - IPv6 location to send message to.
+     * @param {CreateMessageDTO} message - Message to send.
+     * @param {ResponseType} responseType - Axios optional response type.
+     */
     async sendMessageToApi<T>({
         location,
         message,
@@ -34,7 +40,7 @@ export class ApiService {
     }: {
         location: string;
         message: CreateMessageDTO<T>;
-        responseType: ResponseType;
+        responseType?: ResponseType;
     }) {
         try {
             // TODO: change to /nest/messages when implemented

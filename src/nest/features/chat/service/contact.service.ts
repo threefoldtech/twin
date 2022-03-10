@@ -3,11 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
 import { uuidv4 } from '../../../utils/uuid';
+import { ApiService } from '../../api/service/api.service';
 import { DbService } from '../../db/service/db.service';
 import { KeyService } from '../../key/service/key.service';
 import { LocationService } from '../../location/service/location.service';
 import { CreateContactDTO } from '../dtos/contact.dto';
 import { CreateMessageDTO } from '../dtos/message.dto';
+import { ChatGateway } from '../gateway/chat.gateway';
 import { Contact, contactSchema } from '../models/contact.model';
 import { ContactRequest, Message, MessageBody, MessageType } from '../models/message.model';
 import { ChatService } from './chat.service';
@@ -23,7 +25,9 @@ export class ContactService {
         private readonly _messageService: MessageService,
         private readonly _locationService: LocationService,
         private readonly _configService: ConfigService,
-        private readonly _keyService: KeyService
+        private readonly _keyService: KeyService,
+        private readonly _apiService: ApiService,
+        private readonly _chatGateway: ChatGateway
     ) {
         this._contactRepo = this._dbService.createRepository(contactSchema);
     }
@@ -99,8 +103,9 @@ export class ContactService {
             contactRequest as unknown as Message
         );
 
-        // send message to api
-        // send chat to connected socket clients
+        await this._apiService.sendMessageToApi({ location: newContact.location, message: signedContactRequest });
+
+        this._chatGateway.emitMessageToConnectedClients('connection_request', chat);
 
         return newContact;
     }

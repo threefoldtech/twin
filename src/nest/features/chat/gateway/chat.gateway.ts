@@ -85,6 +85,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
 
     /**
+     * Emits message to connected clients.
+     * @param {string} event - Event to emit.
+     * @param {unknown} message - Message to send.
+     */
+    emitMessageToConnectedClients(event: string, message: unknown): void {
+        this._socketService.server.emit(event, message);
+    }
+
+    /**
      * Handles socket initialization.
      * @param {Server} server - socket.io server.
      */
