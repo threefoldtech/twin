@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { ApiModule } from '../api/api.module';
 import { ConnectionModule } from '../connection/connection.module';
 import { DbModule } from '../db/db.module';
 import { KeyModule } from '../key/key.module';
@@ -13,7 +14,7 @@ import { ContactService } from './service/contact.service';
 import { MessageService } from './service/message.service';
 
 @Module({
-    imports: [DbModule, YggdrasilModule, ConnectionModule, KeyModule, LocationModule],
+    imports: [DbModule, YggdrasilModule, ConnectionModule, KeyModule, LocationModule, ApiModule],
     controllers: [ChatController, ContactController],
     providers: [ChatService, ContactService, MessageService, ChatGateway],
 })
