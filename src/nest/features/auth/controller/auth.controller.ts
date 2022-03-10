@@ -26,18 +26,18 @@ export class AuthController {
     @Get('signin')
     @Redirect()
     async signIn(@Session() session: Record<string, unknown>, @Query() query: SignInQuery) {
-        const appLogin = await this._authService.getAppLogin('/nest/auth/callback');
+        const appLogin = await this._authService.getAppLogin(`/nest/auth/callback`);
         session.state = appLogin.loginState;
-        const loginUrl = (appLogin.loginUrl += `&username=${query.username}`);
+        const loginUrl = `${appLogin.loginUrl}&username=${query.username}`;
         return { url: loginUrl };
     }
 
     @Get('callback')
     async authCallback(@Req() req: Request, @Res() res: Response) {
+        console.log('CALLED');
         const redirectUrl = new URL(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
-        console.log(`Redirect Url: ${redirectUrl}`);
         const profileData = await this._authService.getProfileData({ redirectUrl, sessionState: req.session.state });
-        console.log(`Profile Data: ${profileData}`);
+        console.log(`Profile Data: ${JSON.stringify(profileData)}`);
 
         delete req.session.state;
 
@@ -45,15 +45,16 @@ export class AuthController {
             await this._yggdrasilService.setupYggdrasil(profileData.derivedSeed);
 
         const yggdrasilAddress = await this._locationService.getOwnLocation();
-        await this._locationService.registerDigitalTwin({
-            doubleName: profileData.doubleName,
-            derivedSeed: profileData.derivedSeed,
-            yggdrasilAddress: <string>yggdrasilAddress,
-        });
+        console.log(`Yggdrasil location: ${yggdrasilAddress}`);
+        // await this._locationService.registerDigitalTwin({
+        //     doubleName: profileData.doubleName,
+        //     derivedSeed: profileData.derivedSeed,
+        //     yggdrasilAddress: <string>yggdrasilAddress,
+        // });
 
-        req.session.userId = profileData.userId;
-        req.session.save(err => {
-            if (!err) res.redirect('/callback');
-        });
+        // req.session.userId = profileData.userId;
+        // req.session.save(err => {
+        //     if (!err) res.redirect('/callback');
+        // });
     }
 }

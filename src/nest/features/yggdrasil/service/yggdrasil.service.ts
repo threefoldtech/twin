@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { execSync, spawn } from 'child_process';
 import PATH from 'path';
@@ -58,7 +58,7 @@ export class YggdrasilService {
         const keyReplacements = this.getReplacements(chatSeed);
         const generatedConfig = this.generateConfig();
         const config = this.replaceConfigValues({ generatedConfig, replaceConfig: keyReplacements as YggdrasilConfig });
-        this.saveConfigs({ config, replacements: keyReplacements as string });
+        this.saveConfigs({ config, replacements: keyReplacements as YggdrasilConfig });
     }
 
     /**
@@ -102,7 +102,7 @@ export class YggdrasilService {
      */
     private getReplacements(seed: string): string | YggdrasilConfig {
         if (this._fileService.fileExists(this.jsonPath)) {
-            console.log('Existing replacements for yggdrasil found');
+            console.log('existing replacements for yggdrasil found');
             return this._fileService.readJSONFile(this.jsonPath);
         }
         const hash = this._encryptionService.generateHashFromSeed(seed);
@@ -114,7 +114,7 @@ export class YggdrasilService {
             signingPrivateKey: this._encryptionService.encodeHex(signKeyPair.secretKey),
             encryptionPublicKey: this._encryptionService.encodeHex(encryptionKeyPair.publicKey),
             encryptionPrivateKey: this._encryptionService.encodeHex(encryptionKeyPair.secretKey),
-        };
+        } as YggdrasilConfig;
     }
 
     /**
@@ -129,7 +129,7 @@ export class YggdrasilService {
      * Replaces old config values with new ones.
      * @param {string} generatedConfig - Newly generated config.
      * @param {YggdrasilConfig} replaceConfig - config to replace generatedConfig with.
-     * @return {string} - Replaced config.
+     * @return {string} - Generated config in string format.
      */
     private replaceConfigValues({
         generatedConfig,
@@ -155,8 +155,12 @@ export class YggdrasilService {
      * @param {string} config - Confiuration.
      * @param {string} replacements - Replacements.
      */
-    private saveConfigs({ config, replacements }: { config: string; replacements: string }): void {
-        this._fileService.writeFile({ path: this.configPath, content: config });
-        this._fileService.writeFile({ path: this.jsonPath, content: replacements });
+    private saveConfigs({ config, replacements }: { config: string; replacements: YggdrasilConfig }): void {
+        try {
+            this._fileService.writeFile({ path: this.configPath, content: config });
+            this._fileService.writeFile({ path: this.jsonPath, content: JSON.stringify(replacements) });
+        } catch (error) {
+            throw new BadRequestException(`${error}`);
+        }
     }
 }
