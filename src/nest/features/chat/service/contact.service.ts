@@ -53,7 +53,7 @@ export class ContactService {
      * @param {CreateMessageDTO} message - Contact request message.
      * @return {Contact} - Created entity.
      */
-    async createNewContact({ id, location, message }: CreateContactDTO<MessageBody>): Promise<Contact> {
+    async createNewContact({ id, location, message }: CreateContactDTO<string>): Promise<Contact> {
         const yggdrasilAddress = await this._locationService.getOwnLocation();
         // createEntity without saving to Redis
         const me = this._contactRepo.createEntity({
@@ -61,6 +61,7 @@ export class ContactService {
             location: yggdrasilAddress as string,
         });
 
+        message.body = `You have received a new message request from ${message.from}`;
         const newMessage = await this._messageService.createMessage(message);
 
         let newContact;

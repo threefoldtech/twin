@@ -90,7 +90,7 @@ export class ChatService {
         try {
             return await this._chatRepo.search().where('chatId').eq(chatID).return.first();
         } catch (error) {
-            return null;
+            throw new NotFoundException(`chat with ID: ${chatID}, not found`);
         }
     }
 

@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
 import { ApiService } from '../../api/service/api.service';
+import { ContactDTO } from '../../chat/dtos/contact.dto';
+import { MessageDTO } from '../../chat/dtos/message.dto';
 import { Contact } from '../../chat/models/contact.model';
 import { Message } from '../../chat/models/message.model';
 import { DbService } from '../../db/service/db.service';
@@ -111,13 +113,13 @@ export class KeyService {
      * @param {string} signature - Signature to verify.
      * @return {boolean} - Message signature is valid or not.
      */
-    async verifyMessageSignature({
+    async verifyMessageSignature<T>({
         contact,
         message,
         signature,
     }: {
-        contact: Contact;
-        message: Message;
+        contact: ContactDTO;
+        message: MessageDTO<T>;
         signature: string;
     }): Promise<boolean> {
         const signatureIdx = message.signatures.findIndex(s => s === signature);
@@ -134,7 +136,7 @@ export class KeyService {
         const messageWithoutSignature = {
             ...message,
             signatures: message.signatures.slice(signatureIdx + 1, message.signatures.length),
-        } as Message;
+        } as MessageDTO<T>;
 
         return this._encryptionService.verifySignature({
             data: messageWithoutSignature,

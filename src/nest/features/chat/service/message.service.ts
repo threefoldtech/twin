@@ -6,8 +6,8 @@ import { DbService } from '../../db/service/db.service';
 import { KeyService } from '../../key/service/key.service';
 import { ContactDTO } from '../dtos/contact.dto';
 import { CreateMessageDTO, MessageDTO } from '../dtos/message.dto';
-import { Contact } from '../models/contact.model';
-import { Message, MessageBody, messageSchema, stringifyMessageBody, stringifyReplies } from '../models/message.model';
+import { Chat } from '../models/chat.model';
+import { Message, messageSchema, stringifyMessageBody, stringifyReplies } from '../models/message.model';
 
 @Injectable()
 export class MessageService {
@@ -27,7 +27,7 @@ export class MessageService {
      * @param {string} location - Contact IPv6.
      * @return {Contact} - Created entity.
      */
-    async createMessage({
+    async createMessage<T>({
         id,
         from,
         to,
@@ -37,7 +37,7 @@ export class MessageService {
         subject,
         type,
         signatures,
-    }: CreateMessageDTO<MessageBody>): Promise<Message> {
+    }: CreateMessageDTO<T>): Promise<Message> {
         try {
             return await this._messageRepo.createAndSave({
                 id,
@@ -60,7 +60,7 @@ export class MessageService {
      * @param {boolean} isGroup - Is group chat or not.
      * @param {Contact} admin - Admin contact.
      * @param {Contact} from - From contact.
-     * @param {Message} signedMessage - Signed message to verify.
+     * @param {MessageDTO} signedMessage - Signed message to verify.
      * @return {boolean} - Valid signature or not.
      */
     async verifySignedMessage<T>({
@@ -94,5 +94,34 @@ export class MessageService {
             message: signedMessage,
             signature: signedMessage.signatures[signatureIdx],
         });
+    }
+
+    /**
+     * Verifies a message's signature by given chat.
+     * @param {Chat} chat - Chat containing message.
+     * @param {MessageDTO} signedMessage - Signed message to verify.
+     * @return {boolean} - Valid signature or not.
+     */
+    async verifySignedMessageByChat<T>({
+        chat,
+        signedMessage,
+    }: {
+        chat: Chat;
+        signedMessage: MessageDTO<T>;
+    }): Promise<boolean> {
+        const contacts = chat.parseContacts();
+        const adminContact = contacts.find(c => c.id === chat.adminId);
+        const fromContact = contacts.find(c => c.id === signedMessage.from);
+        return this.verifySignedMessage({ isGroup: chat.isGroup, adminContact, fromContact, signedMessage });
+    }
+
+    /**
+     * Determines chat ID for given message.
+     * @param {MessageDTO} message - Message to determine chat ID from.
+     * @return {string} - Chat ID.
+     */
+    determineChatID<T>({ to, from }: MessageDTO<T>): string {
+        if (to === this._configService.get<string>('userId')) return from;
+        return to;
     }
 }
