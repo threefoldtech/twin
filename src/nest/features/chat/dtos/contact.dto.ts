@@ -2,6 +2,14 @@ import { IsString } from 'class-validator';
 
 import { CreateMessageDTO } from './message.dto';
 
+export class ContactDTO {
+    @IsString()
+    id: string;
+
+    @IsString()
+    location: string;
+}
+
 export class CreateContactDTO<T> {
     @IsString()
     id: string;
