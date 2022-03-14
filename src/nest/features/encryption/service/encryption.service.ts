@@ -131,12 +131,27 @@ export class EncryptionService {
     /**
      * Creates a base64 string from a Uint8Array signature.
      * @param {unknown} data - The data needed in the signature.
-     * @param {string} secretKey - the secret key to for the signature.
+     * @param {string} secretKey - The secret key to for the signature.
      * @return {Uint8Array} - The signed signature in base64.
      */
-    createBase64Signature(data: unknown, secretKey: string): string {
+    createBase64Signature({ data, secretKey }: { data: unknown; secretKey: string }): string {
         const signature = this.createSignature({ data, secretKey });
         if (!signature) throw new BadRequestException('invalid signature');
         return this.uint8ToBase64(signature);
+    }
+
+    /**
+     * Verifies data signature using public key.
+     * @param {unknown} data - The data with the signature.
+     * @param {string} signature - The signature to be verified.
+     * @param {string} publicKey - The public key to verify signature.
+     * @return {boolean} - Is a valid signature or not.
+     */
+    verifySignature({ data, signature, publicKey }: { data: unknown; signature: string; publicKey: string }): boolean {
+        return sign.detached.verify(
+            this.objectToUint8Array(data),
+            this.base64ToUint8Array(signature),
+            decodeBase64(publicKey)
+        );
     }
 }

@@ -44,11 +44,26 @@ export class ApiService {
     }) {
         try {
             // TODO: change to /nest/messages when implemented
-            return await axios.put(`http://[${location}/api/messages`, message, {
+            return await axios.put(`http://[${location}]/api/messages`, message, {
                 responseType: responseType || 'json',
             });
         } catch (error) {
             throw new BadRequestException(`unable to send message to external API: ${error}`);
+        }
+    }
+
+    /**
+     * Sends a message to another digital twin.
+     * @param {string} location - IPv6 location to get public key from.
+     * @return {string} - Contacts public key.
+     */
+    async getContactPublicKey(location: string): Promise<string> {
+        try {
+            // TODO: change to /nest/user/public-key when implemented
+            const res = await axios.get<string>(`http://[${location}]/api/user/publickey`);
+            return res.data;
+        } catch (error) {
+            throw new BadRequestException(`unable to get public key from external API: ${error}`);
         }
     }
 }
