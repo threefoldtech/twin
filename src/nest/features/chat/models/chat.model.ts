@@ -1,5 +1,6 @@
 import { Entity, Schema } from 'redis-om';
 
+import { MessageDTO } from '../dtos/message.dto';
 import { Contact } from './contact.model';
 import { Message } from './message.model';
 
@@ -44,7 +45,7 @@ export class Chat extends Entity {
  * Stringifies messages JSON to a string for Redis.
  * @return {string[]} - The stringified messages.
  */
-export function stringifyMessages(messages: Message[]): string[] {
+export function stringifyMessages<T>(messages: MessageDTO<T>[]): string[] {
     return messages.map(msg => JSON.stringify(msg));
 }
 

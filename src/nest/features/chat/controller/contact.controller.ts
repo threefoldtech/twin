@@ -1,10 +1,10 @@
-import { BadRequestException, Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../../../guards/auth.guard';
 import { CreateContactDTO } from '../dtos/contact.dto';
 import { Contact } from '../models/contact.model';
-import { MessageBody } from '../models/message.model';
 import { ContactService } from '../service/contact.service';
+import { MessageBody } from '../types/message.type';
 
 @Controller('contacts')
 export class ContactController {
@@ -19,7 +19,6 @@ export class ContactController {
     @Post()
     @UseGuards(AuthGuard)
     async createContact(@Body() { id, location, message }: CreateContactDTO<MessageBody>): Promise<Contact> {
-        if (!message) throw new BadRequestException(`please provide a valid message`);
         return await this._contactService.createNewContact({
             id,
             location,

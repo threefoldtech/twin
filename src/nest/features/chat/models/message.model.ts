@@ -1,14 +1,6 @@
 import { Entity, Schema } from 'redis-om';
 
-export interface MessageBody {
-    message: string;
-    type: MessageType;
-}
-
-export interface ContactRequest {
-    id: string;
-    location: string;
-}
+import { MessageType } from '../types/message.type';
 
 export interface Message {
     id: string;
@@ -67,23 +59,3 @@ export const messageSchema = new Schema(Message, {
     signatures: { type: 'string[]' },
     replies: { type: 'string[]' },
 });
-
-export enum MessageType {
-    STRING,
-    SYSTEM,
-    GIF,
-    MESSAGE,
-    FILE,
-    FILE_UPLOAD,
-    FILE_SHARE,
-    FILE_SHARE_UPDATE,
-    FILE_SHARE_REQUEST,
-    FILE_SHARE_INTENT,
-    EDIT,
-    READ,
-    CONTACT_REQUEST,
-    DELETE,
-    GROUP_UPDATE,
-    QUOTE,
-    DOWNLOAD_ATTACHMENT,
-}

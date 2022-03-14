@@ -1,6 +1,7 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-import { Message, MessageType } from '../models/message.model';
+import { Message } from '../models/message.model';
+import { MessageType } from '../types/message.type';
 
 export class MessageDTO<T> {
     @IsString()

@@ -1,6 +1,6 @@
 import { IsString } from 'class-validator';
 
-import { CreateMessageDTO } from './message.dto';
+import { Message } from '../models/message.model';
 
 export class ContactDTO {
     @IsString()
@@ -10,14 +10,14 @@ export class ContactDTO {
     location: string;
 }
 
-export class CreateContactDTO<T> {
+export class CreateContactDTO {
     @IsString()
     id: string;
 
     @IsString()
     location: string;
 
-    message?: CreateMessageDTO<T>;
+    message?: Message;
 }
 
 export class DeleteContactDTO {

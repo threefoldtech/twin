@@ -3,11 +3,12 @@ import { ConfigService } from '@nestjs/config';
 
 import { ContactDTO } from '../dtos/contact.dto';
 import { MessageDTO } from '../dtos/message.dto';
-import { MessageType } from '../models/message.model';
+import { Message } from '../models/message.model';
 import { BlockedContactService } from '../service/blocked-contact.service';
 import { ChatService } from '../service/chat.service';
 import { ContactService } from '../service/contact.service';
 import { MessageService } from '../service/message.service';
+import { GroupUpdate, MessageType, SystemMessageType } from '../types/message.type';
 
 @Controller('messages')
 export class MessageController {
@@ -26,7 +27,6 @@ export class MessageController {
         @Query('count') count = 25
     ) {
         const blockedContacts = await this._blockedContactService.getBlockedContactList({ offset, count });
-
         const isBlocked = blockedContacts.find(c => c.id === message.from);
         if (isBlocked) throw new ForbiddenException('blocked');
 
@@ -40,7 +40,11 @@ export class MessageController {
                 signedMessage: message,
             });
             if (!validSignature) throw new BadRequestException(`failed to verify message signature`);
-            return await this._contactService.createNewContact({ id: from.id, location: from.location });
+            return await this._contactService.createNewContactRequest({
+                id: from.id,
+                location: from.location,
+                message: (<unknown>message) as Message,
+            });
         }
 
         const chatID = this._messageService.determineChatID(message);
@@ -49,6 +53,18 @@ export class MessageController {
         const validSignature = await this._messageService.verifySignedMessageByChat({ chat, signedMessage: message });
         if (!validSignature) throw new BadRequestException(`failed to verify message signature`);
 
-        // TODO
+        const userId = this._configService.get<string>('userId');
+        const isSystemMessage = message.type === MessageType.SYSTEM;
+        if (isSystemMessage) {
+            const { type, contact } = (<unknown>message.body) as GroupUpdate;
+            const isAddUserType = type === SystemMessageType.ADDUSER;
+            if (isAddUserType && userId === contact.id) {
+                // TODO: add to group
+            }
+        }
+
+        if (chat.isGroup && chat.adminId === userId) {
+            // TODO: handle group admin
+        }
     }
 }

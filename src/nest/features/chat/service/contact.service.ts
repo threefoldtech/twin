@@ -8,10 +8,11 @@ import { DbService } from '../../db/service/db.service';
 import { KeyService } from '../../key/service/key.service';
 import { LocationService } from '../../location/service/location.service';
 import { CreateContactDTO, DeleteContactDTO } from '../dtos/contact.dto';
-import { CreateMessageDTO } from '../dtos/message.dto';
+import { MessageDTO } from '../dtos/message.dto';
 import { ChatGateway } from '../gateway/chat.gateway';
 import { Contact, contactSchema } from '../models/contact.model';
-import { ContactRequest, Message, MessageBody, MessageType } from '../models/message.model';
+import { Message } from '../models/message.model';
+import { ContactRequest, MessageType } from '../types/message.type';
 import { ChatService } from './chat.service';
 import { MessageService } from './message.service';
 
@@ -53,7 +54,7 @@ export class ContactService {
      * @param {CreateMessageDTO} message - Contact request message.
      * @return {Contact} - Created entity.
      */
-    async createNewContact({ id, location, message }: CreateContactDTO<string>): Promise<Contact> {
+    async createNewContact({ id, location, message }: CreateContactDTO): Promise<Contact> {
         const yggdrasilAddress = await this._locationService.getOwnLocation();
         // createEntity without saving to Redis
         const me = this._contactRepo.createEntity({
@@ -61,7 +62,6 @@ export class ContactService {
             location: yggdrasilAddress as string,
         });
 
-        message.body = `You have received a new message request from ${message.from}`;
         const newMessage = await this._messageService.createMessage(message);
 
         let newContact;
@@ -87,7 +87,7 @@ export class ContactService {
             draft: [],
         });
 
-        const contactRequest: CreateMessageDTO<ContactRequest> = {
+        const contactRequest: MessageDTO<ContactRequest> = {
             id: uuidv4(),
             from: newMessage.from,
             to: newContact.id,
@@ -113,12 +113,64 @@ export class ContactService {
     }
 
     /**
+     * Creates a new contact request.
+     * @param {string} id - Contact ID.
+     * @param {string} location - Contact IPv6.
+     * @param {CreateMessageDTO} message - Contact request message.
+     * @return {Contact} - Created entity.
+     */
+    async createNewContactRequest({ id, location, message }: CreateContactDTO): Promise<Contact> {
+        const yggdrasilAddress = await this._locationService.getOwnLocation();
+        const me = this._contactRepo.createEntity({
+            id: this._configService.get<string>('userId'),
+            location: yggdrasilAddress as string,
+        });
+
+        let newContact;
+        try {
+            newContact = await this._contactRepo.createAndSave({
+                id,
+                location,
+            });
+        } catch (error) {
+            throw new BadRequestException(`unable to create contact: ${error}`);
+        }
+
+        const contactRequest: MessageDTO<string> = {
+            id: uuidv4(),
+            from: message.from,
+            to: message.to,
+            body: `You have received a new message request from ${message.from}`,
+            timeStamp: new Date(),
+            type: MessageType.SYSTEM,
+            subject: null,
+            signatures: message.signatures ?? [],
+            replies: [],
+        };
+
+        const chat = this._chatService.createChat({
+            chatId: message.from,
+            name: message.from,
+            contacts: [me, newContact],
+            messages: [contactRequest as Message],
+            acceptedChat: false,
+            adminId: message.from,
+            read: [],
+            isGroup: false,
+            draft: [],
+        });
+
+        this._chatGateway.emitMessageToConnectedClients('connection_request', chat);
+        return newContact;
+    }
+
+    /**
      * Adds an existing contact.
      * @param {string} id - Contact ID.
      * @param {string} location - Contact IPv6.
      * @return {Contact} - Contact entity.
      */
-    async addContact({ id, location }: CreateContactDTO<MessageBody>): Promise<Contact> {
+    async addContact({ id, location }: CreateContactDTO): Promise<Contact> {
         try {
             return await this._contactRepo.createAndSave({
                 id,
