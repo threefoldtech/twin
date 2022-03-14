@@ -50,6 +50,7 @@ export class ContactService {
      * Creates a new contact.
      * @param {string} id - Contact ID.
      * @param {string} location - Contact IPv6.
+     * @param {CreateMessageDTO} message - Contact request message.
      * @return {Contact} - Created entity.
      */
     async createContact({ id, location, message }: CreateContactDTO<MessageBody>): Promise<Contact> {

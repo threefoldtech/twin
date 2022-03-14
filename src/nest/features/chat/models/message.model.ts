@@ -25,7 +25,7 @@ export interface Message {
 export class Message extends Entity {
     /**
      * Parses message body string to valid JSON.
-     * @return {MessageBody} - The parsed message body.
+     * @return {T} - The parsed message body.
      */
     parseBody<T>(): T {
         return JSON.parse(this.body);
