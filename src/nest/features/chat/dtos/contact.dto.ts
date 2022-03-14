@@ -11,3 +11,8 @@ export class CreateContactDTO<T> {
 
     message?: CreateMessageDTO<T>;
 }
+
+export class DeleteContactDTO {
+    @IsString()
+    id: string;
+}

@@ -7,7 +7,7 @@ import { ApiService } from '../../api/service/api.service';
 import { DbService } from '../../db/service/db.service';
 import { KeyService } from '../../key/service/key.service';
 import { LocationService } from '../../location/service/location.service';
-import { CreateContactDTO } from '../dtos/contact.dto';
+import { CreateContactDTO, DeleteContactDTO } from '../dtos/contact.dto';
 import { CreateMessageDTO } from '../dtos/message.dto';
 import { ChatGateway } from '../gateway/chat.gateway';
 import { Contact, contactSchema } from '../models/contact.model';
@@ -53,7 +53,7 @@ export class ContactService {
      * @param {CreateMessageDTO} message - Contact request message.
      * @return {Contact} - Created entity.
      */
-    async createContact({ id, location, message }: CreateContactDTO<MessageBody>): Promise<Contact> {
+    async createNewContact({ id, location, message }: CreateContactDTO<MessageBody>): Promise<Contact> {
         const yggdrasilAddress = await this._locationService.getOwnLocation();
         // createEntity without saving to Redis
         const me = this._contactRepo.createEntity({
@@ -109,5 +109,35 @@ export class ContactService {
         this._chatGateway.emitMessageToConnectedClients('connection_request', chat);
 
         return newContact;
+    }
+
+    /**
+     * Adds an existing contact.
+     * @param {string} id - Contact ID.
+     * @param {string} location - Contact IPv6.
+     * @return {Contact} - Contact entity.
+     */
+    async addContact({ id, location }: CreateContactDTO<MessageBody>): Promise<Contact> {
+        try {
+            return await this._contactRepo.createAndSave({
+                id,
+                location,
+            });
+        } catch (error) {
+            throw new BadRequestException(`unable to add contact: ${error}`);
+        }
+    }
+
+    /**
+     * Deletes a contact.
+     * @param {string} id - Contact ID.
+     */
+    async deleteContact({ id }: DeleteContactDTO): Promise<void> {
+        try {
+            const contact = await this._contactRepo.search().where('id').eq(id).return.first();
+            return await this._contactRepo.remove(contact.entityId);
+        } catch (error) {
+            throw new BadRequestException(`unable remove contact: ${error}`);
+        }
     }
 }

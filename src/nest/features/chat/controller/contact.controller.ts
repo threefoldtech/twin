@@ -20,7 +20,7 @@ export class ContactController {
     @UseGuards(AuthGuard)
     async createContact(@Body() { id, location, message }: CreateContactDTO<MessageBody>): Promise<Contact> {
         if (!message) throw new BadRequestException(`please provide a valid message`);
-        return await this._contactService.createContact({
+        return await this._contactService.createNewContact({
             id,
             location,
             message,
