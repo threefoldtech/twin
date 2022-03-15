@@ -125,6 +125,7 @@ export class ChatService {
     }
 
     /**
+     * Get the group chat of the admin based on the chatID.
      * @param {string} adminLocation - External admin location to get chat from.
      * @param {string} chatID - Chat ID to fetch from location.
      */
@@ -134,7 +135,12 @@ export class ChatService {
         return await this.createChat(chat);
     }
 
-    async handleGroupAdmin({ chat, message, chatId }: { chat: Chat; message: MessageDTO<unknown>; chatId: string }) {
+    /**
+     * Send a message to all contacts of a group chat.
+     * @param {Chat} chat - Chat to send message to.
+     * @param {MessageDTO} message - Message to send.
+     */
+    async handleGroupAdmin({ chat, message }: { chat: Chat; message: MessageDTO<unknown> }) {
         const contacts = chat.parseContacts();
         const validSignature = await this._messageService.verifySignedMessage({
             isGroup: false,
@@ -147,8 +153,11 @@ export class ChatService {
         const signedMessage = await this._keyService.appendSignatureToMessage(message);
         const userId = this._configService.get<string>('userId');
         const receivingContacts = contacts.filter(c => c.id !== userId);
-        for (const c of receivingContacts) {
-            await this._apiService.sendMessageToApi({ location: c.location, message: signedMessage });
-        }
+        // send in parallel whilst still waiting until all contacts have received the message
+        await Promise.all(
+            receivingContacts.map(async c => {
+                await this._apiService.sendMessageToApi({ location: c.location, message: signedMessage });
+            })
+        );
     }
 }

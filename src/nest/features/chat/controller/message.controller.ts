@@ -47,11 +47,10 @@ export class MessageController {
         const chat = await this._chatService.getChat(chatId);
         const userId = this._configService.get<string>('userId');
 
-        if (chat.isGroup && chat.adminId === userId)
-            return await this._chatService.handleGroupAdmin({ chat, message, chatId });
+        if (chat.isGroup && chat.adminId === userId) await this._chatService.handleGroupAdmin({ chat, message });
 
         // get correct message handler and let it handle the incoming message
-        return this.messageStateHandlers.get(message.type).handle({ message, chat });
+        return await this.messageStateHandlers.get(message.type).handle({ message, chat });
 
         // const validSignature = await this._messageService.verifySignedMessageByChat({ chat, signedMessage: message });
         // if (!validSignature) throw new BadRequestException(`failed to verify message signature`);
