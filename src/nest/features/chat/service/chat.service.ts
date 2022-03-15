@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'redis-om';
 
 import { DbService } from '../../db/service/db.service';
@@ -90,7 +90,7 @@ export class ChatService {
         try {
             return await this._chatRepo.search().where('chatId').eq(chatID).return.first();
         } catch (error) {
-            throw new NotFoundException(`chat with ID: ${chatID}, not found`);
+            throw new ForbiddenException(`not in contact`);
         }
     }
 

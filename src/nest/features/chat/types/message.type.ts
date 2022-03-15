@@ -40,8 +40,8 @@ export enum MessageType {
 }
 
 export enum SystemMessageType {
-    ADDUSER = 'ADDUSER',
-    REMOVEUSER = 'REMOVEUSER',
+    ADD_USER = 'ADD_USER',
+    REMOVE_USER = 'REMOVE_USER',
     JOINED_VIDEOROOM = 'JOINED_VIDEOROOM',
     CONTACT_REQUEST_SEND = 'CONTACT_REQUEST_SEND',
 }
