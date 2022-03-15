@@ -59,7 +59,9 @@ export class SystemMessageState implements MessageState<SystemMessage> {
         if (!validSignature) throw new BadRequestException(`failed to verify message signature`);
 
         const { type } = message.body as GroupUpdate;
-        return await this._systemMessageStateHandlers.get(type).handle({ message, chat });
+        await this._systemMessageStateHandlers.get(type).handle({ message, chat });
+
+        return await this._chatService.addMessageToChat({ chat, message });
     }
 }
 

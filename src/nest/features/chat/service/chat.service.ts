@@ -9,7 +9,7 @@ import { CreateChatDTO } from '../dtos/chat.dto';
 import { MessageDTO } from '../dtos/message.dto';
 import { ChatGateway } from '../gateway/chat.gateway';
 import { Chat, chatSchema, stringifyContacts, stringifyMessages } from '../models/chat.model';
-import { Message, stringifyMessage } from '../models/message.model';
+import { stringifyMessage } from '../models/message.model';
 import { MessageService } from './message.service';
 
 @Injectable()
@@ -113,7 +113,7 @@ export class ChatService {
      * @param {Message} message - Signed message to add to chat.
      * @return {string} - Chat entity ID.
      */
-    async addMessageToChat({ chat, message }: { chat: Chat; message: Message }): Promise<string> {
+    async addMessageToChat({ chat, message }: { chat: Chat; message: MessageDTO<unknown> }): Promise<string> {
         try {
             chat.messages
                 ? chat.messages.push(stringifyMessage(message))

@@ -1,5 +1,6 @@
 import { Entity, Schema } from 'redis-om';
 
+import { MessageDTO } from '../dtos/message.dto';
 import { MessageType } from '../types/message.type';
 
 export interface Message {
@@ -28,7 +29,7 @@ export class Message extends Entity {
  * Stringifies the message JSON to a string for Redis.
  * @return {string} - The stringified message.
  */
-export function stringifyMessage(message: Message): string {
+export function stringifyMessage(message: MessageDTO<unknown>): string {
     return JSON.stringify(message);
 }
 
@@ -36,7 +37,7 @@ export function stringifyMessage(message: Message): string {
  * Stringifies the replies JSON to a string for Redis.
  * @return {string} - The stringified replies.
  */
-export function stringifyReplies(replies: Message[]): string[] {
+export function stringifyReplies(replies: MessageDTO<unknown>[]): string[] {
     return replies.map(reply => JSON.stringify(reply));
 }
 
