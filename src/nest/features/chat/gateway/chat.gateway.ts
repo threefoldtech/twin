@@ -98,6 +98,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      * @param {Server} server - socket.io server.
      */
     afterInit(server: Server) {
+        this.logger.log(`chat gateway setup successful`);
         this._socketService.server = server;
     }
 

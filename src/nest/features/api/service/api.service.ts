@@ -50,7 +50,7 @@ export class ApiService {
                 responseType: responseType || 'json',
             });
         } catch (error) {
-            throw new BadRequestException(`unable to send message to external API: ${error}`);
+            throw new BadRequestException(`unable to send message: ${error}`);
         }
     }
 
@@ -102,6 +102,7 @@ export class ApiService {
      */
     async getAdminChat({ location, chatID }: { location: string; chatID: string }): Promise<ChatDTO> {
         try {
+            // TODO: change to /nest/messages/:chatId when implemented
             const res = await axios.get<ChatDTO>(`http://[${location}]/api/messages/${chatID}`);
             return res.data;
         } catch (error) {

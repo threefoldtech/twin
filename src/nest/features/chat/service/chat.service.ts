@@ -11,9 +11,9 @@ import { Repository } from 'redis-om';
 import { ApiService } from '../../api/service/api.service';
 import { DbService } from '../../db/service/db.service';
 import { KeyService } from '../../key/service/key.service';
+import { SocketService } from '../../socket/service/socket.service';
 import { CreateChatDTO } from '../dtos/chat.dto';
 import { MessageDTO } from '../dtos/message.dto';
-import { ChatGateway } from '../gateway/chat.gateway';
 import { Chat, chatSchema, stringifyContacts, stringifyMessages } from '../models/chat.model';
 import { stringifyMessage } from '../models/message.model';
 import { MessageService } from './message.service';
@@ -28,7 +28,7 @@ export class ChatService {
         private readonly _apiService: ApiService,
         private readonly _messageService: MessageService,
         private readonly _keyService: KeyService,
-        private readonly _chatGateway: ChatGateway
+        private readonly _socketService: SocketService
     ) {
         this._chatRepo = this._dbService.createRepository(chatSchema);
     }
@@ -181,7 +181,7 @@ export class ChatService {
      */
     async syncNewChatWithAdmin({ adminLocation, chatID }: { adminLocation: string; chatID: string }): Promise<Chat> {
         const chat = await this._apiService.getAdminChat({ location: adminLocation, chatID });
-        this._chatGateway.emitMessageToConnectedClients('new_chat', chat);
+        this._socketService.server.emit('new_chat', chat);
         return await this.createChat(chat);
     }
 
