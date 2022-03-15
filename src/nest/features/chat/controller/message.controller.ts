@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Put, Query } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Param, Put, Query } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ApiService } from '../../api/service/api.service';
@@ -54,7 +54,7 @@ export class MessageController {
         const isBlocked = blockedContacts.find(c => c.id === message.from);
         if (isBlocked) throw new ForbiddenException('blocked');
 
-        // needs to be checked otherwise chat will always be null
+        // needs to be checked first otherwise chat will always be null
         if (message.type === MessageType.CONTACT_REQUEST)
             return await this._messageStateHandlers.get(MessageType.CONTACT_REQUEST).handle({ message, chat: null });
 
@@ -73,5 +73,17 @@ export class MessageController {
         if (chat.isGroup && chat.adminId === userId) await this._chatService.handleGroupAdmin({ chat, message });
 
         return await this._messageStateHandlers.get(message.type).handle({ message, chat });
+    }
+
+    @Get(':chatId')
+    async getChatMessages(
+        @Param('chatId') chatId: string,
+        @Query('from') from: string = null,
+        @Query('page') page: number = null,
+        @Query('limit') limit = 50
+    ): Promise<{ hasMore: boolean; messages: MessageDTO<unknown>[] }> {
+        limit = limit > 100 ? 100 : limit;
+
+        return this._chatService.getChatMessages({ chatId, from, page, limit });
     }
 }

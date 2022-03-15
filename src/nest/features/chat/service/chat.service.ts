@@ -102,15 +102,47 @@ export class ChatService {
 
     /**
      * Gets a chat by its ID.
-     * @param {string} chatID - Chat ID.
+     * @param {string} chatId - Chat ID.
      * @return {Chat} - Found chat.
      */
-    async getChat(chatID: string): Promise<Chat> {
+    async getChat(chatId: string): Promise<Chat> {
         try {
-            return await this._chatRepo.search().where('chatId').eq(chatID).return.first();
+            return await this._chatRepo.search().where('chatId').eq(chatId).return.first();
         } catch (error) {
             throw new ForbiddenException(`not in contact`);
         }
+    }
+
+    /**
+     * Gets messages from a chat by given chat Id.
+     * @param {string} chatId - Chat Id to get messages from.
+     * @param {string|null} from - Optional from sender.
+     * @param {number|null} page - Optional page parameter.
+     * @param {number} limit - Limit, defaults to 50.
+     */
+    async getChatMessages({
+        chatId,
+        from,
+        page,
+        limit,
+    }: {
+        chatId: string;
+        from: string | null;
+        page: number | null;
+        limit: number;
+    }): Promise<{ hasMore: boolean; messages: MessageDTO<unknown>[] }> {
+        const chat = await this.getChat(chatId);
+        const parsedMessages = chat.parseMessages();
+
+        let end = parsedMessages.length;
+        if (page) end = parsedMessages.length - page * limit;
+        else if (from) end = parsedMessages.findIndex(m => m.id === from);
+
+        const start = end - limit;
+        return {
+            hasMore: start !== 0,
+            messages: parsedMessages.slice(start, end),
+        };
     }
 
     /**
