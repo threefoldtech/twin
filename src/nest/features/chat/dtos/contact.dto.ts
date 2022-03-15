@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsBoolean, IsString } from 'class-validator';
 
 import { Message } from '../models/message.model';
 
@@ -16,6 +16,9 @@ export class CreateContactDTO {
 
     @IsString()
     location: string;
+
+    @IsBoolean()
+    contactRequest: boolean;
 
     message?: Message;
 }

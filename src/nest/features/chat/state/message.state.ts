@@ -38,6 +38,7 @@ export class ContactRequestMessageState implements MessageState<ContactRequest> 
             id: from.id,
             location: from.location,
             message: (<unknown>message) as Message,
+            contactRequest: true,
         });
     }
 }

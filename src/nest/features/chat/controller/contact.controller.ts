@@ -21,6 +21,7 @@ export class ContactController {
         return await this._contactService.createNewContact({
             id,
             location,
+            contactRequest: false,
             message,
         });
     }

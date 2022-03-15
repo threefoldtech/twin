@@ -119,7 +119,7 @@ export class ContactService {
      * @param {CreateMessageDTO} message - Contact request message.
      * @return {Contact} - Created entity.
      */
-    async createNewContactRequest({ id, location, message }: CreateContactDTO): Promise<Contact> {
+    async createNewContactRequest({ id, location, contactRequest, message }: CreateContactDTO): Promise<Contact> {
         const yggdrasilAddress = await this._locationService.getOwnLocation();
         const me = this._contactRepo.createEntity({
             id: this._configService.get<string>('userId'),
@@ -131,12 +131,13 @@ export class ContactService {
             newContact = await this._contactRepo.createAndSave({
                 id,
                 location,
+                contactRequest,
             });
         } catch (error) {
             throw new BadRequestException(`unable to create contact: ${error}`);
         }
 
-        const contactRequest: MessageDTO<string> = {
+        const contactRequestMsg: MessageDTO<string> = {
             id: uuidv4(),
             from: message.from,
             to: message.to,
@@ -152,7 +153,7 @@ export class ContactService {
             chatId: message.from,
             name: message.from,
             contacts: [me, newContact],
-            messages: [contactRequest as Message],
+            messages: [contactRequestMsg as Message],
             acceptedChat: false,
             adminId: message.from,
             read: [],
@@ -162,6 +163,25 @@ export class ContactService {
 
         this._chatGateway.emitMessageToConnectedClients('connection_request', chat);
         return newContact;
+    }
+
+    /**
+     * Gets a contact that has accepted the chat request.
+     * @param {string} contactId - Contacts Id.
+     * @return {Contact} - Found contact.
+     */
+    async getAcceptedContact(contactId: string): Promise<Contact> {
+        try {
+            return await this._contactRepo
+                .search()
+                .where('id')
+                .eq(contactId)
+                .and('contactRequest')
+                .true()
+                .return.first();
+        } catch (error) {
+            throw new NotFoundException(`contact not found`);
+        }
     }
 
     /**

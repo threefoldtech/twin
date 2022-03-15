@@ -54,6 +54,9 @@ export class MessageController {
         const isBlocked = blockedContacts.find(c => c.id === message.from);
         if (isBlocked) throw new ForbiddenException('blocked');
 
+        const contact = await this._contactService.getAcceptedContact(message.from);
+        if (!contact) throw new ForbiddenException(`contact has not yet accepted your chat request`);
+
         const chatId = this._messageService.determineChatID(message);
         const chat = await this._chatService.getChat(chatId);
 
