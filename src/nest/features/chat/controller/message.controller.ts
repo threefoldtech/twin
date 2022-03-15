@@ -8,7 +8,7 @@ import { BlockedContactService } from '../service/blocked-contact.service';
 import { ChatService } from '../service/chat.service';
 import { ContactService } from '../service/contact.service';
 import { MessageService } from '../service/message.service';
-import { ContactRequestMessageState, MessageState, SystemMessageState } from '../state/message.state';
+import { ContactRequestMessageState, MessageState, ReadMessageState, SystemMessageState } from '../state/message.state';
 import { MessageType } from '../types/message.type';
 
 @Controller('messages')
@@ -24,11 +24,14 @@ export class MessageController {
         private readonly _apiService: ApiService,
         private readonly _chatGateway: ChatGateway
     ) {
-        // init message handlers
+        // contact request handler
         this._messageStateHandlers.set(
             MessageType.CONTACT_REQUEST,
             new ContactRequestMessageState(this._messageService, this._contactService)
         );
+        // read message handler
+        this._messageStateHandlers.set(MessageType.READ, new ReadMessageState(this._chatService, this._chatGateway));
+        // system message handler
         this._messageStateHandlers.set(
             MessageType.SYSTEM,
             new SystemMessageState(
@@ -54,6 +57,7 @@ export class MessageController {
         const chatId = this._messageService.determineChatID(message);
         const chat = await this._chatService.getChat(chatId);
 
+        // message needs to be from the chat admin when performing System tasks.
         if (message.type === MessageType.SYSTEM && chat.adminId !== message.from)
             throw new ForbiddenException(`not allowed`);
 

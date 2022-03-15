@@ -42,8 +42,17 @@ export class ContactRequestMessageState implements MessageState<ContactRequest> 
     }
 }
 
+export class ReadMessageState implements MessageState<string> {
+    constructor(private readonly _chatService: ChatService, private readonly _chatGateway: ChatGateway) {}
+
+    async handle({ message }: { message: MessageDTO<string>; chat: Chat }): Promise<string> {
+        this._chatGateway.emitMessageToConnectedClients('message', message);
+        return await this._chatService.handleMessageRead(message);
+    }
+}
+
 export class SystemMessageState implements MessageState<SystemMessage> {
-    private _systemMessageStateHandlers = new Map<SystemMessageType, SubSystemMessageState>();
+    private _subSystemMessageStateHandlers = new Map<SystemMessageType, SubSystemMessageState>();
 
     constructor(
         private readonly _messageService: MessageService,
@@ -52,20 +61,23 @@ export class SystemMessageState implements MessageState<SystemMessage> {
         private readonly _apiService: ApiService,
         private readonly _chatGateway: ChatGateway
     ) {
-        // init sub system message state handlers
-        this._systemMessageStateHandlers.set(
+        // system add user message handler
+        this._subSystemMessageStateHandlers.set(
             SystemMessageType.ADD_USER,
             new AddUserSystemState(this._apiService, this._chatService, this._configService, this._chatGateway)
         );
-        this._systemMessageStateHandlers.set(
+        // system remove user message handler
+        this._subSystemMessageStateHandlers.set(
             SystemMessageType.REMOVE_USER,
             new RemoveUserSystemState(this._apiService, this._chatService, this._configService, this._chatGateway)
         );
-        this._systemMessageStateHandlers.set(
+        // system joined video room message handler
+        this._subSystemMessageStateHandlers.set(
             SystemMessageType.JOINED_VIDEOROOM,
             new PersistSystemMessage(this._chatService)
         );
-        this._systemMessageStateHandlers.set(
+        // system contact request send message handler
+        this._subSystemMessageStateHandlers.set(
             SystemMessageType.CONTACT_REQUEST_SEND,
             new PersistSystemMessage(this._chatService)
         );
@@ -76,7 +88,7 @@ export class SystemMessageState implements MessageState<SystemMessage> {
         if (!validSignature) throw new BadRequestException(`failed to verify message signature`);
 
         const { type } = message.body as GroupUpdate;
-        await this._systemMessageStateHandlers.get(type).handle({ message, chat });
+        await this._subSystemMessageStateHandlers.get(type).handle({ message, chat });
 
         return await this._chatService.addMessageToChat({ chat, message });
     }

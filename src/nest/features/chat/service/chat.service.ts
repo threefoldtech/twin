@@ -158,6 +158,22 @@ export class ChatService {
         }
     }
 
+    async handleMessageRead(message: MessageDTO<string>) {
+        const chatId = this._messageService.determineChatID(message);
+        const chat = await this.getChat(chatId);
+        const chatMessages = chat.parseMessages();
+
+        const newRead = chatMessages.find(m => m.id === message.body);
+        const oldIdx = chat.read.indexOf(message.from);
+        if (oldIdx > -1) {
+            const oldRead = chatMessages.find(m => m.id === chat.read[oldIdx]);
+            if (!(newRead.timeStamp.getTime() < oldRead.timeStamp.getTime())) {
+                chat.read[oldIdx] = message.body;
+                return await this._chatRepo.save(chat);
+            }
+        }
+    }
+
     /**
      * Get the group chat of the admin based on the chatID.
      * @param {string} adminLocation - External admin location to get chat from.
