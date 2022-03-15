@@ -54,6 +54,11 @@ export class MessageController {
         const isBlocked = blockedContacts.find(c => c.id === message.from);
         if (isBlocked) throw new ForbiddenException('blocked');
 
+        // needs to be checked otherwise chat will always be null
+        if (message.type === MessageType.CONTACT_REQUEST)
+            return await this._messageStateHandlers.get(MessageType.CONTACT_REQUEST).handle({ message, chat: null });
+
+        // check if chat has been accepted
         const contact = await this._contactService.getAcceptedContact(message.from);
         if (!contact) throw new ForbiddenException(`contact has not yet accepted your chat request`);
 
