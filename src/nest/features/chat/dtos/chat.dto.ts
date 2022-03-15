@@ -1,7 +1,20 @@
 import { IsArray, IsBoolean, IsString } from 'class-validator';
 
-import { Contact } from '../models/contact.model';
 import { Message } from '../models/message.model';
+import { ContactDTO } from './contact.dto';
+import { MessageDTO } from './message.dto';
+
+export class ChatDTO {
+    chatId: string;
+    contacts: ContactDTO[];
+    isGroup: boolean;
+    messages: MessageDTO<unknown>[];
+    name: string;
+    acceptedChat: boolean;
+    adminId: string;
+    read: string[];
+    draft?: Message[];
+}
 
 export class CreateChatDTO {
     @IsString()
@@ -11,10 +24,10 @@ export class CreateChatDTO {
     name: string;
 
     @IsArray()
-    contacts: Contact[];
+    contacts: ContactDTO[];
 
     @IsArray()
-    messages: Message[];
+    messages: MessageDTO<unknown>[];
 
     @IsBoolean()
     acceptedChat: boolean;

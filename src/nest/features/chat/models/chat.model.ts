@@ -1,5 +1,6 @@
 import { Entity, Schema } from 'redis-om';
 
+import { ContactDTO } from '../dtos/contact.dto';
 import { MessageDTO } from '../dtos/message.dto';
 import { Contact } from './contact.model';
 import { Message } from './message.model';
@@ -53,7 +54,7 @@ export function stringifyMessages<T>(messages: MessageDTO<T>[]): string[] {
  * Stringifies contacts JSON to a string for Redis.
  * @return {string[]} - The stringified contacts.
  */
-export function stringifyContacts(contacts: Contact[]): string[] {
+export function stringifyContacts(contacts: ContactDTO[]): string[] {
     return contacts.map(contact => JSON.stringify(contact));
 }
 

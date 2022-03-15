@@ -8,12 +8,12 @@ import { BlockedContactService } from '../service/blocked-contact.service';
 import { ChatService } from '../service/chat.service';
 import { ContactService } from '../service/contact.service';
 import { MessageService } from '../service/message.service';
-import { ContactRequestMessageState, MessageState } from '../state/message.state';
+import { ContactRequestMessageState, MessageState, SystemMessageState } from '../state/message.state';
 import { GroupUpdate, MessageType, SystemMessageType } from '../types/message.type';
 
 @Controller('messages')
 export class MessageController {
-    private messageStateHandlersMap = new Map<MessageType, MessageState>();
+    private messageStateHandlers = new Map<MessageType, MessageState<unknown>>();
 
     constructor(
         private readonly _configService: ConfigService,
@@ -22,7 +22,15 @@ export class MessageController {
         private readonly _contactService: ContactService,
         private readonly _blockedContactService: BlockedContactService
     ) {
-        this.messageStateHandlersMap.set(MessageType.CONTACT_REQUEST, new ContactRequestMessageState());
+        // init message handlers
+        this.messageStateHandlers.set(
+            MessageType.CONTACT_REQUEST,
+            new ContactRequestMessageState(this._messageService, this._contactService)
+        );
+        this.messageStateHandlers.set(
+            MessageType.SYSTEM,
+            new SystemMessageState(this._messageService, this._chatService, this._configService)
+        );
     }
 
     @Put()
@@ -35,27 +43,15 @@ export class MessageController {
         const isBlocked = blockedContacts.find(c => c.id === message.from);
         if (isBlocked) throw new ForbiddenException('blocked');
 
-        return this.messageStateHandlersMap.get(message.type).handle(message);
+        const chatId = this._messageService.determineChatID(message);
+        const chat = await this._chatService.getChat(chatId);
+        const userId = this._configService.get<string>('userId');
 
-        // const isContactRequest = message.type === MessageType.CONTACT_REQUEST;
-        // if (isContactRequest) {
-        // const from = (<unknown>message.body) as ContactDTO;
-        // const validSignature = await this._messageService.verifySignedMessage({
-        //     isGroup: false,
-        //     adminContact: null,
-        //     fromContact: from,
-        //     signedMessage: message,
-        // });
-        // if (!validSignature) throw new BadRequestException(`failed to verify message signature`);
-        // return await this._contactService.createNewContactRequest({
-        //     id: from.id,
-        //     location: from.location,
-        //     message: (<unknown>message) as Message,
-        // });
-        // }
+        if (chat.isGroup && chat.adminId === userId)
+            return await this._chatService.handleGroupAdmin({ chat, message, chatId });
 
-        // const chatID = this._messageService.determineChatID(message);
-        // const chat = await this._chatService.getChat(chatID);
+        // get correct message handler and let it handle the incoming message
+        return this.messageStateHandlers.get(message.type).handle({ message, chat });
 
         // const validSignature = await this._messageService.verifySignedMessageByChat({ chat, signedMessage: message });
         // if (!validSignature) throw new BadRequestException(`failed to verify message signature`);

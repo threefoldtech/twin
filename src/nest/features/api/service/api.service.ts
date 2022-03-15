@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { ResponseType } from 'axios';
 
+import { ChatDTO } from '../../chat/dtos/chat.dto';
 import { CreateMessageDTO } from '../../chat/dtos/message.dto';
 
 @Injectable()
@@ -64,6 +65,21 @@ export class ApiService {
             return res.data;
         } catch (error) {
             throw new BadRequestException(`unable to get public key from external API: ${error}`);
+        }
+    }
+
+    /**
+     * Gets the admins chat from given location.
+     * @param {string} location - IPv6 location to get the chat from.
+     * @param {string} chatID - chat ID to fetch from location.
+     * @return {ChatDTO} - Found chat.
+     */
+    async getAdminChat({ location, chatID }: { location: string; chatID: string }): Promise<ChatDTO> {
+        try {
+            const res = await axios.get<ChatDTO>(`http://[${location}]/api/messages/${chatID}`);
+            return res.data;
+        } catch (error) {
+            throw new BadRequestException(`unable to get admins chat: ${error}`);
         }
     }
 }

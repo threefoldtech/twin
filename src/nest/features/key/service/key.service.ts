@@ -5,8 +5,6 @@ import { Repository } from 'redis-om';
 import { ApiService } from '../../api/service/api.service';
 import { ContactDTO } from '../../chat/dtos/contact.dto';
 import { MessageDTO } from '../../chat/dtos/message.dto';
-import { Contact } from '../../chat/models/contact.model';
-import { Message } from '../../chat/models/message.model';
 import { DbService } from '../../db/service/db.service';
 import { EncryptionService } from '../../encryption/service/encryption.service';
 import { Key, keySchema, KeyType } from '../models/key.model';
@@ -96,9 +94,10 @@ export class KeyService {
 
     /**
      * Adds a signed base64 signature to the message.
-     * @param {Message} message - Message to add signature to.
+     * @param {MessageDTO} message - Message to add signature to.
+     * @return {MessageDTO} - message with appended signature.
      */
-    async appendSignatureToMessage(message: Message): Promise<Message> {
+    async appendSignatureToMessage(message: MessageDTO<unknown>): Promise<MessageDTO<unknown>> {
         const { key } = await this.getKey(KeyType.Private);
         if (!key) return;
         const signature = this._encryptionService.createBase64Signature({ data: message, secretKey: key });

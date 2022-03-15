@@ -1,16 +1,29 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
+import { ApiService } from '../../api/service/api.service';
 import { DbService } from '../../db/service/db.service';
+import { KeyService } from '../../key/service/key.service';
 import { CreateChatDTO } from '../dtos/chat.dto';
+import { MessageDTO } from '../dtos/message.dto';
+import { ChatGateway } from '../gateway/chat.gateway';
 import { Chat, chatSchema, stringifyContacts, stringifyMessages } from '../models/chat.model';
 import { Message, stringifyMessage } from '../models/message.model';
+import { MessageService } from './message.service';
 
 @Injectable()
 export class ChatService {
     private _chatRepo: Repository<Chat>;
 
-    constructor(private readonly _dbService: DbService) {
+    constructor(
+        private readonly _configService: ConfigService,
+        private readonly _dbService: DbService,
+        private readonly _apiService: ApiService,
+        private readonly _messageService: MessageService,
+        private readonly _keyService: KeyService,
+        private readonly _chatGateway: ChatGateway
+    ) {
         this._chatRepo = this._dbService.createRepository(chatSchema);
     }
 
@@ -108,6 +121,34 @@ export class ChatService {
             return await this._chatRepo.save(chat);
         } catch (error) {
             throw new BadRequestException(error);
+        }
+    }
+
+    /**
+     * @param {string} adminLocation - External admin location to get chat from.
+     * @param {string} chatID - Chat ID to fetch from location.
+     */
+    async syncNewChatWithAdmin({ adminLocation, chatID }: { adminLocation: string; chatID: string }): Promise<Chat> {
+        const chat = await this._apiService.getAdminChat({ location: adminLocation, chatID });
+        this._chatGateway.emitMessageToConnectedClients('new_chat', chat);
+        return await this.createChat(chat);
+    }
+
+    async handleGroupAdmin({ chat, message, chatId }: { chat: Chat; message: MessageDTO<unknown>; chatId: string }) {
+        const contacts = chat.parseContacts();
+        const validSignature = await this._messageService.verifySignedMessage({
+            isGroup: false,
+            adminContact: null,
+            fromContact: contacts.find(c => c.id === message.from),
+            signedMessage: message,
+        });
+        if (!validSignature) throw new BadRequestException(`failed to verify message signature`);
+
+        const signedMessage = await this._keyService.appendSignatureToMessage(message);
+        const userId = this._configService.get<string>('userId');
+        const receivingContacts = contacts.filter(c => c.id !== userId);
+        for (const c of receivingContacts) {
+            await this._apiService.sendMessageToApi({ location: c.location, message: signedMessage });
         }
     }
 }
