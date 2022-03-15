@@ -11,7 +11,12 @@ import { ChatService } from '../service/chat.service';
 import { ContactService } from '../service/contact.service';
 import { MessageService } from '../service/message.service';
 import { ContactRequest, GroupUpdate, SystemMessage, SystemMessageType } from '../types/message.type';
-import { AddUserSystemState, RemoveUserSystemState, SubSystemMessageState } from './system-message.state';
+import {
+    AddUserSystemState,
+    PersistSystemMessage,
+    RemoveUserSystemState,
+    SubSystemMessageState,
+} from './system-message.state';
 
 export abstract class MessageState<T> {
     abstract handle({ message, chat }: { message: MessageDTO<T>; chat: Chat }): Promise<unknown>;
@@ -56,6 +61,14 @@ export class SystemMessageState implements MessageState<SystemMessage> {
             SystemMessageType.REMOVE_USER,
             new RemoveUserSystemState(this._apiService, this._chatService, this._configService, this._chatGateway)
         );
+        this._systemMessageStateHandlers.set(
+            SystemMessageType.JOINED_VIDEOROOM,
+            new PersistSystemMessage(this._chatService)
+        );
+        this._systemMessageStateHandlers.set(
+            SystemMessageType.CONTACT_REQUEST_SEND,
+            new PersistSystemMessage(this._chatService)
+        );
     }
 
     async handle({ message, chat }: { message: MessageDTO<SystemMessage>; chat: Chat }) {
@@ -68,9 +81,3 @@ export class SystemMessageState implements MessageState<SystemMessage> {
         return await this._chatService.addMessageToChat({ chat, message });
     }
 }
-
-// export class AddUserMessageState implements MessageState {
-//     handle(): Promise<unknown> {
-//         throw new Error('Method not implemented.');
-//     }
-// }

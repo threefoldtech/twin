@@ -54,3 +54,11 @@ export class RemoveUserSystemState implements SubSystemMessageState {
         return await this._apiService.sendMessageToApi({ location: contact.location, message });
     }
 }
+
+export class PersistSystemMessage implements SubSystemMessageState {
+    constructor(private readonly _chatService: ChatService) {}
+
+    handle({ message, chat }: { message: MessageDTO<SystemMessage>; chat: Chat }): Promise<string> {
+        return this._chatService.addMessageToChat({ chat, message });
+    }
+}
