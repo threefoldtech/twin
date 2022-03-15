@@ -3,7 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import axios, { ResponseType } from 'axios';
 
 import { ChatDTO } from '../../chat/dtos/chat.dto';
-import { CreateMessageDTO } from '../../chat/dtos/message.dto';
+import { MessageDTO } from '../../chat/dtos/message.dto';
+import { Chat } from '../../chat/models/chat.model';
 
 @Injectable()
 export class ApiService {
@@ -31,16 +32,16 @@ export class ApiService {
     /**
      * Sends a message to another digital twin.
      * @param {string} location - IPv6 location to send message to.
-     * @param {CreateMessageDTO} message - Message to send.
+     * @param {MessageDTO} message - Message to send.
      * @param {ResponseType} responseType - Axios optional response type.
      */
-    async sendMessageToApi<T>({
+    async sendMessageToApi({
         location,
         message,
         responseType,
     }: {
         location: string;
-        message: CreateMessageDTO<T>;
+        message: MessageDTO<unknown>;
         responseType?: ResponseType;
     }) {
         try {
@@ -50,6 +51,31 @@ export class ApiService {
             });
         } catch (error) {
             throw new BadRequestException(`unable to send message to external API: ${error}`);
+        }
+    }
+
+    /**
+     * Sends a group invitation to contacts in chat.
+     * @param {string} location - IPv6 location to send invite to.
+     * @param {Chat} chat - Chat with contacts to invite.
+     * @param {ResponseType} responseType - Axios optional response type.
+     */
+    async sendGroupInvitation({
+        location,
+        chat,
+        responseType,
+    }: {
+        location: string;
+        chat: Chat;
+        responseType?: ResponseType;
+    }) {
+        try {
+            // TODO: change to /nest/group/invite when implemented
+            return await axios.put(`http://[${location}]/api/group/invite`, chat, {
+                responseType: responseType || 'json',
+            });
+        } catch (error) {
+            throw new BadRequestException(`unable to send group invitation: ${error}`);
         }
     }
 

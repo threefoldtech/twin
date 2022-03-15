@@ -1,35 +1,43 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Put, Query } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Put, Query } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ContactDTO } from '../dtos/contact.dto';
+import { ApiService } from '../../api/service/api.service';
 import { MessageDTO } from '../dtos/message.dto';
-import { Message } from '../models/message.model';
+import { ChatGateway } from '../gateway/chat.gateway';
 import { BlockedContactService } from '../service/blocked-contact.service';
 import { ChatService } from '../service/chat.service';
 import { ContactService } from '../service/contact.service';
 import { MessageService } from '../service/message.service';
 import { ContactRequestMessageState, MessageState, SystemMessageState } from '../state/message.state';
-import { GroupUpdate, MessageType, SystemMessageType } from '../types/message.type';
+import { MessageType } from '../types/message.type';
 
 @Controller('messages')
 export class MessageController {
-    private messageStateHandlers = new Map<MessageType, MessageState<unknown>>();
+    private _messageStateHandlers = new Map<MessageType, MessageState<unknown>>();
 
     constructor(
         private readonly _configService: ConfigService,
         private readonly _messageService: MessageService,
         private readonly _chatService: ChatService,
         private readonly _contactService: ContactService,
-        private readonly _blockedContactService: BlockedContactService
+        private readonly _blockedContactService: BlockedContactService,
+        private readonly _apiService: ApiService,
+        private readonly _chatGateway: ChatGateway
     ) {
         // init message handlers
-        this.messageStateHandlers.set(
+        this._messageStateHandlers.set(
             MessageType.CONTACT_REQUEST,
             new ContactRequestMessageState(this._messageService, this._contactService)
         );
-        this.messageStateHandlers.set(
+        this._messageStateHandlers.set(
             MessageType.SYSTEM,
-            new SystemMessageState(this._messageService, this._chatService, this._configService)
+            new SystemMessageState(
+                this._messageService,
+                this._chatService,
+                this._configService,
+                this._apiService,
+                this._chatGateway
+            )
         );
     }
 
@@ -50,7 +58,7 @@ export class MessageController {
         if (chat.isGroup && chat.adminId === userId) await this._chatService.handleGroupAdmin({ chat, message });
 
         // get correct message handler and let it handle the incoming message
-        return await this.messageStateHandlers.get(message.type).handle({ message, chat });
+        return await this._messageStateHandlers.get(message.type).handle({ message, chat });
 
         // const validSignature = await this._messageService.verifySignedMessageByChat({ chat, signedMessage: message });
         // if (!validSignature) throw new BadRequestException(`failed to verify message signature`);

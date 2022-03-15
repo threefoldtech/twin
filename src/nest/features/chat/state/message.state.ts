@@ -1,14 +1,17 @@
 import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { ApiService } from '../../api/service/api.service';
 import { CreateContactDTO } from '../dtos/contact.dto';
 import { MessageDTO } from '../dtos/message.dto';
+import { ChatGateway } from '../gateway/chat.gateway';
 import { Chat } from '../models/chat.model';
 import { Message } from '../models/message.model';
 import { ChatService } from '../service/chat.service';
 import { ContactService } from '../service/contact.service';
 import { MessageService } from '../service/message.service';
 import { ContactRequest, GroupUpdate, SystemMessage, SystemMessageType } from '../types/message.type';
+import { AddUserSystemState, SubSystemMessageState } from './system-message.state';
 
 export abstract class MessageState<T> {
     abstract handle({ message, chat }: { message: MessageDTO<T>; chat: Chat }): Promise<unknown>;
@@ -35,30 +38,28 @@ export class ContactRequestMessageState implements MessageState<ContactRequest> 
 }
 
 export class SystemMessageState implements MessageState<SystemMessage> {
+    private _systemMessageStateHandlers = new Map<SystemMessageType, SubSystemMessageState>();
+
     constructor(
         private readonly _messageService: MessageService,
         private readonly _chatService: ChatService,
-        private readonly _configService: ConfigService
-    ) {}
+        private readonly _configService: ConfigService,
+        private readonly _apiService: ApiService,
+        private readonly _chatGateway: ChatGateway
+    ) {
+        // init sub system message state handlers
+        this._systemMessageStateHandlers.set(
+            SystemMessageType.ADD_USER,
+            new AddUserSystemState(this._apiService, this._chatService, this._configService, this._chatGateway)
+        );
+    }
 
     async handle({ message, chat }: { message: MessageDTO<SystemMessage>; chat: Chat }) {
         const validSignature = await this._messageService.verifySignedMessageByChat({ chat, signedMessage: message });
         if (!validSignature) throw new BadRequestException(`failed to verify message signature`);
-        const userId = this._configService.get<string>('userId');
-        const { type, contact, adminLocation } = message.body as GroupUpdate;
-        const isAddUserType = type === SystemMessageType.ADD_USER;
-        if (isAddUserType && userId === contact.id)
-            return this.handleAddUserToGroup({ adminLocation, chatID: message.to });
-    }
 
-    private async handleAddUserToGroup({
-        adminLocation,
-        chatID,
-    }: {
-        adminLocation: string;
-        chatID: string;
-    }): Promise<Chat> {
-        return await this._chatService.syncNewChatWithAdmin({ adminLocation, chatID });
+        const { type } = message.body as GroupUpdate;
+        return await this._systemMessageStateHandlers.get(type).handle({ message, chat });
     }
 }
 
