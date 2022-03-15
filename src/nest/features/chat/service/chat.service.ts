@@ -1,4 +1,10 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+    BadRequestException,
+    ForbiddenException,
+    Injectable,
+    InternalServerErrorException,
+    NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
@@ -17,8 +23,8 @@ export class ChatService {
     private _chatRepo: Repository<Chat>;
 
     constructor(
-        private readonly _configService: ConfigService,
         private readonly _dbService: DbService,
+        private readonly _configService: ConfigService,
         private readonly _apiService: ApiService,
         private readonly _messageService: MessageService,
         private readonly _keyService: KeyService,
@@ -108,6 +114,19 @@ export class ChatService {
     }
 
     /**
+     * Deletes a chat by its ID.
+     * @param {string} chatID - Chat ID.
+     */
+    async deleteChat(chatID: string): Promise<void> {
+        const chatToDelete = await this.getChat(chatID);
+        try {
+            return await this._chatRepo.remove(chatToDelete.entityId);
+        } catch (error) {
+            throw new InternalServerErrorException(`unable to delete contact: ${error}`);
+        }
+    }
+
+    /**
      * Adds a message to a chat.
      * @param {Chat} chat - Chat to add messages to.
      * @param {Message} message - Signed message to add to chat.
@@ -118,6 +137,21 @@ export class ChatService {
             chat.messages
                 ? chat.messages.push(stringifyMessage(message))
                 : (chat.messages = [stringifyMessage(message)]);
+            return await this._chatRepo.save(chat);
+        } catch (error) {
+            throw new BadRequestException(error);
+        }
+    }
+
+    /**
+     * Removes a contact from a chat.
+     * @param {Chat} chat - Chat to remove contact from.
+     * @param {string} contactId - Contact to remove.
+     */
+    async removeContactFromChat({ chat, contactId }: { chat: Chat; contactId: string }) {
+        try {
+            const contacts = chat.parseContacts().filter(c => c.id !== contactId);
+            chat.contacts = stringifyContacts(contacts);
             return await this._chatRepo.save(chat);
         } catch (error) {
             throw new BadRequestException(error);

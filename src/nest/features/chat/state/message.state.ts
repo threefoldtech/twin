@@ -11,7 +11,7 @@ import { ChatService } from '../service/chat.service';
 import { ContactService } from '../service/contact.service';
 import { MessageService } from '../service/message.service';
 import { ContactRequest, GroupUpdate, SystemMessage, SystemMessageType } from '../types/message.type';
-import { AddUserSystemState, SubSystemMessageState } from './system-message.state';
+import { AddUserSystemState, RemoveUserSystemState, SubSystemMessageState } from './system-message.state';
 
 export abstract class MessageState<T> {
     abstract handle({ message, chat }: { message: MessageDTO<T>; chat: Chat }): Promise<unknown>;
@@ -51,6 +51,10 @@ export class SystemMessageState implements MessageState<SystemMessage> {
         this._systemMessageStateHandlers.set(
             SystemMessageType.ADD_USER,
             new AddUserSystemState(this._apiService, this._chatService, this._configService, this._chatGateway)
+        );
+        this._systemMessageStateHandlers.set(
+            SystemMessageType.REMOVE_USER,
+            new RemoveUserSystemState(this._apiService, this._chatService, this._configService, this._chatGateway)
         );
     }
 
