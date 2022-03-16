@@ -1,8 +1,7 @@
-import { Body, Controller, Delete, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../../../guards/auth.guard';
-import { CreateBlockedContactDTO, DeleteBlockedContactDTO } from '../dtos/blocked-contact.dto';
-import { BlockedContact } from '../models/blocked-contact.model';
+import { CreateBlockedContactDTO } from '../dtos/blocked-contact.dto';
 import { BlockedContactService } from '../service/blocked-contact.service';
 
 @Controller('blocked')
@@ -11,21 +10,20 @@ export class BlockedContactController {
 
     @Post()
     @UseGuards(AuthGuard)
-    async addBlockedContact(@Body() createBlockedContactDTO: CreateBlockedContactDTO): Promise<BlockedContact> {
+    async addBlockedContact(@Body() createBlockedContactDTO: CreateBlockedContactDTO): Promise<string> {
         return await this._blockedContacService.addBlockedContact({
             id: createBlockedContactDTO.id,
         });
     }
 
     @Get()
-    // @UseGuards(AuthGuard)
-    async getBlockedContacts(): Promise<BlockedContact[]> {
+    async getBlockedContacts(): Promise<string[]> {
         return await this._blockedContacService.getBlockedContactList();
     }
 
-    @Delete()
+    @Delete(':id')
     @UseGuards(AuthGuard)
-    async deleteBlockedContact(@Query('id') { id }: DeleteBlockedContactDTO) {
+    async deleteBlockedContact(@Param() { id }: { id: string }) {
         return await this._blockedContacService.deleteBlockedContact({ id });
     }
 }
