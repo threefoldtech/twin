@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Repository } from 'redis-om';
 
 import { DbService } from '../../db/service/db.service';
@@ -50,21 +50,13 @@ export class BlockedContactService {
 
     /**
      * Gets blocked contacts using pagination.
-     * @param offset - Contact offset, defaults to 0.
-     * @param count - Amount of blocked contacts to fetch, defaults to 25.
      * @return {BlockedContact[]} - Found blocked contacts.
      */
-    async getBlockedContactList({
-        offset = 0,
-        count = 25,
-    }: {
-        offset?: number;
-        count?: number;
-    }): Promise<BlockedContact[]> {
+    async getBlockedContactList(): Promise<BlockedContact[]> {
         try {
-            return await this._blockedContactRepo.search().return.page(offset, count);
+            return await this._blockedContactRepo.search().return.all();
         } catch (error) {
-            throw new NotFoundException('no blocked contacts found');
+            return [];
         }
     }
 }

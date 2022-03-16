@@ -20,9 +20,9 @@ export class BlockedContactController {
     }
 
     @Get()
-    @UseGuards(AuthGuard)
-    async getBlockedContacts(@Query('offset') offset = 0, @Query('count') count = 25): Promise<BlockedContact[]> {
-        return await this._blockedContacService.getBlockedContactList({ offset, count });
+    // @UseGuards(AuthGuard)
+    async getBlockedContacts(): Promise<BlockedContact[]> {
+        return await this._blockedContacService.getBlockedContactList();
     }
 
     @Delete()

@@ -11,4 +11,9 @@ export class LocationController {
     getLocations(): LocationResponse {
         return this._locationService.getLocations();
     }
+
+    @Get('yggdrasil')
+    async getYggdrasilAddress() {
+        return await this._locationService.getOwnLocation();
+    }
 }

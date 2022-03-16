@@ -77,17 +77,16 @@ export class YggdrasilService {
         // to try and get our location from yggdrasil
         // stop when address is found
         return new Promise<void>((res, rej) => {
-            let done = false;
             setTimeout(() => {
-                if (done) return;
+                if (this.isInitialised()) return;
                 rej();
-                done = true;
+                this.initialised = true;
             }, 30000);
-            while (!done) {
+            while (!this.isInitialised()) {
                 this._locationService.getOwnLocation().then(address => {
                     if (address) {
                         res();
-                        done = true;
+                        this.initialised = true;
                     }
                 });
             }
