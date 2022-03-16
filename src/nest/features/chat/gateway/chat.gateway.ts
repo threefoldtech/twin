@@ -17,7 +17,7 @@ import { Contact } from '../models/contact.model';
 import { Message } from '../models/message.model';
 import { ChatService } from '../service/chat.service';
 
-@WebSocketGateway({ cors: '*', namespace: 'chat' })
+@WebSocketGateway({ cors: '*' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
     private logger: Logger = new Logger('ChatGateway');
 
@@ -84,6 +84,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         client.emit('left_chat', 'chat');
     }
 
+    @SubscribeMessage('block_chat')
+    handleBlockChat(client: Socket): void {
+        console.log('BLOCK CHAT CALLED');
+    }
+
     /**
      * Emits message to connected clients.
      * @param {string} event - Event to emit.
@@ -108,7 +113,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      */
     handleConnection(client: Socket): void {
         this.logger.log(`new client connection: ${client.id}`);
-        this.handleJoinChat(client);
+        // this.handleJoinChat(client);
     }
 
     /**

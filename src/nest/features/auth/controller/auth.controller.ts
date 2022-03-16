@@ -19,7 +19,7 @@ export class AuthController {
     @UseGuards(AuthGuard)
     async isLoggedIn(@Req() req: Request, @Res() res: Response) {
         return res.json({
-            status: !!req.session.userId,
+            status: !!req.session?.userId,
         });
     }
 

@@ -16,9 +16,7 @@ export class AuthGuard implements CanActivate {
         const userId = req.session?.userId;
         const isDevMode = this._configService.get<string>('node_env') === 'development';
         const yggdrasilInitialised = this._yggdrasilService.isInitialised();
-        if (!userId && (!isDevMode || !yggdrasilInitialised)) {
-            return false;
-        }
+        if (!userId && (!isDevMode || !yggdrasilInitialised)) return false;
 
         return userId === this._configService.get<string>('userId');
     }

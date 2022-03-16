@@ -1,15 +1,16 @@
-import { getChatById, persistMessage } from './chatService';
+import * as http from 'http';
 import { Socket } from 'socket.io';
+
+import { config } from '../config/config';
 import Message from '../models/message';
 import { connections } from '../store/connections';
-import * as http from 'http';
-import { editMessage, handleRead, parseMessage } from './messageService';
-import { MessageBodyTypeInterface, MessageTypes, StringMessageTypeInterface } from '../types';
-import { deleteChat, getBlocklist, persistBlocklist } from './dataService';
-import { sendMessageToApi } from './apiService';
 import { updateLastSeen, updateStatus } from '../store/user';
-import { config } from '../config/config';
+import { MessageBodyTypeInterface, MessageTypes, StringMessageTypeInterface } from '../types';
+import { sendMessageToApi } from './apiService';
+import { getChatById, persistMessage } from './chatService';
+import { deleteChat, getBlocklist, persistBlocklist } from './dataService';
 import { appendSignatureToMessage } from './keyService';
+import { editMessage, handleRead, parseMessage } from './messageService';
 
 const socketio = require('socket.io');
 
@@ -53,7 +54,7 @@ export const startSocketIo = (httpServer: http.Server) => {
                 io.to(connection).emit('message', newMessage);
                 console.log(`send message to socket ${connection}`);
             });
-            let location = chat.contacts.find(c => c.id == chat.adminId).location;
+            const location = chat.contacts.find(c => c.id == chat.adminId).location;
 
             if (newMessage.type === MessageTypes.READ) {
                 handleRead(<Message<StringMessageTypeInterface>>newMessage);
@@ -71,7 +72,7 @@ export const startSocketIo = (httpServer: http.Server) => {
             editMessage(messageData.chatId, newMessage);
             appendSignatureToMessage(newMessage);
             const chat = getChatById(messageData.chatId);
-            let location1 = chat.contacts.find(c => c.id == chat.adminId).location;
+            const location1 = chat.contacts.find(c => c.id == chat.adminId).location;
             sendMessageToApi(location1, newMessage);
         });
         socket.on('status_update', data => {

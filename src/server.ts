@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import cors, { CorsOptions } from 'cors';
 import express, { Application } from 'express';
 import session from 'express-session';
-// import http from 'http';
+import http from 'http';
 import morgan from 'morgan';
 
 import { initAll } from './index';
@@ -13,7 +13,7 @@ import errorMiddleware from './middlewares/errorHandlingMiddleware';
 import bootstrapNest from './nest/main';
 import mountNestApp from './nest/utils/mount-nest';
 import routes from './routes';
-// import { startSocketIo } from './service/socketService';
+import { startSocketIo } from './service/socketService';
 
 const PORT = process.env.PORT ?? 3000;
 
@@ -23,9 +23,9 @@ const corsOptions: CorsOptions = {
 };
 
 const app: Application = express();
-// const httpServer: http.Server = http.createServer(app);
+const httpServer: http.Server = http.createServer(app);
 
-// startSocketIo(httpServer);
+startSocketIo(httpServer);
 
 app.use(
     morgan('short', {
@@ -73,7 +73,7 @@ app.use('/api/', routes);
 
 initAll();
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`express server started on port ${PORT}`);
 });
 

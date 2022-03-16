@@ -20,7 +20,7 @@ async function mountNestApp({
         console.log(`nestjs server started on port ${+PORT + 1}`);
     });
 
-    await nestApp.init();
+    // await nestApp.init();
 }
 
 export default mountNestApp;
