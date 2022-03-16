@@ -41,7 +41,7 @@ export class BlockedContactService {
     async deleteBlockedContact({ id }: DeleteBlockedContactDTO): Promise<void> {
         try {
             const contact = await this._blockedContactRepo.search().where('id').eq(id).return.first();
-            this._contactService.addContact({ id, location: contact.location });
+            this._contactService.addContact({ id, location: contact.location, contactRequest: false });
             return await this._blockedContactRepo.remove(contact.entityId);
         } catch (error) {
             throw new BadRequestException(`unable to remove contact from blocked list: ${error}`);

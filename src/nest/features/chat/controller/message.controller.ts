@@ -2,7 +2,7 @@ import { Body, Controller, ForbiddenException, Get, Param, Put, Query } from '@n
 import { ConfigService } from '@nestjs/config';
 
 import { ApiService } from '../../api/service/api.service';
-import { MessageDTO } from '../dtos/message.dto';
+import { CreateMessageDTO, MessageDTO } from '../dtos/message.dto';
 import { ChatGateway } from '../gateway/chat.gateway';
 import { BlockedContactService } from '../service/blocked-contact.service';
 import { ChatService } from '../service/chat.service';
@@ -46,15 +46,17 @@ export class MessageController {
 
     @Put()
     async handleIncomingMessage(
-        @Body() message: MessageDTO<unknown>,
+        @Body() message: CreateMessageDTO<unknown>,
         @Query('offset') offset = 0,
         @Query('count') count = 25
     ) {
+        console.log(`Message type: ${message.type}`);
         const blockedContacts = await this._blockedContactService.getBlockedContactList({ offset, count });
         const isBlocked = blockedContacts.find(c => c.id === message.from);
+        console.log(`isBlocked: ${isBlocked}`);
         if (isBlocked) throw new ForbiddenException('blocked');
 
-        // needs to be checked first otherwise chat will always be null
+        // needs to be checked first otherwise chat will always show as unaccepted
         if (message.type === MessageType.CONTACT_REQUEST)
             return await this._messageStateHandlers.get(MessageType.CONTACT_REQUEST).handle({ message, chat: null });
 

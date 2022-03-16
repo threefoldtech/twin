@@ -40,7 +40,8 @@ export class LocationService {
                 (err: Error, stdout: string, sterr: string) => {
                     if (err) return rej(err);
                     if (sterr) return rej(sterr);
-                    res(stdout);
+                    const formattedAddress = stdout.replace('\n', '');
+                    res(formattedAddress);
                 }
             );
         });

@@ -38,13 +38,14 @@ export class UserController {
     }
 
     @Get('status')
-    @UseGuards(AuthGuard)
     async getStatus() {
         const isOnline = (await this._connectionService.getConnections()).length ? true : false;
         const userData = await this._userService.getUserData();
+        const avatar = await this._userService.getUserAvatar();
 
         return {
-            userData,
+            ...userData.entityData,
+            avatar,
             isOnline,
         };
     }

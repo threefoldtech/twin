@@ -166,7 +166,7 @@ export class ContactService {
     }
 
     /**
-     * Gets a contact that has accepted the chat request.
+     * Gets a contact that has accepted the chat request (contactRequest is false).
      * @param {string} contactId - Contacts Id.
      * @return {Contact} - Found contact.
      */
@@ -177,7 +177,7 @@ export class ContactService {
                 .where('id')
                 .eq(contactId)
                 .and('contactRequest')
-                .true()
+                .false()
                 .return.first();
         } catch (error) {
             throw new NotFoundException(`contact not found`);

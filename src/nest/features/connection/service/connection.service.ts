@@ -10,7 +10,7 @@ export class ConnectionService {
 
     constructor(private readonly _dbService: DbService) {
         this._connectionRepo = this._dbService.createRepository(connectionSchema);
-        // this._dbService.createIndex(this.connectionRepo);
+        this._connectionRepo.createIndex();
     }
 
     /**
@@ -48,7 +48,7 @@ export class ConnectionService {
         try {
             return await this._connectionRepo.search().return.page(offset, count);
         } catch (error) {
-            throw new InternalServerErrorException(error);
+            throw new InternalServerErrorException(`something went wrong getting connections: ${error}`);
         }
     }
 }

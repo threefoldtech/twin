@@ -17,6 +17,7 @@ export class ApiService {
      */
     async registerDigitalTwin({ doubleName, signedAddress }: { doubleName: string; signedAddress: string }) {
         try {
+            // TODO: change to /nest/users/digitaltwin/:doubleName when implemented
             return await axios.put(
                 `${this._configService.get<string>('appBackend')}/api/users/digitaltwin/${doubleName}`,
                 {

@@ -3,14 +3,20 @@ import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
 import { DbService } from '../../db/service/db.service';
+import { LocationService } from '../../location/service/location.service';
 import { User, userSchema } from '../models/user.model';
 
 @Injectable()
 export class UserService {
     private _userRepo: Repository<User>;
 
-    constructor(private readonly _dbService: DbService, private readonly _configService: ConfigService) {
+    constructor(
+        private readonly _dbService: DbService,
+        private readonly _configService: ConfigService,
+        private readonly _locationService: LocationService
+    ) {
         this._userRepo = this._dbService.createRepository(userSchema);
+        this._userRepo.createIndex();
     }
 
     /**
@@ -55,6 +61,11 @@ export class UserService {
                 lastSeen: new Date(),
             });
         }
+    }
+
+    async getUserAvatar(): Promise<string> {
+        const myAddress = await this._locationService.getOwnLocation();
+        return `http://[${myAddress}]/nest/user/avatar`;
     }
 
     /**
