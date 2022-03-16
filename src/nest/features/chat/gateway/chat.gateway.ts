@@ -15,6 +15,7 @@ import { SocketService } from '../../socket/service/socket.service';
 import { Chat } from '../models/chat.model';
 import { Contact } from '../models/contact.model';
 import { Message } from '../models/message.model';
+import { BlockedContactService } from '../service/blocked-contact.service';
 import { ChatService } from '../service/chat.service';
 
 @WebSocketGateway({ cors: '*' })
@@ -25,7 +26,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         private readonly _socketService: SocketService,
         private readonly _configService: ConfigService,
         private readonly _keyService: KeyService,
-        private readonly _chatService: ChatService
+        private readonly _chatService: ChatService,
+        private readonly _blockedContactService: BlockedContactService
     ) {}
 
     /**
@@ -85,8 +87,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
 
     @SubscribeMessage('block_chat')
-    handleBlockChat(client: Socket): void {
-        console.log('BLOCK CHAT CALLED');
+    async handleBlockChat(@MessageBody() id: string) {
+        console.log(`ID: ${id}`);
+        await this._blockedContactService.addBlockedContact({ id });
+        this.emitMessageToConnectedClients('chat_blocked', id);
     }
 
     /**

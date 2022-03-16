@@ -14,8 +14,6 @@ export class BlockedContactController {
     async addBlockedContact(@Body() createBlockedContactDTO: CreateBlockedContactDTO): Promise<BlockedContact> {
         return await this._blockedContacService.addBlockedContact({
             id: createBlockedContactDTO.id,
-            location: createBlockedContactDTO.location,
-            since: createBlockedContactDTO.since,
         });
     }
 

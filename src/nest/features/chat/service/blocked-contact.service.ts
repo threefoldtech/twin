@@ -4,14 +4,14 @@ import { Repository } from 'redis-om';
 import { DbService } from '../../db/service/db.service';
 import { CreateBlockedContactDTO, DeleteBlockedContactDTO } from '../dtos/blocked-contact.dto';
 import { BlockedContact, blockedContactSchema } from '../models/blocked-contact.model';
-import { ContactService } from './contact.service';
 
 @Injectable()
 export class BlockedContactService {
     private _blockedContactRepo: Repository<BlockedContact>;
 
-    constructor(private readonly _dbService: DbService, private readonly _contactService: ContactService) {
+    constructor(private readonly _dbService: DbService) {
         this._blockedContactRepo = this._dbService.createRepository(blockedContactSchema);
+        this._blockedContactRepo.createIndex();
     }
 
     /**
@@ -21,13 +21,10 @@ export class BlockedContactService {
      * @param {Date} since - Date when the contact was added to blocked list.
      * @return {BlockedContact} - Created entity.
      */
-    async addBlockedContact({ id, location, since }: CreateBlockedContactDTO): Promise<BlockedContact> {
+    async addBlockedContact({ id }: CreateBlockedContactDTO): Promise<BlockedContact> {
         try {
-            this._contactService.deleteContact({ id });
             return await this._blockedContactRepo.createAndSave({
                 id,
-                location,
-                since,
             });
         } catch (error) {
             throw new BadRequestException(`unable to add contact to blocked list: ${error}`);
@@ -41,7 +38,6 @@ export class BlockedContactService {
     async deleteBlockedContact({ id }: DeleteBlockedContactDTO): Promise<void> {
         try {
             const contact = await this._blockedContactRepo.search().where('id').eq(id).return.first();
-            this._contactService.addContact({ id, location: contact.location, contactRequest: false });
             return await this._blockedContactRepo.remove(contact.entityId);
         } catch (error) {
             throw new BadRequestException(`unable to remove contact from blocked list: ${error}`);
@@ -56,6 +52,7 @@ export class BlockedContactService {
         try {
             return await this._blockedContactRepo.search().return.all();
         } catch (error) {
+            console.log(error);
             return [];
         }
     }

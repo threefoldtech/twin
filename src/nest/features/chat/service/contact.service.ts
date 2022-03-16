@@ -31,6 +31,7 @@ export class ContactService {
         private readonly _chatGateway: ChatGateway
     ) {
         this._contactRepo = this._dbService.createRepository(contactSchema);
+        this._contactRepo.createIndex();
     }
 
     /**

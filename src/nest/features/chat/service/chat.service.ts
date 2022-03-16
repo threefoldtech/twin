@@ -31,6 +31,7 @@ export class ChatService {
         private readonly _socketService: SocketService
     ) {
         this._chatRepo = this._dbService.createRepository(chatSchema);
+        this._chatRepo.createIndex();
     }
 
     /**

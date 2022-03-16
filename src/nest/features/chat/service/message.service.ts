@@ -19,6 +19,7 @@ export class MessageService {
         private readonly _keyService: KeyService
     ) {
         this._messageRepo = this._dbService.createRepository(messageSchema);
+        this._messageRepo.createIndex();
     }
 
     /**
