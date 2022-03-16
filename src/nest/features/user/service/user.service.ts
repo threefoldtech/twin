@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
@@ -52,20 +52,24 @@ export class UserService {
     async getUserData(): Promise<User> {
         const userId = this._configService.get<string>('userId');
         try {
-            return await this._userRepo.search().where('userId').equals(userId).return.first();
+            const user = await this._userRepo.search().where('userId').equals(userId).return.first();
+            if (!user)
+                return await this.addUserData({
+                    userId,
+                    status: 'Exploring the new DigitalTwin',
+                    avatar: 'default',
+                    lastSeen: new Date(),
+                });
+
+            return user;
         } catch (error) {
-            return await this.addUserData({
-                userId,
-                status: 'Exploring the new DigitalTwin',
-                avatar: 'default',
-                lastSeen: new Date(),
-            });
+            throw new InternalServerErrorException(error);
         }
     }
 
     async getUserAvatar(): Promise<string> {
         const myAddress = await this._locationService.getOwnLocation();
-        return `http://[${myAddress}]/nest/user/avatar`;
+        return `http://[${myAddress}]/nest/user/avatar/default`;
     }
 
     /**

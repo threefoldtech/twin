@@ -2,6 +2,7 @@ import {
     BadRequestException,
     Controller,
     Get,
+    Param,
     Post,
     Req,
     StreamableFile,
@@ -11,7 +12,6 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createReadStream } from 'fs-extra';
-import { join } from 'path';
 
 import { AuthGuard } from '../../../guards/auth.guard';
 import { AuthenticatedRequest } from '../../../types/requests';
@@ -50,12 +50,12 @@ export class UserController {
         };
     }
 
-    @Get('avatar')
-    async getAvatar(): Promise<StreamableFile> {
-        const filePath = `${this._configService.get<string>(
-            'uploadDestination'
-        )}/users/avatars/${this._configService.get<string>('userId')}-avatar.png`;
-        const stream = createReadStream(join(process.cwd(), filePath));
+    @Get('avatar/:avatarId')
+    async getAvatar(@Param('avatarId') avatarId: string) {
+        console.log(`Avatar: ${avatarId}`);
+        const filePath = `${this._configService.get<string>('baseDir')}user/avatar-${avatarId}`;
+        console.log(`FilePath: ${filePath}`);
+        const stream = createReadStream(filePath);
         return new StreamableFile(stream);
     }
 

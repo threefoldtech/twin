@@ -110,4 +110,13 @@ export class ApiService {
             throw new BadRequestException(`unable to get admins chat: ${error}`);
         }
     }
+
+    async getExternalResource({ resource }: { resource: string }) {
+        try {
+            console.log('CALLED');
+            return await axios.get(resource);
+        } catch (error) {
+            throw new BadRequestException(`unable to get external resource: ${error}`);
+        }
+    }
 }
