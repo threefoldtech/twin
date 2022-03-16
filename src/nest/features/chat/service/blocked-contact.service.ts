@@ -17,15 +17,14 @@ export class BlockedContactService {
     /**
      * Adds a contact to blocked list and removes it from contacts.
      * @param {string} id - Contact ID.
-     * @param {string} location - Contact IPv6.
-     * @param {Date} since - Date when the contact was added to blocked list.
-     * @return {BlockedContact} - Created entity.
+     * @return {stirng} - Blocked contact id.
      */
-    async addBlockedContact({ id }: CreateBlockedContactDTO): Promise<BlockedContact> {
+    async addBlockedContact({ id }: CreateBlockedContactDTO): Promise<string> {
         try {
-            return await this._blockedContactRepo.createAndSave({
+            const contact = await this._blockedContactRepo.createAndSave({
                 id,
             });
+            return contact.id;
         } catch (error) {
             throw new BadRequestException(`unable to add contact to blocked list: ${error}`);
         }
@@ -46,11 +45,12 @@ export class BlockedContactService {
 
     /**
      * Gets blocked contacts using pagination.
-     * @return {BlockedContact[]} - Found blocked contacts.
+     * @return {string[]} - Found blocked contacts ids.
      */
-    async getBlockedContactList(): Promise<BlockedContact[]> {
+    async getBlockedContactList(): Promise<string[]> {
         try {
-            return await this._blockedContactRepo.search().return.all();
+            const contacts = await this._blockedContactRepo.search().return.all();
+            return contacts.map(c => c.id);
         } catch (error) {
             console.log(error);
             return [];
