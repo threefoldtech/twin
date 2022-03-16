@@ -1,7 +1,9 @@
 import express from 'express';
-import { HttpError } from '../types/errors/httpError';
 import { StatusCodes } from 'http-status-codes';
+
+import { config } from '../config/config';
 import { yggdrasilIsInitialized } from '../index';
+import { HttpError } from '../types/errors/httpError';
 
 /**
  * Handles authentication check
@@ -17,9 +19,12 @@ export const requiresAuthentication = (
     response: express.Response,
     next: express.NextFunction
 ): express.Response | void => {
-    const hasSession = !!request?.session?.userId;
+    const userId = request?.session?.userId;
     const isDevelopmentMode = process.env.ENVIRONMENT === 'development';
-    if (!hasSession && (!isDevelopmentMode || !yggdrasilIsInitialized)) {
+    if (!userId && (!isDevelopmentMode || !yggdrasilIsInitialized)) {
+        throw new HttpError(StatusCodes.UNAUTHORIZED);
+    }
+    if (userId !== config.userid) {
         throw new HttpError(StatusCodes.UNAUTHORIZED);
     }
 
