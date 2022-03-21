@@ -69,7 +69,7 @@ router.get('/:external', requiresAuthentication, async (req: express.Request, re
     //Need boolean or else infinite loop
     const fetchPostsFromExternals = req?.params.external.toLowerCase() === 'true';
 
-    let posts: any[] = [];
+    let posts: unknown[] = [];
 
     //Getting posts from other twins
     if (fetchPostsFromExternals) {
@@ -163,7 +163,7 @@ router.post('/someoneIsTyping', requiresAuthentication, async (req: express.Requ
 });
 
 router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const path = atob(req.params.path);
+    const path = Buffer.from(req.params.path, 'utf8').toString('base64');
     res.download(path);
 });
 
