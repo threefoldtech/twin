@@ -19,7 +19,7 @@ export class ApiService {
         try {
             // TODO: change to /nest/users/digitaltwin/:doubleName when implemented
             return await axios.put(
-                `${this._configService.get<string>('appBackend')}/api/v1/users/digitaltwin/${doubleName}`,
+                `${this._configService.get<string>('appBackend')}/api/users/digitaltwin/${doubleName}`,
                 {
                     app_id: this._configService.get<string>('appId'),
                     signed_yggdrasil_ip_address: signedAddress,

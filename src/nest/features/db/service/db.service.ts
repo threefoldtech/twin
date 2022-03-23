@@ -4,7 +4,7 @@ import { Client, Entity, Repository, Schema } from 'redis-om';
 @Injectable()
 export class DbService {
     private client: Client;
-    private redisURL = 'redis://default:PASSWORD@redis:6379';
+    private redisURL = 'redis://default:PASSWORD@localhost:6379';
 
     constructor() {
         this.client = new Client();

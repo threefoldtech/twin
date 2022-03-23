@@ -35,6 +35,7 @@ export class AuthController {
     @Get('callback')
     async authCallback(@Req() req: Request, @Res() res: Response) {
         const redirectUrl = new URL(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
+        console.log(`REDIRECT URL: ${redirectUrl}`);
         const profileData = await this._authService.getProfileData({ redirectUrl, sessionState: req.session.state });
 
         delete req.session.state;
