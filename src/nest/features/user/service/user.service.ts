@@ -69,7 +69,7 @@ export class UserService {
 
     async getUserAvatar(): Promise<string> {
         const myAddress = await this._locationService.getOwnLocation();
-        return `http://[${myAddress}]/nest/user/avatar/default`;
+        return `http://[${myAddress}]/api/v2/user/avatar/default`;
     }
 
     /**
