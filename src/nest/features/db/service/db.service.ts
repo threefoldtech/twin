@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Client, Entity, Repository, Schema } from 'redis-om';
 
 @Injectable()
 export class DbService {
     private client: Client;
+    private redisURL = 'redis://default:PASSWORD@redis:6379';
 
-    constructor(private readonly _configService: ConfigService) {
+    constructor() {
         this.client = new Client();
         this.connect();
     }
@@ -16,7 +16,7 @@ export class DbService {
      */
     async connect(): Promise<void> {
         if (!this.client.isOpen()) {
-            await this.client.open(this._configService.get<string>('redis.url'));
+            await this.client.open(this.redisURL);
         }
     }
 
