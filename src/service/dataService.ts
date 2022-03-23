@@ -9,6 +9,7 @@ import { ITokenFile } from '../store/tokenStore';
 import PATH from 'path';
 import { UploadedFile } from 'express-fileupload';
 import { notifyPersist, SharesInterface } from './fileShareService';
+import { sendEventToConnectedSockets } from './socketService';
 
 const userDirectory = PATH.join(config.baseDir, '/user');
 const chatsDirectory = PATH.join(config.baseDir, '/chats');
@@ -98,6 +99,7 @@ export const persistChat = (chat: Chat) => {
     fs.writeFileSync(PATH.join(path, '/chat.json'), JSON.stringify(sortedChat, null, 4), {
         flag: 'w',
     });
+    sendEventToConnectedSockets('chat_updated', chat);
 };
 export const deleteChat = (chatId: string) => {
     const path = PATH.join(chatsDirectory, chatId);
