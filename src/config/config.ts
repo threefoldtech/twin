@@ -1,7 +1,7 @@
-let userid = process.env.USER_ID || 'jensmeire';
+const userid = process.env.USER_ID || 'patatje3';
 
-let appId = process.env.DIGITALTWIN_APPID || 'digitaltwin.jimbertesting.be';
-let environment = process.env.ENVIRONMENT || 'production';
+const appId = process.env.DIGITALTWIN_APPID || 'digitaltwin.jimbertesting.be';
+const environment = process.env.ENVIRONMENT || 'production';
 
 export const config = {
     appBackend: environment === 'production' ? 'https://login.threefold.me' : 'https://login.staging.jimber.io',

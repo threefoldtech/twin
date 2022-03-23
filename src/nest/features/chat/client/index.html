@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>WebSocket tester</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" type="text/css" href="./styles.css" />
+        <script src="http://unpkg.com/vue@next"></script>
+        <script src="http://localhost:3001/socket.io/socket.io.js"></script>
+    </head>
+
+    <body>
+        <main id="app">
+            <section class="chat-list">
+                <h1>{{ capitalizeString(username) }}'s gesprekken</h1>
+                <ul>
+                    <li v-for="chat in chats">{{ chat }}</li>
+                </ul>
+            </section>
+            <section class="current-chat">
+                <h1>{{ title }}</h1>
+                <ul>
+                    <li v-for="msg in messages"><strong>{{ msg.from }}</strong> {{ msg.body }}</li>
+                </ul>
+                <form @submit.prevent="submitMessage">
+                    <input type="text" v-model="message" />
+                    <button type="submit">Send</button>
+                </form>
+            </section>
+        </main>
+
+        <script>
+            const BASE_URL = 'http://localhost:3001';
+            const { createApp, ref, reactive, onMounted, component } = Vue;
+            let socket = { chat: null, alerts: null };
+
+            const Chat = {
+                name: 'Chat',
+
+                setup() {
+                    const title = 'WebSocket Tester';
+                    const message = ref('');
+                    const username = ref('');
+                    const messages = reactive([]);
+                    const chats = reactive([]);
+
+                    const submitMessage = () => {
+                        const newMessage = {
+                            from: username,
+                            to: 'test',
+                            body: message.value,
+                            timestamp: new Date(),
+                            type: 'MESSAGE',
+                            subject: '',
+                            signatures: [],
+                            replies: [],
+                        };
+                        message.value = '';
+                        socket.chat.emit('message_to_server', newMessage);
+                        console.log(`send message: ${JSON.stringify(newMessage)}`);
+                    };
+
+                    const handleReceivedMessage = msg => {
+                        messages.push(msg);
+                        console.log(`received message: ${JSON.stringify(msg)}`);
+                    };
+
+                    const capitalizeString = str => {
+                        return str.charAt(0).toUpperCase() + str.slice(1);
+                    };
+
+                    const joinChat = chatId => {
+                        console.log(`joining chat: ${chatId}`);
+                        socket.chat.emit('join_chat', chatId);
+                    };
+
+                    onMounted(() => {
+                        username.value = prompt('What is your username');
+                        socket.chat = io(`${BASE_URL}/chat`);
+                        socket.chat.on('message_to_client', msg => {
+                            handleReceivedMessage(msg);
+                        });
+                    });
+
+                    return {
+                        title,
+                        message,
+                        username,
+                        messages,
+                        chats,
+                        submitMessage,
+                        joinChat,
+                        capitalizeString,
+                    };
+                },
+            };
+
+            const app = createApp(Chat);
+            app.mount('#app');
+        </script>
+    </body>
+</html>

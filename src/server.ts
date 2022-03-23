@@ -1,16 +1,22 @@
-import express, { Application } from 'express';
-import http from 'http';
+import './utils/extensions';
+
 import bodyParser from 'body-parser';
-import fileupload from 'express-fileupload';
 import cors, { CorsOptions } from 'cors';
+import express, { Application } from 'express';
+import fileupload from 'express-fileupload';
 import session from 'express-session';
-import { startSocketIo } from './service/socketService';
-import routes from './routes';
+import http from 'http';
 import morgan from 'morgan';
+
+import { initAll } from './index';
 import { httpLogger } from './logger';
 import errorMiddleware from './middlewares/errorHandlingMiddleware';
-import './utils/extensions';
-import { initAll } from './index';
+import bootstrapNest from './nest/main';
+import mountNestApp from './nest/utils/mount-nest';
+import routes from './routes';
+import { startSocketIo } from './service/socketService';
+
+const PORT = process.env.PORT ?? 3000;
 
 const corsOptions: CorsOptions = {
     origin: '*',
@@ -68,6 +74,8 @@ app.use('/api/', routes);
 
 initAll();
 
-httpServer.listen(process.env.PORT ?? 3000, () => {
-    console.log(`Server started on port ${process.env.PORT ?? 3000}`);
+httpServer.listen(PORT, () => {
+    console.log(`express server started on port ${PORT}`);
 });
+
+mountNestApp({ mountPath: '/nest', bootstrapNest });
