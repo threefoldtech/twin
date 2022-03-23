@@ -26,7 +26,7 @@ export class AuthController {
     @Get('signin')
     @Redirect()
     async signIn(@Session() session: Record<string, unknown>, @Query() query: SignInQuery) {
-        const appLogin = await this._authService.getAppLogin(`/nest/auth/callback`);
+        const appLogin = await this._authService.getAppLogin(`/api/v2/auth/callback`);
         session.state = appLogin.loginState;
         const loginUrl = `${appLogin.loginUrl}&username=${query.username}`;
         return { url: loginUrl };

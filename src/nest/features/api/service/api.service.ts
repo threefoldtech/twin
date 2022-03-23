@@ -19,7 +19,7 @@ export class ApiService {
         try {
             // TODO: change to /nest/users/digitaltwin/:doubleName when implemented
             return await axios.put(
-                `${this._configService.get<string>('appBackend')}/api/users/digitaltwin/${doubleName}`,
+                `${this._configService.get<string>('appBackend')}/api/v1/users/digitaltwin/${doubleName}`,
                 {
                     app_id: this._configService.get<string>('appId'),
                     signed_yggdrasil_ip_address: signedAddress,
@@ -47,7 +47,7 @@ export class ApiService {
     }) {
         try {
             // TODO: change to /nest/messages when implemented
-            return await axios.put(`http://[${location}]/api/messages`, message, {
+            return await axios.put(`http://[${location}]/api/v1/messages`, message, {
                 responseType: responseType || 'json',
             });
         } catch (error) {
@@ -72,7 +72,7 @@ export class ApiService {
     }) {
         try {
             // TODO: change to /nest/group/invite when implemented
-            return await axios.put(`http://[${location}]/api/group/invite`, chat, {
+            return await axios.put(`http://[${location}]/api/v1/group/invite`, chat, {
                 responseType: responseType || 'json',
             });
         } catch (error) {
@@ -88,7 +88,7 @@ export class ApiService {
     async getContactPublicKey(location: string): Promise<string> {
         try {
             // TODO: change to /nest/user/public-key when implemented
-            const res = await axios.get<string>(`http://[${location}]/api/user/publickey`);
+            const res = await axios.get<string>(`http://[${location}]/api/v1/user/publickey`);
             return res.data;
         } catch (error) {
             throw new BadRequestException(`unable to get public key from external API: ${error}`);
@@ -104,7 +104,7 @@ export class ApiService {
     async getAdminChat({ location, chatID }: { location: string; chatID: string }): Promise<ChatDTO> {
         try {
             // TODO: change to /nest/messages/:chatId when implemented
-            const res = await axios.get<ChatDTO>(`http://[${location}]/api/messages/${chatID}`);
+            const res = await axios.get<ChatDTO>(`http://[${location}]/api/v1/messages/${chatID}`);
             return res.data;
         } catch (error) {
             throw new BadRequestException(`unable to get admins chat: ${error}`);
@@ -113,7 +113,6 @@ export class ApiService {
 
     async getExternalResource({ resource }: { resource: string }) {
         try {
-            console.log('CALLED');
             return await axios.get(resource);
         } catch (error) {
             throw new BadRequestException(`unable to get external resource: ${error}`);

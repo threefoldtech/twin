@@ -1,8 +1,25 @@
-import { getBlocklist, persistChat } from './../service/dataService';
 import { Router } from 'express';
+import { fromBuffer } from 'file-type';
+
+import { uuidv4 } from '../common';
+import { config } from '../config/config';
+import Chat from '../models/chat';
+import Contact from '../models/contact';
 import Message from '../models/message';
-import { contactRequests } from '../store/contactRequests';
+import { sendMessageToApi } from '../service/apiService';
+import { persistMessage, syncNewChatWithAdmin } from '../service/chatService';
+import { getBlocklist, getChat, persistChat } from '../service/dataService';
+import {
+    handleIncommingFileShare,
+    handleIncommingFileShareDelete,
+    handleIncommingFileShareUpdate,
+} from '../service/fileShareService';
+import { appendSignatureToMessage, verifyMessageSignature } from '../service/keyService';
+import { getMyLocation } from '../service/locationService';
+import { editMessage, handleRead, parseMessage } from '../service/messageService';
 import { sendEventToConnectedSockets } from '../service/socketService';
+import { handleSystemMessage } from '../service/systemService';
+import { contactRequests } from '../store/contactRequests';
 import {
     ContactRequest,
     DtIdInterface,
@@ -13,25 +30,7 @@ import {
     MessageTypes,
     StringMessageTypeInterface,
 } from '../types';
-import Contact from '../models/contact';
-import { editMessage, handleRead, parseMessage } from '../service/messageService';
-import { persistMessage, syncNewChatWithAdmin } from '../service/chatService';
-import { getChat } from '../service/dataService';
-import { config } from '../config/config';
-import { sendMessageToApi } from '../service/apiService';
-import Chat from '../models/chat';
-import { uuidv4 } from '../common';
-import { handleSystemMessage } from '../service/systemService';
-import { getMyLocation } from '../service/locationService';
-import { appendSignatureToMessage, verifyMessageSignature } from '../service/keyService';
-import {
-    handleIncommingFileShare,
-    handleIncommingFileShareDelete,
-    handleIncommingFileShareUpdate,
-} from '../service/fileShareService';
 import { getFile, Path } from '../utils/files';
-import { createNoSubstitutionTemplateLiteral } from 'typescript';
-import { fromBuffer } from 'file-type';
 
 const router = Router();
 
@@ -297,8 +296,8 @@ router.put('/', async (req, res) => {
                 });
             }
 
-            let url: string = decodeURI(new URL(<string>message.body).pathname).replace(
-                '/api/files/' + message.from,
+            const url: string = decodeURI(new URL(<string>message.body).pathname).replace(
+                '/api/v1/files/' + message.from,
                 '' + message.from + '/files'
             );
 

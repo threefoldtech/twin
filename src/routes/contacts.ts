@@ -1,18 +1,18 @@
-import { ContactRequest, DtIdInterface, MessageInterface, MessageTypes } from '../types/index';
-import { parseMessage } from './../service/messageService';
 import express, { Router } from 'express';
+
+import { uuidv4 } from '../common';
+import { config } from '../config/config';
+import { requiresAuthentication } from '../middlewares/authenticationMiddleware';
 import Contact from '../models/contact';
 import Message from '../models/message';
-import { config } from '../config/config';
-import { contacts } from '../store/contacts';
 import { sendMessageToApi } from '../service/apiService';
-import { MessageBodyTypeInterface } from '../types';
 import { addChat } from '../service/chatService';
-import { uuidv4 } from '../common';
-import { sendEventToConnectedSockets } from '../service/socketService';
-import { getMyLocation } from '../service/locationService';
 import { appendSignatureToMessage } from '../service/keyService';
-import { requiresAuthentication } from '../middlewares/authenticationMiddleware';
+import { getMyLocation } from '../service/locationService';
+import { sendEventToConnectedSockets } from '../service/socketService';
+import { contacts } from '../store/contacts';
+import { ContactRequest, DtIdInterface, MessageBodyTypeInterface, MessageInterface, MessageTypes } from '../types';
+import { parseMessage } from './../service/messageService';
 
 const router = Router();
 
@@ -46,7 +46,7 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
         return;
     }
 
-    const url = `/api/messages`;
+    const url = `/api/v1/messages`;
     const data: Message<ContactRequest> = {
         id: uuidv4(),
         to: contact.id,

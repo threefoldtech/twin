@@ -70,7 +70,7 @@ app.use(
     })
 );
 
-app.use('/api/', routes);
+app.use('/api/v1', routes);
 
 initAll();
 
@@ -78,4 +78,4 @@ httpServer.listen(PORT, () => {
     console.log(`express server started on port ${PORT}`);
 });
 
-mountNestApp({ mountPath: '/nest', bootstrapNest });
+mountNestApp({ mountPath: '/api/v2', bootstrapNest });

@@ -1,5 +1,5 @@
-import { getUserdata, persistUserdata } from '../service/dataService';
 import { config } from '../config/config';
+import { getUserdata, persistUserdata } from '../service/dataService';
 import { getMyLocation } from '../service/locationService';
 
 let status: string;
@@ -42,7 +42,7 @@ export const getImage = () => {
 
 export const getAvatar = async () => {
     const myLocation = await getMyLocation();
-    return `http://[${myLocation}]/api/user/avatar/${image}`;
+    return `http://[${myLocation}]/api/v1/user/avatar/${image}`;
 };
 
 export const getData = () => {
