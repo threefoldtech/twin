@@ -7,11 +7,11 @@ import {
     OnGatewayInit,
     SubscribeMessage,
     WebSocketGateway,
+    WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
 import { KeyService } from '../../key/key.service';
-import { SocketService } from '../../socket/service/socket.service';
 import { Chat } from '../models/chat.model';
 import { Contact } from '../models/contact.model';
 import { Message } from '../models/message.model';
@@ -20,10 +20,12 @@ import { ChatService } from '../service/chat.service';
 
 @WebSocketGateway({ cors: '*' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
+    @WebSocketServer()
+    private server: Server;
+
     private logger: Logger = new Logger('ChatGateway');
 
     constructor(
-        private readonly _socketService: SocketService,
         private readonly _configService: ConfigService,
         private readonly _keyService: KeyService,
         private readonly _chatService: ChatService,
@@ -52,7 +54,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         signedMessage.id = message.id;
 
         // notify contacts about creation of new chat
-        this._socketService.server.emit('message_to_client', signedMessage);
+        this.server.emit('message_to_client', signedMessage);
 
         // const contacts = chat.parseContacts();
 
@@ -99,7 +101,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      * @param {unknown} message - Message to send.
      */
     emitMessageToConnectedClients(event: string, message: unknown): void {
-        this._socketService.server.emit(event, message);
+        this.server.emit(event, message);
     }
 
     /**
@@ -108,7 +110,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      */
     afterInit(server: Server) {
         this.logger.log(`chat gateway setup successful`);
-        this._socketService.server = server;
+        this.server = server;
     }
 
     /**
