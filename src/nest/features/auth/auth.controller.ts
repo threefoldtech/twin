@@ -18,6 +18,7 @@ export class AuthController {
     @Get('authenticated')
     @UseGuards(AuthGuard)
     async isLoggedIn() {
+        // Can just return true, AuthGuard will make sure user is authenticated.
         return {
             status: true,
         };
