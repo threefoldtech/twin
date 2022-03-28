@@ -10,7 +10,14 @@ import { MessageController } from './message.controller';
 import { MessageService } from './message.service';
 
 @Module({
-    imports: [DbModule, ChatModule, KeyModule, forwardRef(() => ContactModule), BlockedContactModule, ApiModule],
+    imports: [
+        DbModule,
+        forwardRef(() => ChatModule),
+        forwardRef(() => ContactModule),
+        KeyModule,
+        BlockedContactModule,
+        ApiModule,
+    ],
     controllers: [MessageController],
     providers: [MessageService],
     exports: [MessageService],
