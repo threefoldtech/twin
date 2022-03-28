@@ -16,7 +16,7 @@ import { parseMessage } from './../service/messageService';
 
 const router = Router();
 
-router.get('/', requiresAuthentication, (req: express.Request, res: express.Response) => {
+router.get('/', requiresAuthentication, (_: express.Request, res: express.Response) => {
     res.json(contacts);
 });
 

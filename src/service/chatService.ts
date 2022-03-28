@@ -1,12 +1,11 @@
-import { DtIdInterface, MessageInterface } from '../types/index';
+import { config } from '../config/config';
 import Chat from '../models/chat';
-import { IdInterface, MessageBodyTypeInterface } from '../types';
 import Contact from '../models/contact';
-import { getChatIds, persistChat, getChat } from './dataService';
+import { DtIdInterface, IdInterface, MessageBodyTypeInterface, MessageInterface } from '../types';
+import { getChatfromAdmin } from './apiService';
+import { getChat, getChatIds, persistChat } from './dataService';
 import { parseMessages } from './messageService';
 import { sendEventToConnectedSockets } from './socketService';
-import { getChatfromAdmin } from './apiService';
-import { config } from '../config/config';
 
 export const persistMessage = (chatId: IdInterface, message: MessageInterface<MessageBodyTypeInterface>) => {
     const chat = getChat(chatId);
@@ -58,7 +57,7 @@ export const getMessagesFromId = (chatId: IdInterface) => true;
 export const setChatToAccepted = (chatId: IdInterface) => true;
 
 //@TODO filter for acceptedchatss
-export const getAcceptedChatsWithPartialMessages = (messageAmount: number = 0) => {
+export const getAcceptedChatsWithPartialMessages = (messageAmount = 0) => {
     return getChatIds().map(chatid => getChat(chatid, messageAmount));
     // .filter((chat) => chat.acceptedChat);
 };
@@ -74,14 +73,14 @@ export const getChatById = (id: IdInterface) => {
     return getChat(id);
 };
 
-export const parseFullChat = (chat: any) => parseChat(chat, parseMessages(chat.messages));
-export const parsePartialChat = (chat: any, amount: number) => {
+export const parseFullChat = (chat: Chat) => parseChat(chat, parseMessages(chat.messages));
+export const parsePartialChat = (chat: Chat, amount: number) => {
     const start = chat.messages.length - amount;
     const messages = chat.messages.slice(start < 0 ? 0 : start, chat.messages.length);
     return parseChat(chat, parseMessages(messages));
 };
 
-export const parseChat = (chat: any, messages: Array<MessageInterface<MessageBodyTypeInterface>>) => {
+export const parseChat = (chat: Chat, messages: Array<MessageInterface<MessageBodyTypeInterface>>) => {
     return new Chat(
         chat.chatId,
         chat.contacts,
