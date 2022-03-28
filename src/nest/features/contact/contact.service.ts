@@ -4,8 +4,8 @@ import { Repository } from 'redis-om';
 
 import { uuidv4 } from '../../utils/uuid';
 import { ApiService } from '../api/api.service';
-import { ChatGateway } from '../chat/gateway/chat.gateway';
-import { ChatService } from '../chat/service/chat.service';
+import { ChatGateway } from '../chat/chat.gateway';
+import { ChatService } from '../chat/chat.service';
 import { DbService } from '../db/db.service';
 import { KeyService } from '../key/key.service';
 import { LocationService } from '../location/location.service';

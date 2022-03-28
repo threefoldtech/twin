@@ -2,9 +2,9 @@ import { Body, Controller, ForbiddenException, Get, Param, Put, Query } from '@n
 import { ConfigService } from '@nestjs/config';
 
 import { ApiService } from '../api/api.service';
-import { ChatGateway } from '../chat/gateway/chat.gateway';
-import { BlockedContactService } from '../chat/service/blocked-contact.service';
-import { ChatService } from '../chat/service/chat.service';
+import { BlockedContactService } from '../blocked-contact/blocked-contact.service';
+import { ChatGateway } from '../chat/chat.gateway';
+import { ChatService } from '../chat/chat.service';
 import { ContactService } from '../contact/contact.service';
 import { CreateMessageDTO, MessageDTO } from './dtos/message.dto';
 import { MessageService } from './message.service';

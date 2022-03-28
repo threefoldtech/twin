@@ -2,9 +2,9 @@ import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ApiService } from '../../api/api.service';
-import { ChatGateway } from '../../chat/gateway/chat.gateway';
+import { ChatGateway } from '../../chat/chat.gateway';
+import { ChatService } from '../../chat/chat.service';
 import { Chat } from '../../chat/models/chat.model';
-import { ChatService } from '../../chat/service/chat.service';
 import { ContactService } from '../../contact/contact.service';
 import { CreateContactDTO } from '../../contact/dtos/contact.dto';
 import { MessageDTO } from '../dtos/message.dto';

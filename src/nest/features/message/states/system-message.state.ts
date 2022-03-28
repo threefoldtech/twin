@@ -1,9 +1,9 @@
 import { ConfigService } from '@nestjs/config';
 
 import { ApiService } from '../../api/api.service';
-import { ChatGateway } from '../../chat/gateway/chat.gateway';
+import { ChatGateway } from '../../chat/chat.gateway';
+import { ChatService } from '../../chat/chat.service';
 import { Chat } from '../../chat/models/chat.model';
-import { ChatService } from '../../chat/service/chat.service';
 import { MessageDTO } from '../dtos/message.dto';
 import { GroupUpdate, SystemMessage } from '../types/message.type';
 

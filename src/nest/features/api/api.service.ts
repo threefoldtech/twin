@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import axios, { ResponseType } from 'axios';
 
 import { ChatDTO } from '../chat/dtos/chat.dto';
-import { MessageDTO } from '../chat/dtos/message.dto';
 import { Chat } from '../chat/models/chat.model';
+import { MessageDTO } from '../message/dtos/message.dto';
 
 @Injectable()
 export class ApiService {

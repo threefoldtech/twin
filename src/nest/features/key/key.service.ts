@@ -3,10 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
 import { ApiService } from '../api/api.service';
-import { ContactDTO } from '../chat/dtos/contact.dto';
-import { MessageDTO } from '../chat/dtos/message.dto';
+import { ContactDTO } from '../contact/dtos/contact.dto';
 import { DbService } from '../db/db.service';
 import { EncryptionService } from '../encryption/encryption.service';
+import { MessageDTO } from '../message/dtos/message.dto';
 import { Key, keySchema, KeyType } from './models/key.model';
 
 @Injectable()
