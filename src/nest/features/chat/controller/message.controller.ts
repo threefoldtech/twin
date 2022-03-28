@@ -1,7 +1,7 @@
 import { Body, Controller, ForbiddenException, Get, Param, Put, Query } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ApiService } from '../../api/service/api.service';
+import { ApiService } from '../../api/api.service';
 import { CreateMessageDTO, MessageDTO } from '../dtos/message.dto';
 import { ChatGateway } from '../gateway/chat.gateway';
 import { BlockedContactService } from '../service/blocked-contact.service';

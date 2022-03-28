@@ -3,10 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { execSync, spawn } from 'child_process';
 import PATH from 'path';
 
-import { EncryptionService } from '../../encryption/service/encryption.service';
-import { FileService } from '../../file/service/file.service';
-import { LocationService } from '../../location/service/location.service';
-import { YggdrasilConfig } from '../models/yggdrasil.model';
+import { EncryptionService } from '../encryption/encryption.service';
+import { FileService } from '../file/file.service';
+import { LocationService } from '../location/location.service';
+import { YggdrasilConfig } from './models/yggdrasil.model';
 
 @Injectable()
 export class YggdrasilService {

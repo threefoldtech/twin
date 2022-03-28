@@ -8,9 +8,9 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
-import { ApiService } from '../../api/service/api.service';
-import { DbService } from '../../db/service/db.service';
-import { KeyService } from '../../key/service/key.service';
+import { ApiService } from '../../api/api.service';
+import { DbService } from '../../db/db.service';
+import { KeyService } from '../../key/key.service';
 import { SocketService } from '../../socket/service/socket.service';
 import { CreateChatDTO } from '../dtos/chat.dto';
 import { MessageDTO } from '../dtos/message.dto';

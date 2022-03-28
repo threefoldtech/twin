@@ -5,8 +5,8 @@ import { DbModule } from '../db/db.module';
 import { KeyModule } from '../key/key.module';
 import { LocationModule } from '../location/location.module';
 import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
-import { UserController } from './controller/user.controller';
-import { UserService } from './service/user.service';
+import { UserController } from './user.controller';
+import { UserService } from './user.service';
 
 @Module({
     imports: [DbModule, ConnectionModule, KeyModule, LocationModule, YggdrasilModule],

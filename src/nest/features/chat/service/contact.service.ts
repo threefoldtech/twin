@@ -3,10 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
 import { uuidv4 } from '../../../utils/uuid';
-import { ApiService } from '../../api/service/api.service';
-import { DbService } from '../../db/service/db.service';
-import { KeyService } from '../../key/service/key.service';
-import { LocationService } from '../../location/service/location.service';
+import { ApiService } from '../../api/api.service';
+import { DbService } from '../../db/db.service';
+import { KeyService } from '../../key/key.service';
+import { LocationService } from '../../location/location.service';
 import { CreateContactDTO, DeleteContactDTO } from '../dtos/contact.dto';
 import { MessageDTO } from '../dtos/message.dto';
 import { ChatGateway } from '../gateway/chat.gateway';

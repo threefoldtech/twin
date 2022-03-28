@@ -2,8 +2,8 @@ import { Controller, Get, Query, Redirect, Req, Res, Session, UseGuards } from '
 import { Request, Response } from 'express';
 
 import { AuthGuard } from '../../guards/auth.guard';
-import { LocationService } from '../location/service/location.service';
-import { YggdrasilService } from '../yggdrasil/service/yggdrasil.service';
+import { LocationService } from '../location/location.service';
+import { YggdrasilService } from '../yggdrasil/yggdrasil.service';
 import { AuthService } from './auth.service';
 import { SignInQuery } from './query/sign-in.query';
 

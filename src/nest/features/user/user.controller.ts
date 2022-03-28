@@ -13,14 +13,14 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { createReadStream } from 'fs-extra';
 
-import { AuthGuard } from '../../../guards/auth.guard';
-import { AuthenticatedRequest } from '../../../types/requests';
-import { imageFileFilter } from '../../../utils/image-file-filter';
-import { ConnectionService } from '../../connection/service/connection.service';
-import { LocalFilesInterceptor } from '../../file/interceptor/local-files.interceptor';
-import { Key, KeyType } from '../../key/models/key.model';
-import { KeyService } from '../../key/service/key.service';
-import { UserService } from '../service/user.service';
+import { AuthGuard } from '../../guards/auth.guard';
+import { AuthenticatedRequest } from '../../types/requests';
+import { imageFileFilter } from '../../utils/image-file-filter';
+import { ConnectionService } from '../connection/connection.service';
+import { LocalFilesInterceptor } from '../file/interceptor/local-files.interceptor';
+import { KeyService } from '../key/key.service';
+import { Key, KeyType } from '../key/models/key.model';
+import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {

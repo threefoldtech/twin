@@ -2,8 +2,8 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
-import { DbService } from '../../db/service/db.service';
-import { KeyService } from '../../key/service/key.service';
+import { DbService } from '../../db/db.service';
+import { KeyService } from '../../key/key.service';
 import { ContactDTO } from '../dtos/contact.dto';
 import { CreateMessageDTO, MessageDTO } from '../dtos/message.dto';
 import { Chat } from '../models/chat.model';

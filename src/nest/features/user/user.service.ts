@@ -2,9 +2,9 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
-import { DbService } from '../../db/service/db.service';
-import { LocationService } from '../../location/service/location.service';
-import { User, userSchema } from '../models/user.model';
+import { DbService } from '../db/db.service';
+import { LocationService } from '../location/location.service';
+import { User, userSchema } from './models/user.model';
 
 @Injectable()
 export class UserService {

@@ -10,7 +10,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-import { KeyService } from '../../key/service/key.service';
+import { KeyService } from '../../key/key.service';
 import { SocketService } from '../../socket/service/socket.service';
 import { Chat } from '../models/chat.model';
 import { Contact } from '../models/contact.model';
