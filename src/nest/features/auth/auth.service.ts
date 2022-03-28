@@ -56,7 +56,6 @@ export class AuthService {
         redirectUrl: URL;
         sessionState: string;
     }): Promise<{ doubleName: string; derivedSeed: string; userId: string }> {
-        console.log(sessionState);
         try {
             const profileData = (await this.tfLogin.parseAndValidateRedirectUrl(redirectUrl, sessionState))?.profile;
 

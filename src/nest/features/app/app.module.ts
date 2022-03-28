@@ -2,7 +2,7 @@ import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import Joi from 'joi';
 
-import config from '../../../config/config';
+import config from '../../config/config';
 import { LoggerMiddleware } from '../../middleware/logger.middleware';
 import { ApiModule } from '../api/api.module';
 import { AuthModule } from '../auth/auth.module';

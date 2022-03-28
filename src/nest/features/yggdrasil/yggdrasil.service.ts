@@ -59,12 +59,13 @@ export class YggdrasilService {
         const generatedConfig = this.generateConfig();
         const config = this.replaceConfigValues({ generatedConfig, replaceConfig: keyReplacements as YggdrasilConfig });
         this.saveConfigs({ config, replacements: keyReplacements as YggdrasilConfig });
+        this.runYggdrasil();
     }
 
     /**
      * Runs Yggdrasil using the created configurations and an Yggdrasil spawner.
      */
-    runYggdrasil(): Promise<void> {
+    runYggdrasil() {
         const out = this._fileService.openFile({ path: this.logPath, flags: 'a' });
         const err = this._fileService.openFile({ path: '/var/log/yggdrasil/err.log', flags: 'a' });
         const p = spawn('yggdrasil', ['-useconffile', this.configPath, '-logto', this.logPath], {
@@ -72,25 +73,6 @@ export class YggdrasilService {
             stdio: ['ignore', out, err],
         });
         p.unref();
-
-        // return promise with a timeout of 30 seconds
-        // to try and get our location from yggdrasil
-        // stop when address is found
-        return new Promise<void>((res, rej) => {
-            setTimeout(() => {
-                if (this.isInitialised()) return;
-                rej();
-                this.initialised = true;
-            }, 30000);
-            while (!this.isInitialised()) {
-                this._locationService.getOwnLocation().then(address => {
-                    if (address) {
-                        res();
-                        this.initialised = true;
-                    }
-                });
-            }
-        });
     }
 
     /**

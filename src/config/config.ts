@@ -30,5 +30,3 @@ export const config = {
     },
     sessionSecret: process.env.SESSION_SECRET || 'secret',
 };
-
-export default () => config;
