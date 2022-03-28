@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { YggdrasilService } from '../features/yggdrasil/service/yggdrasil.service';
+import { YggdrasilService } from '../features/yggdrasil/yggdrasil.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

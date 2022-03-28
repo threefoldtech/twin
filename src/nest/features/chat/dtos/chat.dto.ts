@@ -1,8 +1,8 @@
 import { IsArray, IsBoolean, IsString } from 'class-validator';
 
-import { Message } from '../models/message.model';
-import { ContactDTO } from './contact.dto';
-import { MessageDTO } from './message.dto';
+import { ContactDTO } from '../../contact/dtos/contact.dto';
+import { MessageDTO } from '../../message/dtos/message.dto';
+import { Message } from '../../message/models/message.model';
 
 export class ChatDTO {
     chatId: string;

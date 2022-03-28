@@ -4,8 +4,8 @@ import { EncryptionModule } from '../encryption/encryption.module';
 import { KeyModule } from '../key/key.module';
 import { LocationModule } from '../location/location.module';
 import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
-import { AuthController } from './controller/auth.controller';
-import { AuthService } from './service/auth.service';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
 
 @Module({
     imports: [EncryptionModule, KeyModule, YggdrasilModule, LocationModule],

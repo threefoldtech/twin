@@ -6,14 +6,16 @@ import config from '../../config/config';
 import { LoggerMiddleware } from '../../middleware/logger.middleware';
 import { ApiModule } from '../api/api.module';
 import { AuthModule } from '../auth/auth.module';
+import { BlockedContactModule } from '../blocked-contact/blocked-contact.module';
 import { ChatModule } from '../chat/chat.module';
 import { ConnectionModule } from '../connection/connection.module';
+import { ContactModule } from '../contact/contact.module';
 import { DbModule } from '../db/db.module';
 import { EncryptionModule } from '../encryption/encryption.module';
 import { FileModule } from '../file/file.module';
 import { KeyModule } from '../key/key.module';
 import { LocationModule } from '../location/location.module';
-import { SocketModule } from '../socket/socket.module';
+import { MessageModule } from '../message/message.module';
 import { UserModule } from '../user/user.module';
 import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
 
@@ -44,8 +46,10 @@ import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
         KeyModule,
         ConnectionModule,
         UserModule,
-        SocketModule,
         ChatModule,
+        ContactModule,
+        BlockedContactModule,
+        MessageModule,
     ],
 })
 export class AppModule {

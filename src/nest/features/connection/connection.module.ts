@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { DbModule } from '../db/db.module';
-import { ConnectionService } from './service/connection.service';
+import { ConnectionService } from './connection.service';
 
 @Module({
     imports: [DbModule],

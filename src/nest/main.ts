@@ -32,7 +32,7 @@ export default async function bootstrap(): Promise<INestApplication> {
     app.use(
         session({
             name: 'sessionId',
-            secret: configService.get<string>('session_secret'),
+            secret: configService.get<string>('sessionSecret'),
             resave: false,
             saveUninitialized: false,
             proxy: true,

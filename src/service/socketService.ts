@@ -58,7 +58,7 @@ export const startSocketIo = (httpServer: http.Server) => {
 
             if (newMessage.type === MessageTypes.READ) {
                 handleRead(<Message<StringMessageTypeInterface>>newMessage);
-                const x = await sendMessageToApi(location, newMessage);
+                await sendMessageToApi(location, newMessage);
                 return;
             }
 
@@ -96,7 +96,7 @@ export const startSocketIo = (httpServer: http.Server) => {
     });
 };
 
-export const sendEventToConnectedSockets = (event: string, body: any) => {
+export const sendEventToConnectedSockets = (event: string, body: unknown) => {
     connections.getConnections().forEach((connection: string) => {
         io.to(connection).emit(event, body);
         console.log(`send message to ${connection} with event: ${event}`);

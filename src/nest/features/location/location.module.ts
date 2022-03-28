@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 
 import { ApiModule } from '../api/api.module';
 import { EncryptionModule } from '../encryption/encryption.module';
-import { LocationController } from './controller/location.controller';
-import { LocationService } from './service/location.service';
+import { LocationController } from './location.controller';
+import { LocationService } from './location.service';
 
 @Module({
     imports: [EncryptionModule, ApiModule],
