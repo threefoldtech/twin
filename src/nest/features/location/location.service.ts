@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { exec } from 'child_process';
 
-import { ApiService } from '../../api/service/api.service';
-import { EncryptionService } from '../../encryption/service/encryption.service';
-import { LocationResponse } from '../types/responses';
+import { ApiService } from '../api/api.service';
+import { EncryptionService } from '../encryption/encryption.service';
+import { LocationResponse } from './types/responses';
 
 @Injectable()
 export class LocationService {
