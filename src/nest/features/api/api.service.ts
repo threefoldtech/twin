@@ -2,9 +2,9 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { ResponseType } from 'axios';
 
-import { ChatDTO } from '../../chat/dtos/chat.dto';
-import { MessageDTO } from '../../chat/dtos/message.dto';
-import { Chat } from '../../chat/models/chat.model';
+import { ChatDTO } from '../chat/dtos/chat.dto';
+import { MessageDTO } from '../chat/dtos/message.dto';
+import { Chat } from '../chat/models/chat.model';
 
 @Injectable()
 export class ApiService {

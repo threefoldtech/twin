@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Repository } from 'redis-om';
 
-import { DbService } from '../../db/service/db.service';
-import { Connection, connectionSchema } from '../models/connection.model';
+import { DbService } from '../db/service/db.service';
+import { Connection, connectionSchema } from './models/connection.model';
 
 @Injectable()
 export class ConnectionService {

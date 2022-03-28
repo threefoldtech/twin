@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 
-import { ApiService } from '../service/api.service';
+import { ApiService } from './api.service';
 
 @Controller('external')
 export class ApiController {
