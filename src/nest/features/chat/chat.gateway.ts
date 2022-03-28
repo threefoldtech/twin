@@ -11,12 +11,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-import { KeyService } from '../../key/key.service';
-import { Chat } from '../models/chat.model';
-import { Contact } from '../models/contact.model';
-import { Message } from '../models/message.model';
-import { BlockedContactService } from '../service/blocked-contact.service';
-import { ChatService } from '../service/chat.service';
+import { BlockedContactService } from '../blocked-contact/blocked-contact.service';
+import { Contact } from '../contact/models/contact.model';
+import { KeyService } from '../key/key.service';
+import { Message } from '../message/models/message.model';
+import { ChatService } from './chat.service';
+import { Chat } from './models/chat.model';
 
 @WebSocketGateway({ cors: '*' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {

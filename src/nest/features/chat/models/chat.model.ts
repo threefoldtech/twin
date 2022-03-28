@@ -1,9 +1,9 @@
 import { Entity, Schema } from 'redis-om';
 
-import { ContactDTO } from '../dtos/contact.dto';
-import { MessageDTO } from '../dtos/message.dto';
-import { Contact } from './contact.model';
-import { Message } from './message.model';
+import { ContactDTO } from '../../contact/dtos/contact.dto';
+import { Contact } from '../../contact/models/contact.model';
+import { MessageDTO } from '../../message/dtos/message.dto';
+import { Message } from '../../message/models/message.model';
 
 /**
  * Every model with string[] will later be parsed to the correct model type.

@@ -1,15 +1,16 @@
 import { forwardRef, Module } from '@nestjs/common';
 
 import { ApiModule } from '../api/api.module';
+import { BlockedContactModule } from '../blocked-contact/blocked-contact.module';
 import { ChatModule } from '../chat/chat.module';
-import { MessageController } from '../chat/controller/message.controller';
-import { MessageService } from '../chat/service/message.service';
 import { ContactModule } from '../contact/contact.module';
 import { DbModule } from '../db/db.module';
 import { KeyModule } from '../key/key.module';
+import { MessageController } from './message.controller';
+import { MessageService } from './message.service';
 
 @Module({
-    imports: [DbModule, ChatModule, KeyModule, forwardRef(() => ContactModule), ApiModule],
+    imports: [DbModule, ChatModule, KeyModule, forwardRef(() => ContactModule), BlockedContactModule, ApiModule],
     controllers: [MessageController],
     providers: [MessageService],
     exports: [MessageService],

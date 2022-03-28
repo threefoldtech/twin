@@ -8,14 +8,14 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
-import { ApiService } from '../../api/api.service';
-import { DbService } from '../../db/db.service';
-import { KeyService } from '../../key/key.service';
-import { CreateChatDTO } from '../dtos/chat.dto';
-import { MessageDTO } from '../dtos/message.dto';
-import { Chat, chatSchema, stringifyContacts, stringifyMessages } from '../models/chat.model';
-import { stringifyMessage } from '../models/message.model';
-import { MessageService } from './message.service';
+import { ApiService } from '../api/api.service';
+import { DbService } from '../db/db.service';
+import { KeyService } from '../key/key.service';
+import { MessageDTO } from '../message/dtos/message.dto';
+import { MessageService } from '../message/message.service';
+import { stringifyMessage } from '../message/models/message.model';
+import { CreateChatDTO } from './dtos/chat.dto';
+import { Chat, chatSchema, stringifyContacts, stringifyMessages } from './models/chat.model';
 
 @Injectable()
 export class ChatService {

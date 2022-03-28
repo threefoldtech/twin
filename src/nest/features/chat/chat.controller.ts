@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 
-import { AuthGuard } from '../../../guards/auth.guard';
-import { CreateChatDTO } from '../dtos/chat.dto';
-import { Chat } from '../models/chat.model';
-import { Contact } from '../models/contact.model';
-import { Message } from '../models/message.model';
-import { ChatService } from '../service/chat.service';
+import { AuthGuard } from '../../guards/auth.guard';
+import { Contact } from '../contact/models/contact.model';
+import { Message } from '../message/models/message.model';
+import { ChatService } from './chat.service';
+import { CreateChatDTO } from './dtos/chat.dto';
+import { Chat } from './models/chat.model';
 
 @Controller('chats')
 export class ChatController {

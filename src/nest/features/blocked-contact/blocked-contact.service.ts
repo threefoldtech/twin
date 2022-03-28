@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Repository } from 'redis-om';
 
-import { DbService } from '../../db/db.service';
-import { CreateBlockedContactDTO, DeleteBlockedContactDTO } from '../dtos/blocked-contact.dto';
-import { BlockedContact, blockedContactSchema } from '../models/blocked-contact.model';
+import { DbService } from '../db/db.service';
+import { CreateBlockedContactDTO, DeleteBlockedContactDTO } from './dtos/blocked-contact.dto';
+import { BlockedContact, blockedContactSchema } from './models/blocked-contact.model';
 
 @Injectable()
 export class BlockedContactService {

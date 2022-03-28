@@ -6,6 +6,7 @@ import config from '../../../config/config';
 import { LoggerMiddleware } from '../../middleware/logger.middleware';
 import { ApiModule } from '../api/api.module';
 import { AuthModule } from '../auth/auth.module';
+import { BlockedContactModule } from '../blocked-contact/blocked-contact.module';
 import { ChatModule } from '../chat/chat.module';
 import { ConnectionModule } from '../connection/connection.module';
 import { ContactModule } from '../contact/contact.module';
@@ -47,6 +48,7 @@ import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
         UserModule,
         ChatModule,
         ContactModule,
+        BlockedContactModule,
         MessageModule,
     ],
 })

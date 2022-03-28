@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
 
-import { AuthGuard } from '../../../guards/auth.guard';
-import { CreateBlockedContactDTO } from '../dtos/blocked-contact.dto';
-import { BlockedContactService } from '../service/blocked-contact.service';
+import { AuthGuard } from '../../guards/auth.guard';
+import { BlockedContactService } from './blocked-contact.service';
+import { CreateBlockedContactDTO } from './dtos/blocked-contact.dto';
 
 @Controller('blocked')
 export class BlockedContactController {
