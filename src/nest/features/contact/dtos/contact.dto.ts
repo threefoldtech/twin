@@ -1,6 +1,6 @@
 import { IsBoolean, IsString } from 'class-validator';
 
-import { Message } from '../message/models/message.model';
+import { Message } from '../../message/models/message.model';
 
 export class ContactDTO {
     @IsString()

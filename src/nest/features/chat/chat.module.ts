@@ -20,5 +20,6 @@ import { MessageService } from './service/message.service';
     imports: [DbModule, YggdrasilModule, ConnectionModule, KeyModule, LocationModule, ApiModule],
     controllers: [ChatController, ContactController, BlockedContactController, MessageController],
     providers: [ChatService, ContactService, BlockedContactService, MessageService, ChatGateway],
+    exports: [ChatService, ChatGateway],
 })
 export class ChatModule {}
