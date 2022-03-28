@@ -2,12 +2,12 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
-import { ApiService } from '../../api/service/api.service';
-import { ContactDTO } from '../../chat/dtos/contact.dto';
-import { MessageDTO } from '../../chat/dtos/message.dto';
-import { DbService } from '../../db/service/db.service';
-import { EncryptionService } from '../../encryption/service/encryption.service';
-import { Key, keySchema, KeyType } from '../models/key.model';
+import { ApiService } from '../api/api.service';
+import { ContactDTO } from '../chat/dtos/contact.dto';
+import { MessageDTO } from '../chat/dtos/message.dto';
+import { DbService } from '../db/db.service';
+import { EncryptionService } from '../encryption/encryption.service';
+import { Key, keySchema, KeyType } from './models/key.model';
 
 @Injectable()
 export class KeyService {
