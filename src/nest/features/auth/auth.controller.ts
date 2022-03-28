@@ -1,11 +1,11 @@
 import { Controller, Get, Query, Redirect, Req, Res, Session, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 
-import { AuthGuard } from '../../../guards/auth.guard';
-import { LocationService } from '../../location/service/location.service';
-import { YggdrasilService } from '../../yggdrasil/service/yggdrasil.service';
-import { AuthService } from '../service/auth.service';
-import { SignInQuery } from '../types/queries';
+import { AuthGuard } from '../../guards/auth.guard';
+import { LocationService } from '../location/service/location.service';
+import { YggdrasilService } from '../yggdrasil/service/yggdrasil.service';
+import { AuthService } from './auth.service';
+import { SignInQuery } from './query/sign-in.query';
 
 @Controller('auth')
 export class AuthController {
