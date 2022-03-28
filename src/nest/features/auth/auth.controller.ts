@@ -17,10 +17,10 @@ export class AuthController {
 
     @Get('authenticated')
     @UseGuards(AuthGuard)
-    async isLoggedIn(@Req() req: Request, @Res() res: Response) {
-        return res.json({
-            status: !!req.session?.userId,
-        });
+    async isLoggedIn() {
+        return {
+            status: true,
+        };
     }
 
     @Get('signin')
@@ -51,7 +51,10 @@ export class AuthController {
 
         req.session.userId = profileData.userId;
         req.session.save(err => {
-            if (!err) res.redirect('/callback');
+            if (!err) {
+                res.redirect('/callback');
+                return;
+            }
         });
     }
 }
