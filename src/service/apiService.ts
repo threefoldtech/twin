@@ -16,7 +16,7 @@ export const sendMessageToApi = async (
             responseType: requestResponseType || 'json',
         });
     } catch (e) {
-        console.error(`couldn't send message ${url}`);
+        console.error(`couldn't send message ${url}`, e);
     }
 };
 
