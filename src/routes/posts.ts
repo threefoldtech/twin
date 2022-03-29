@@ -76,7 +76,7 @@ router.get('/:external', requiresAuthentication, async (req: express.Request, re
         for (const contact of contacts) {
             //Checking if user is online
             try {
-                const url = getFullIPv6ApiLocation(contact.location, '/posts/false');
+                const url = getFullIPv6ApiLocation(contact.location, '/v1/posts/false');
                 posts = (
                     await axios.get(url, {
                         timeout: 1000,
@@ -107,7 +107,7 @@ router.get('/single/post', requiresAuthentication, async (req: express.Request, 
 
     if (myLocation !== creatorPost) {
         try {
-            const url = getFullIPv6ApiLocation(creatorPost, '/posts/single/post');
+            const url = getFullIPv6ApiLocation(creatorPost, '/v1/posts/single/post');
             const post = (
                 await axios.get(url, {
                     timeout: 2000,
@@ -195,7 +195,7 @@ router.put('/like/:postId', requiresAuthentication, async (req: express.Request,
         return;
     }
     //Sending to other twin
-    const url = getFullIPv6ApiLocation(creatorPost, `/posts/like/${postId}`);
+    const url = getFullIPv6ApiLocation(creatorPost, `/v1/posts/like/${postId}`);
     const status = (
         await axios.put(url, {
             owner: creatorPost,
@@ -212,7 +212,7 @@ router.put('/comment/:postId', requiresAuthentication, async (req: express.Reque
     const myLocation = await getMyLocation();
     if (post.owner.location !== myLocation) {
         //Sending to other twin
-        const url = getFullIPv6ApiLocation(post.owner.location, `/posts/comment/${postId}`);
+        const url = getFullIPv6ApiLocation(post.owner.location, `/v1/posts/comment/${postId}`);
         const { data: status } = await axios.put(url, req.body);
         //console.log(status);
         return res.json({ ...status });
