@@ -1,20 +1,16 @@
-import axios, { AxiosRequestConfig, ResponseType } from 'axios';
-import { config } from '../config/config';
+import axios, { ResponseType } from 'axios';
+
 import Message from '../models/message';
 import { MessageBodyTypeInterface } from '../types';
 import { parseFullChat } from './chatService';
 import { getFullIPv6ApiLocation } from './urlService';
-import { response } from 'express';
-
 
 export const sendMessageToApi = async (
     location: string,
     message: Message<MessageBodyTypeInterface>,
     requestResponseType?: ResponseType
 ) => {
-    //console.log('Location: ', location);
-    //if (message.type !== 'READ') console.log('newMessage: ', message);
-    const url = getFullIPv6ApiLocation(location, '/messages');
+    const url = getFullIPv6ApiLocation(location, '/v1/messages');
     try {
         return await axios.put(url, message, {
             responseType: requestResponseType || 'json',
