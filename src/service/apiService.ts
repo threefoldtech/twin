@@ -21,7 +21,7 @@ export const sendMessageToApi = async (
 };
 
 export const getPublicKey = async (location: string): Promise<string | undefined> => {
-    const url = getFullIPv6ApiLocation(location, '/user/publickey');
+    const url = getFullIPv6ApiLocation(location, '/v1/user/publickey');
     try {
         const response = await axios.get(url);
         return response.data as string;
@@ -32,7 +32,7 @@ export const getPublicKey = async (location: string): Promise<string | undefined
 };
 
 export const getChatfromAdmin = async (adminLocation: string, chatId: string) => {
-    const url = getFullIPv6ApiLocation(adminLocation, `/messages/${chatId}`);
+    const url = getFullIPv6ApiLocation(adminLocation, `/v1/messages/${chatId}`);
 
     try {
         console.log('getting chat from ', url);
