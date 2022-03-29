@@ -1,12 +1,13 @@
 import { Router } from 'express';
-import { getStatus, getAvatar, getLastSeen, updateAvatar, getImage } from '../store/user';
-import { connections } from '../store/connections';
 import { UploadedFile } from 'express-fileupload';
-import { deleteAvatar, saveAvatar } from '../service/dataService';
+import * as fs from 'fs';
+
 import { uuidv4 } from '../common';
 import { config } from '../config/config';
+import { deleteAvatar, saveAvatar } from '../service/dataService';
+import { connections } from '../store/connections';
 import { getPublicKey } from '../store/keyStore';
-import * as fs from 'fs';
+import { getAvatar, getImage, getLastSeen, getStatus, updateAvatar } from '../store/user';
 
 const router = Router();
 

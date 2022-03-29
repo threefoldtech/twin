@@ -138,7 +138,7 @@ router.put('/typing', requiresAuthentication, async (req: express.Request, res: 
     const postId = <string>req.body.postId;
     const myLocation = await getMyLocation();
     if (myLocation !== creatorPost) {
-        const url = getFullIPv6ApiLocation(creatorPost, `/posts/typing`);
+        const url = getFullIPv6ApiLocation(creatorPost, `/v1/posts/typing`);
         await axios.put(url, {
             ...req.body,
         });
@@ -147,10 +147,8 @@ router.put('/typing', requiresAuthentication, async (req: express.Request, res: 
     }
 
     for (const contact of contacts) {
-        const url = getFullIPv6ApiLocation(contact.location, `/posts/someoneIsTyping`);
-        axios.post(url, req.body, {
-            timeout: 1000,
-        });
+        const url = getFullIPv6ApiLocation(contact.location, `/v1/posts/someoneIsTyping`);
+        axios.post(url, req.body);
     }
     sendEventToConnectedSockets('post_typing', postId);
     res.json({ status: 'OK' });
