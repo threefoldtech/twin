@@ -15,7 +15,7 @@ export const keySchema = new Schema(Key, {
 });
 
 export enum KeyType {
-    Public,
-    Private,
-    Secret,
+    Public = 'publicKey',
+    Private = 'privateKey',
+    Secret = 'secretKey',
 }

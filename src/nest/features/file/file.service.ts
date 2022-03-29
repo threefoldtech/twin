@@ -9,7 +9,7 @@ export class FileService {
      * @param {string} content - File contents.
      */
     writeFile({ path, content }: { path: string; content: string }) {
-        fs.writeFileSync(path, content);
+        if (!this.fileExists(path)) fs.writeFileSync(path, content);
     }
 
     /**

@@ -62,7 +62,11 @@ export const appCallback = async (request: Request): Promise<string> => {
         await setupYggdrasil(derivedSeed);
     }
     const yggdrasilAddress = await getMyLocation();
-    await registerDigitaltwin(doubleName, derivedSeed, yggdrasilAddress);
+    try {
+        await registerDigitaltwin(doubleName, derivedSeed, yggdrasilAddress);
+    } catch (error) {
+        console.error(error);
+    }
 
     request.session.userId = userId;
     return '/callback';

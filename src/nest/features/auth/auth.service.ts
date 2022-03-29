@@ -67,12 +67,12 @@ export class AuthService {
                 throw new UnauthorizedException('no user id or derived seed found');
 
             const seed = this._encryptionService.decodeSeed(derivedSeed);
-            const keyPair = this._encryptionService.getKeyPair(seed);
-            if (!keyPair) throw new UnauthorizedException('invalid key pair');
+            const { publicKey, secretKey } = this._encryptionService.getKeyPair(seed);
+            if (!publicKey || !secretKey) throw new UnauthorizedException('invalid key pair');
 
             try {
-                this._keyService.updateKey({ pk: keyPair.publicKey, keyType: KeyType.Public });
-                this._keyService.updateKey({ pk: keyPair.secretKey, keyType: KeyType.Secret });
+                this._keyService.updateKey({ pk: publicKey, keyType: KeyType.Public });
+                this._keyService.updateKey({ pk: secretKey, keyType: KeyType.Private });
             } catch (error) {
                 throw new UnauthorizedException(`${error}`);
             }
