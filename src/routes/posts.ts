@@ -161,7 +161,8 @@ router.post('/someoneIsTyping', requiresAuthentication, async (req: express.Requ
 });
 
 router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const path = Buffer.from(req.params.path, 'utf8').toString('base64');
+    const path = atob(req.params.path);
+    console.log(`PATH`, path);
     res.download(path);
 });
 
