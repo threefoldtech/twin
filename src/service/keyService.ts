@@ -21,7 +21,7 @@ export const verifyMessageSignature = async <T>(contact: Contact, message: Messa
         publicKey = base64Key;
         setPublicKeyInCache(contact.id, publicKey);
     }
-    console.log(`PUBLIC KEY: ${publicKey}`);
+    // console.log(`PUBLIC KEY: ${publicKey}`);
     const messageWithoutSignature = {
         ...message,
         signatures: message.signatures.slice(signatureIndex + 1, message.signatures.length),

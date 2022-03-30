@@ -52,7 +52,7 @@ export class UserController {
 
     @Get('avatar/:avatarId')
     async getAvatar(@Param('avatarId') avatarId: string) {
-        console.log(`Avatar: ${avatarId}`);
+        // console.log(`Avatar: ${avatarId}`);
         const filePath = `${this._configService.get<string>('baseDir')}user/avatar-${avatarId}`;
         console.log(`FilePath: ${filePath}`);
         const stream = createReadStream(filePath);

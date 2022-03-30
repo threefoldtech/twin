@@ -7,7 +7,7 @@ import Chat from '../models/chat';
 import Contact from '../models/contact';
 import Message from '../models/message';
 import { sendMessageToApi } from '../service/apiService';
-import { persistMessage, syncNewChatWithAdmin } from '../service/chatService';
+import { getChatById, persistMessage, syncNewChatWithAdmin } from '../service/chatService';
 import { getBlocklist, getChat, persistChat } from '../service/dataService';
 import {
     handleIncommingFileShare,
@@ -50,6 +50,11 @@ const handleContactRequest = async (message: Message<ContactRequest>) => {
         signatures: message.signatures ?? [],
         subject: null,
     };
+
+    const chatExists = getChatById(message.from)?.contacts.some(c => c.location === otherContact.location);
+
+    if (chatExists) return;
+
     const newchat = new Chat(
         message.from,
         [myself, otherContact],

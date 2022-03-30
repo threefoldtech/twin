@@ -11,11 +11,11 @@ export const getMyLocation = (): Promise<string> => {
             "yggdrasilctl  -v getSelf | sed -n -e 's/^.*IPv6 address.* //p'",
             (error: Error, stdout: string, stderr: string) => {
                 if (error) {
-                    console.log(`error: ${error.message}`);
+                    // console.log(`error: ${error.message}`);
                     return reject();
                 }
                 if (stderr) {
-                    console.log(`stderr: ${stderr}`);
+                    // console.log(`stderr: ${stderr}`);
                     return reject();
                 }
                 const address = stdout.replace(/(\r\n|\n|\r)/gm, '').trim();
