@@ -106,7 +106,7 @@ export const deleteChat = (chatId: string) => {
     try {
         fs.rmdirSync(path, { recursive: true });
     } catch (e) {
-        console.log(e);
+        // console.log(e);
         return false;
     }
     return true;

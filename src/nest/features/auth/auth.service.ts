@@ -32,7 +32,7 @@ export class AuthService {
             );
             await this.tfLogin.init();
             const loginState = generateRandomString();
-            console.log(loginState);
+            // console.log(loginState);
             return {
                 loginState,
                 loginUrl: this.tfLogin.generateLoginUrl(loginState, {
