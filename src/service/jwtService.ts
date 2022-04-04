@@ -1,6 +1,7 @@
 import { sign, verify } from 'jsonwebtoken';
-import { getPrivateKey } from '../store/keyStore';
+
 import { config } from '../config/config';
+import { getPrivateKey } from '../store/keyStore';
 
 export const createJwtToken = (data: any, exp?: number | string) => {
     const privateKey = getPrivateKey();
@@ -23,6 +24,6 @@ export const verifyJwtToken = <T extends object>(token: string): [payload: T, er
     }
 };
 export const parseJwt = (token: string) => {
-    let base64Url = token.split('.')[1];
+    const base64Url = token.split('.')[1];
     return JSON.parse(Buffer.from(base64Url, 'base64').toString());
 };

@@ -613,6 +613,7 @@ router.get('/attachment/download', requiresAuthentication, async (req: express.R
         result = (await sendMessageToApi(location, parsedmsg, 'arraybuffer')).data;
     }
 
+    const mimetype = (await fromBuffer(Buffer.from(JSON.stringify(result), 'utf8')))?.mime || null;
     const file: UploadedFile = {
         name: null,
         data: Buffer.from(result),
@@ -620,8 +621,7 @@ router.get('/attachment/download', requiresAuthentication, async (req: express.R
         encoding: null,
         tempFilePath: null,
         truncated: null,
-        //@ts-ignore
-        mimetype: (await fromBuffer(Buffer.from(result, 'utf8')))?.mime || null,
+        mimetype,
         md5: null,
         mv: null,
     };

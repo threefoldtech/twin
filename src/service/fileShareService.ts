@@ -1,30 +1,21 @@
-import { getChat, getShareConfig, persistChat, persistShareConfig } from './dataService';
 import { uuidv4 } from '../common';
-import { createJwtToken } from './jwtService';
-import { Permission, TokenData } from '../store/tokenStore';
-import { ShareError, ShareErrorType } from '../types/errors/shareError';
-import { log } from 'winston';
+import { config } from '../config/config';
+import Chat from '../models/chat';
+import Message from '../models/message';
 import {
     ContactInterface,
-    ContactRequest,
-    DtIdInterface,
     FileShareDeleteMessageType,
     FileShareMessageType,
     FileShareUpdateMessageType,
     MessageBodyTypeInterface,
     MessageTypes,
 } from '../types';
-import Message from '../models/message';
-import { config } from '../config/config';
-import { getMyLocation } from './locationService';
-import Chat from '../models/chat';
-import { getChatById, persistMessage } from './chatService';
 import { sendMessageToApi } from './apiService';
+import { persistMessage } from './chatService';
+import { getChat, getShareConfig, persistShareConfig } from './dataService';
 import { appendSignatureToMessage } from './keyService';
+import { getMyLocation } from './locationService';
 import { parseMessage, renameShareInChat } from './messageService';
-import { collapseTextChangeRangesAcrossMultipleVersions } from 'typescript';
-import { emptyDir, rename } from 'fs-extra';
-import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
 import { sendEventToConnectedSockets } from './socketService';
 
 export enum ShareStatus {
@@ -47,7 +38,7 @@ export interface SharedFileInterface {
     path: string;
     owner: ContactInterface;
     name: string | undefined;
-    isFolder: Boolean;
+    isFolder: boolean;
     size: number | undefined;
     lastModified: number | undefined;
     permissions: SharePermissionInterface[];
@@ -142,7 +133,7 @@ export const removeFilePermissions = (path: string, chatId: string, location: st
     const allShares = getShareConfig();
     const shareIndex = allShares.Shared.findIndex(share => share.path === path);
     const share = allShares.Shared.find(share => share.path === path);
-    let index = share.permissions.findIndex(p => p.chatId === chatId);
+    const index = share.permissions.findIndex(p => p.chatId === chatId);
     const deletedSharedPermission = share.permissions[index];
     share.permissions.splice(index, 1);
 
@@ -180,8 +171,6 @@ export const getShareByPath = (
     path: string,
     shareStatus: ShareStatus
 ): SharedFileInterface => {
-    console.log(allShares[shareStatus].forEach(e => {}));
-    // console.log(allShares[shareStatus].find(share => share.path === path));
     const share = allShares[shareStatus].reverse().find(share => share.path === path);
     return share;
 };
@@ -205,7 +194,7 @@ export const appendShare = (
     path: string,
     name: string | undefined,
     owner: ContactInterface,
-    isFolder: Boolean,
+    isFolder: boolean,
     size: number | undefined,
     lastModified: number | undefined,
     newSharePermissions: SharePermissionInterface[]
