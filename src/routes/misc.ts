@@ -1,6 +1,4 @@
 import express, { Router } from 'express';
-import http from 'http';
-import { StatusCodes } from 'http-status-codes';
 
 import { uuidv4 } from '../common';
 import { config } from '../config/config';
@@ -9,7 +7,6 @@ import { getChatById } from '../service/chatService';
 import { getChat, persistChat } from '../service/dataService';
 import { getMyLocation } from '../service/locationService';
 import { MessageTypes } from '../types';
-import { HttpError } from '../types/errors/httpError';
 
 const router = Router();
 
