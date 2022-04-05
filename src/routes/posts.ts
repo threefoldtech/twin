@@ -6,6 +6,7 @@ import * as PATH from 'path';
 
 import { config } from '../config/config';
 import { requiresAuthentication } from '../middlewares/authenticationMiddleware';
+import { getBlocklist } from '../service/dataService';
 import { getMyLocation } from '../service/locationService';
 import { sendEventToConnectedSockets } from '../service/socketService';
 import { getFullIPv6ApiLocation } from '../service/urlService';
@@ -92,8 +93,10 @@ router.get('/:external', requiresAuthentication, async (req: express.Request, re
 
     if (!fs.existsSync(path)) return res.json(posts);
     const dir = await fs.promises.opendir(path);
+    const blockedUsers = getBlocklist();
     for await (const dirent of dir) {
         const file = JSON.parse(fs.readFileSync(`${path}/${dirent.name}/post.json`).toString());
+        if (blockedUsers.includes(file.owner.id)) return;
         posts.push(file);
     }
 
