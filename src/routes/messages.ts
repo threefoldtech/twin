@@ -167,8 +167,6 @@ const handleGroupAdmin = async <ResBody, Locals>(
 // Should be externally availble
 router.put('/', async (req, res) => {
     // @ TODO check if valid
-    //
-    console.log(`CALLED`);
 
     const msg = req.body;
     let message = msg as Message<MessageBodyTypeInterface>;
@@ -224,8 +222,7 @@ router.put('/', async (req, res) => {
 
     if (message.type === MessageTypes.SYSTEM) {
         console.log('received a groupUpdate');
-        //@ts-ignore
-        const groupUpdateMsg: Message<GroupUpdateType> = message;
+        const groupUpdateMsg = message as unknown as Message<GroupUpdateType>;
         if (groupUpdateMsg.body.type === 'ADDUSER' && groupUpdateMsg.body.contact.id === config.userid) {
             console.log('I have been added to a group!');
             syncNewChatWithAdmin(groupUpdateMsg.body.adminLocation, <string>groupUpdateMsg.to);

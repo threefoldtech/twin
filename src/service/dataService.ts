@@ -1,13 +1,14 @@
-import { IdInterface, UserInterface } from '../types/index';
-import { config } from '../config/config';
-import fs from 'fs';
-import Chat from '../models/chat';
-import { parseFullChat, parsePartialChat } from './chatService';
-import { uniqBy } from 'lodash';
-import im from 'imagemagick';
-import { ITokenFile } from '../store/tokenStore';
-import PATH from 'path';
 import { UploadedFile } from 'express-fileupload';
+import fs from 'fs';
+import im from 'imagemagick';
+import { uniqBy } from 'lodash';
+import PATH from 'path';
+
+import { config } from '../config/config';
+import Chat from '../models/chat';
+import { ITokenFile } from '../store/tokenStore';
+import { IdInterface, UserInterface } from '../types/index';
+import { parseFullChat, parsePartialChat } from './chatService';
 import { notifyPersist, SharesInterface } from './fileShareService';
 import { sendEventToConnectedSockets } from './socketService';
 
@@ -189,11 +190,11 @@ export const getShareConfig = (): SharesInterface => {
         //@ts-ignore
         if (ex.code === 'ENOENT') {
             console.log('Shares.json not found!');
-            let obj = <SharesInterface>{
+            const obj = <SharesInterface>{
                 Shared: [],
                 SharedWithMe: [],
             };
-            let json = JSON.stringify(obj);
+            const json = JSON.stringify(obj);
             fs.writeFileSync(location, json);
             return JSON.parse(fs.readFileSync(location, 'utf8'));
         }
