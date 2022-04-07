@@ -491,7 +491,6 @@ router.get(
 );
 
 router.get('/files/getShareFileAccessDetails', async (req: express.Request, res: express.Response) => {
-    console.log(`CALLED`);
     const shareId = <string>req.query.shareId;
     const share = getShareWithId(shareId, ShareStatus.Shared);
     if (!share) {
