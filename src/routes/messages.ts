@@ -56,7 +56,7 @@ const handleContactRequest = async (message: Message<ContactRequest>) => {
     // if (chatExists) return;
 
     const newchat = new Chat(
-        message.from,
+        message.from as string,
         [myself, otherContact],
         false,
         [requestMsg],

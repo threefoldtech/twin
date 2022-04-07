@@ -35,7 +35,7 @@ export const addChat = (
     acceptedChat: boolean,
     adminId: DtIdInterface
 ) => {
-    const chat = new Chat(chatId, contacts, isGroupchat, message, name, acceptedChat, adminId, {});
+    const chat = new Chat(chatId as string, contacts, isGroupchat, message, name, acceptedChat, adminId, {});
     // @TODO clean this up
     if (chat.chatId == config.userid) {
         return null;
