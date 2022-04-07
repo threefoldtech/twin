@@ -51,9 +51,9 @@ const handleContactRequest = async (message: Message<ContactRequest>) => {
         subject: null,
     };
 
-    const chatExists = getChatById(message.from)?.contacts.some(c => c.location === otherContact.location);
+    // const chatExists = getChatById(message.from)?.contacts.some(c => c.location === otherContact.location);
 
-    if (chatExists) return;
+    // if (chatExists) return;
 
     const newchat = new Chat(
         message.from,

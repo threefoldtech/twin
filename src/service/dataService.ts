@@ -91,12 +91,11 @@ export const persistChat = (chat: Chat) => {
     const sortedChat = sortChat(chat);
     const path = PATH.join(chatsDirectory, sortedChat.chatId as string);
 
-    try {
-        fs.statSync(path);
-    } catch {
+    if (!fs.existsSync(path)) {
         fs.mkdirSync(path);
         fs.mkdirSync(PATH.join(path, '/files'));
     }
+
     fs.writeFileSync(PATH.join(path, '/chat.json'), JSON.stringify(sortedChat, null, 4), {
         flag: 'w',
     });
