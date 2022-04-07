@@ -1,9 +1,9 @@
+import { ChatInterface, DtIdInterface, MessageBodyTypeInterface } from '../types';
 import Contact from './contact';
 import Message from './message';
-import { ChatInterface, DtIdInterface, MessageBodyTypeInterface } from '../types';
 
 export default class Chat implements ChatInterface {
-    chatId: String;
+    chatId: string;
     contacts: Contact[];
     isGroup: boolean;
     messages: Message<MessageBodyTypeInterface>[];
@@ -12,9 +12,10 @@ export default class Chat implements ChatInterface {
     adminId: DtIdInterface;
     read: { [key: string]: string } = {};
     draft?: Message<MessageBodyTypeInterface>;
+    createdAt: Date;
 
     constructor(
-        chatId: String,
+        chatId: string,
         contacts: Contact[],
         isGroup: boolean,
         messages: Message<MessageBodyTypeInterface>[],
@@ -33,6 +34,7 @@ export default class Chat implements ChatInterface {
         this.adminId = adminId;
         this.read = read;
         this.draft = draft;
+        this.createdAt = new Date();
     }
 
     addMessage(message: Message<MessageBodyTypeInterface>) {
