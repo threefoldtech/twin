@@ -349,9 +349,10 @@ router.post(
     async (req: express.Request, res: express.Response) => {
         const chatId = req.body.chatId as string | undefined;
         const path = req.body.path as string | undefined;
-        const location = req.body.path as string | undefined;
+        const location = req.body.location as string | undefined;
         removeFilePermissions(path, chatId, location);
         res.status(StatusCodes.OK);
+        res.send();
     }
 );
 

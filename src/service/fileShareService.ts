@@ -109,7 +109,11 @@ const notifySharedWithConsumers = (share: SharedFileInterface) => {
         });
     });
 };
-export const notifyDeleteSharePermission = (permission: SharePermissionInterface, shareId: string) => {
+export const notifyDeleteSharePermission = (
+    permission: SharePermissionInterface,
+    shareId: string,
+    location: string
+) => {
     const message: Message<MessageBodyTypeInterface> = parseMessage({
         id: uuidv4(),
         to: permission.chatId,
@@ -122,16 +126,18 @@ export const notifyDeleteSharePermission = (permission: SharePermissionInterface
         subject: null,
     });
     appendSignatureToMessage(message);
+    sendMessageToApi(location, message);
     const chat = getChat(permission.chatId, 0);
-    chat.contacts.forEach(contact => {
-        // console.log('looping chats');
-        sendMessageToApi(contact.location, message);
-    });
+    // chat.contacts.forEach(contact => {
+    // console.log('looping chats');
+    // sendMessageToApi(contact.location, message);
+    // });
 };
 
 export const removeFilePermissions = (path: string, chatId: string, location: string) => {
     const allShares = getShareConfig();
     const shareIndex = allShares.Shared.findIndex(share => share.path === path);
+    if (shareIndex === -1) return;
     const share = allShares.Shared.find(share => share.path === path);
     const index = share.permissions.findIndex(p => p.chatId === chatId);
     const deletedSharedPermission = share.permissions[index];
@@ -140,21 +146,29 @@ export const removeFilePermissions = (path: string, chatId: string, location: st
     allShares.Shared[shareIndex] = share;
     persistShareConfig(allShares);
 
-    notifyDeleteSharePermission(deletedSharedPermission, share.id);
+    notifyDeleteSharePermission(deletedSharedPermission, share.id, location);
 };
 
 export const removeShare = (path: string) => {
     const allShares = getShareConfig();
     const shareIndex = allShares.Shared.findIndex(share => share.path === path);
-    if (!shareIndex) throw new Error(`Share doesn't exist`);
+    if (shareIndex === -1) return;
+    const deletedShare = allShares.Shared[shareIndex];
     allShares.Shared.splice(shareIndex, 1);
     persistShareConfig(allShares);
+
+    for (let permission of deletedShare.permissions) {
+        const chat = getChat(permission.chatId, 0);
+        if (!chat) continue;
+        const location = chat.contacts.find(con => con.id === permission.chatId)?.location;
+        notifyDeleteSharePermission(permission, deletedShare.id, location);
+    }
 };
 // @TODO implement in above
 export const removeSharedWithMe = (path: string) => {
     const allShares = getShareConfig();
     const shareIndex = allShares.SharedWithMe.findIndex(share => share.path === path);
-    if (!shareIndex) throw new Error(`Share doesn't exist`);
+    if (shareIndex === -1) throw new Error(`Share doesn't exist`);
     allShares.SharedWithMe.splice(shareIndex, 1);
     persistShareConfig(allShares);
 };
@@ -364,7 +378,7 @@ export const handleIncommingFileShareDelete = (message: Message<FileShareDeleteM
     const shareId = message.body;
     // if (!shareConfig.name || !shareConfig.owner) return;
     console.log('before getshare');
-    const share = getShareWithId(<string>shareId, ShareStatus.SharedWithMe);
+    const share = getShareWithId(shareId.toString(), ShareStatus.SharedWithMe);
     console.log('share ', share);
     if (!share) return;
     if (share.owner.id != message.from) return;
