@@ -429,6 +429,8 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
     appendSignatureToMessage(parsedmsg);
     const contacts = chat.contacts.filter(c => c.id !== config.userid);
     for (const contact of contacts) {
+        const permission = existingShare?.permissions.find(p => p.chatId === contact.id);
+        if (permission?.types.length === types.length) continue;
         await sendMessageToApi(contact.location, parsedmsg);
     }
 

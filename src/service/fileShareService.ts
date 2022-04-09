@@ -7,6 +7,7 @@ import {
     FileShareDeleteMessageType,
     FileShareMessageType,
     FileShareUpdateMessageType,
+    IdInterface,
     MessageBodyTypeInterface,
     MessageTypes,
 } from '../types';
@@ -211,7 +212,8 @@ export const appendShare = (
     isFolder: boolean,
     size: number | undefined,
     lastModified: number | undefined,
-    newSharePermissions: SharePermissionInterface[]
+    newSharePermissions: SharePermissionInterface[],
+    myChatId: IdInterface
 ): SharedFileInterface => {
     const allShares = getShareConfig();
     const share: SharedFileInterface = getShareWithId(shareId, status);
@@ -252,17 +254,20 @@ export const appendShare = (
         share.permissions.push(newShare);
     });
 
-    allShares.SharedWithMe = [...allShares.SharedWithMe.filter(s => s.id !== shareId), share].sort((a, b) => {
-        const textA = a.name.toUpperCase();
-        const textB = b.name.toUpperCase();
-        return textA < textB ? -1 : textA > textB ? 1 : 0;
-    });
+    if (share.owner.id === myChatId) {
+        allShares.Shared = [...allShares.Shared.filter(s => s.id !== shareId), share].sort((a, b) => {
+            const textA = a.name.toUpperCase();
+            const textB = b.name.toUpperCase();
+            return textA < textB ? -1 : textA > textB ? 1 : 0;
+        });
+    } else {
+        allShares.SharedWithMe = [...allShares.SharedWithMe.filter(s => s.id !== shareId), share].sort((a, b) => {
+            const textA = a.name.toUpperCase();
+            const textB = b.name.toUpperCase();
+            return textA < textB ? -1 : textA > textB ? 1 : 0;
+        });
+    }
 
-    allShares.Shared = [...allShares.Shared.filter(s => s.id !== shareId), share].sort((a, b) => {
-        const textA = a.name.toUpperCase();
-        const textB = b.name.toUpperCase();
-        return textA < textB ? -1 : textA > textB ? 1 : 0;
-    });
     persistShareConfig(allShares);
     return share;
 };
@@ -309,7 +314,18 @@ export const createShare = async (
         location: mylocation,
     };
     if (!id) id = uuidv4();
-    const share = appendShare(shareStatus, id, path, name, myuser, isFolder, size, lastModified, newSharePermissions);
+    const share = appendShare(
+        shareStatus,
+        id,
+        path,
+        name,
+        myuser,
+        isFolder,
+        size,
+        lastModified,
+        newSharePermissions,
+        myuser.id
+    );
     return share;
 };
 
@@ -348,16 +364,14 @@ export const handleIncommingFileShare = (message: Message<FileShareMessageType>,
         shareConfig.isFolder,
         shareConfig.size,
         shareConfig.lastModified,
-        shareConfig.permissions
+        shareConfig.permissions,
+        message.to
     );
     persistMessage(chat.chatId, message);
 };
 
 export const handleIncommingFileShareUpdate = (message: Message<FileShareMessageType>) => {
     const shareConfig = message.body;
-    // console.log('###########################################3')
-    // console.log(shareConfig)
-    // console.log('##1111111111111111111111111111111111111111111111111#3')
 
     renameShareInChat(shareConfig);
     if (!shareConfig.name || !shareConfig.owner) return;
@@ -370,7 +384,8 @@ export const handleIncommingFileShareUpdate = (message: Message<FileShareMessage
         shareConfig.isFolder,
         shareConfig.size,
         shareConfig.lastModified,
-        shareConfig.permissions
+        shareConfig.permissions,
+        message.to
     );
 };
 
