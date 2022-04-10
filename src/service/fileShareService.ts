@@ -13,7 +13,7 @@ import {
 } from '../types';
 import { sendMessageToApi } from './apiService';
 import { persistMessage } from './chatService';
-import { getChat, getShareConfig, persistShareConfig } from './dataService';
+import { getChat, getShareConfig, persistChat, persistShareConfig } from './dataService';
 import { appendSignatureToMessage } from './keyService';
 import { getMyLocation } from './locationService';
 import { parseMessage, renameShareInChat } from './messageService';
@@ -128,7 +128,7 @@ export const notifyDeleteSharePermission = (
     });
     appendSignatureToMessage(message);
     sendMessageToApi(location, message);
-    const chat = getChat(permission.chatId, 0);
+    // const chat = getChat(permission.chatId, 0);
     // chat.contacts.forEach(contact => {
     // console.log('looping chats');
     // sendMessageToApi(contact.location, message);
@@ -147,6 +147,10 @@ export const removeFilePermissions = (path: string, chatId: string, location: st
     allShares.Shared[shareIndex] = share;
     persistShareConfig(allShares);
 
+    let chat = getChat(chatId);
+    chat.messages = chat.messages.filter(m => m.body?.id !== share.id);
+    persistChat(chat);
+
     notifyDeleteSharePermission(deletedSharedPermission, share.id, location);
 };
 
@@ -159,9 +163,11 @@ export const removeShare = (path: string) => {
     persistShareConfig(allShares);
 
     for (let permission of deletedShare.permissions) {
-        const chat = getChat(permission.chatId, 0);
+        const chat = getChat(permission.chatId);
         if (!chat) continue;
         const location = chat.contacts.find(con => con.id === permission.chatId)?.location;
+        chat.messages = chat.messages.filter(m => m.body?.id !== deletedShare.id);
+        persistChat(chat);
         notifyDeleteSharePermission(permission, deletedShare.id, location);
     }
 };
@@ -392,12 +398,14 @@ export const handleIncommingFileShareUpdate = (message: Message<FileShareMessage
 export const handleIncommingFileShareDelete = (message: Message<FileShareDeleteMessageType>) => {
     const shareId = message.body;
     // if (!shareConfig.name || !shareConfig.owner) return;
-    console.log('before getshare');
     const share = getShareWithId(shareId.toString(), ShareStatus.SharedWithMe);
-    console.log('share ', share);
     if (!share) return;
     if (share.owner.id != message.from) return;
     removeSharedWithMe(share.path);
+    const chat = getChat(message.from);
+    if (!chat) return;
+    chat.messages = chat.messages.filter(m => m.body?.id !== shareId);
+    persistChat(chat);
 };
 
 export const getSharePermissionForUser = (shareId: string, userId: string): SharePermission[] => {
