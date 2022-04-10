@@ -373,6 +373,8 @@ export const handleIncommingFileShare = (message: Message<FileShareMessageType>,
         shareConfig.permissions,
         message.to
     );
+    chat.messages = chat.messages.filter(m => m.body?.id !== shareConfig.id);
+    persistChat(chat);
     persistMessage(chat.chatId, message);
 };
 

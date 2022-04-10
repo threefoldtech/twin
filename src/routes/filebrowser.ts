@@ -14,7 +14,7 @@ import { requiresAuthentication } from '../middlewares/authenticationMiddleware'
 import Message from '../models/message';
 import { sendMessageToApi } from '../service/apiService';
 import { persistMessage } from '../service/chatService';
-import { getChat, getShareConfig } from '../service/dataService';
+import { getChat, getShareConfig, persistChat } from '../service/dataService';
 import { getDocumentBrowserKey } from '../service/fileService';
 import {
     createShare,
@@ -369,7 +369,7 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
 
     if (!chatId) throw new HttpError(StatusCodes.BAD_REQUEST, 'No chat specified');
 
-    const chat = getChat(chatId, 0);
+    const chat = getChat(chatId);
     const itemStats = await getStats(new Path(path));
 
     const types = <SharePermission[]>[SharePermission.Read];
@@ -436,6 +436,8 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
         modified = true;
     }
     if (modified) {
+        chat.messages = chat.messages.filter(m => m.body?.id !== share.id);
+        persistChat(chat);
         persistMessage(chat.chatId, parsedmsg);
         sendEventToConnectedSockets('message', parsedmsg);
     }
