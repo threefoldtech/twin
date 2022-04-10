@@ -427,15 +427,18 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
     };
     const parsedmsg = parseMessage(msg);
     appendSignatureToMessage(parsedmsg);
+    let modified = false;
     const contacts = chat.contacts.filter(c => c.id !== config.userid);
     for (const contact of contacts) {
         const permission = existingShare?.permissions.find(p => p.chatId === contact.id);
         if (permission?.types.length === types.length) continue;
         await sendMessageToApi(contact.location, parsedmsg);
+        modified = true;
     }
-
-    persistMessage(chat.chatId, parsedmsg);
-    sendEventToConnectedSockets('message', parsedmsg);
+    if (modified) {
+        persistMessage(chat.chatId, parsedmsg);
+        sendEventToConnectedSockets('message', parsedmsg);
+    }
     res.json();
     res.status(StatusCodes.OK);
 });
