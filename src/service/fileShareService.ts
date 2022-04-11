@@ -147,7 +147,8 @@ export const removeFilePermissions = (path: string, chatId: string, location: st
     allShares.Shared[shareIndex] = share;
     persistShareConfig(allShares);
 
-    let chat = getChat(chatId);
+    const chat = getChat(chatId);
+    // @ts-ignore
     chat.messages = chat.messages.filter(m => m.body?.id !== share.id);
     persistChat(chat);
 
@@ -162,10 +163,11 @@ export const removeShare = (path: string) => {
     allShares.Shared.splice(shareIndex, 1);
     persistShareConfig(allShares);
 
-    for (let permission of deletedShare.permissions) {
+    for (const permission of deletedShare.permissions) {
         const chat = getChat(permission.chatId);
         if (!chat) continue;
         const location = chat.contacts.find(con => con.id === permission.chatId)?.location;
+        // @ts-ignore
         chat.messages = chat.messages.filter(m => m.body?.id !== deletedShare.id);
         persistChat(chat);
         notifyDeleteSharePermission(permission, deletedShare.id, location);
@@ -373,6 +375,7 @@ export const handleIncommingFileShare = (message: Message<FileShareMessageType>,
         shareConfig.permissions,
         message.to
     );
+    // @ts-ignore
     chat.messages = chat.messages.filter(m => m.body?.id !== shareConfig.id);
     persistChat(chat);
     persistMessage(chat.chatId, message);
@@ -406,6 +409,7 @@ export const handleIncommingFileShareDelete = (message: Message<FileShareDeleteM
     removeSharedWithMe(share.path);
     const chat = getChat(message.from);
     if (!chat) return;
+    // @ts-ignore
     chat.messages = chat.messages.filter(m => m.body?.id !== shareId);
     persistChat(chat);
 };

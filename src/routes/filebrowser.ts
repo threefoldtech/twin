@@ -436,6 +436,7 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
         modified = true;
     }
     if (modified) {
+        // @ts-ignore
         chat.messages = chat.messages.filter(m => m.body?.id !== share.id);
         persistChat(chat);
         persistMessage(chat.chatId, parsedmsg);
