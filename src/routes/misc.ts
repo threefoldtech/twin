@@ -13,7 +13,7 @@ import { HttpError } from '../types/errors/httpError';
 
 const router = Router();
 
-router.get('/healthcheck', async (req, res) => {
+router.get('/healthcheck', async (_req, res) => {
     res.sendStatus(200);
 });
 
@@ -25,11 +25,11 @@ router.post('/updateDraft', (req: express.Request, res: express.Response) => {
     persistChat(chatWithUpdatedDraft);
     res.sendStatus(200);
 });
-router.get('/possibleMessages', async (req, res) => {
+router.get('/possibleMessages', async (_req, res) => {
     res.json(MessageTypes);
 });
 
-router.get('/test', async (req, res) => {
+router.get('/test', async (_req, res) => {
     const id = uuidv4();
     getChat(id);
     const chat = new Chat(id, [], false, [], 'test', false, config.userid, {});
@@ -38,7 +38,7 @@ router.get('/test', async (req, res) => {
     res.json({ success: true });
 });
 
-router.get('/yggdrasil_address', async (req, res) => {
+router.get('/yggdrasil_address', async (_req, res) => {
     const myLocation = await getMyLocation();
     res.json(myLocation);
 });
