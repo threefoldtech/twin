@@ -14,7 +14,7 @@ import { requiresAuthentication } from '../middlewares/authenticationMiddleware'
 import Message from '../models/message';
 import { sendMessageToApi } from '../service/apiService';
 import { persistMessage } from '../service/chatService';
-import { getChat, getShareConfig } from '../service/dataService';
+import { getChat, getShareConfig, persistChat } from '../service/dataService';
 import { getDocumentBrowserKey } from '../service/fileService';
 import {
     createShare,
@@ -349,9 +349,10 @@ router.post(
     async (req: express.Request, res: express.Response) => {
         const chatId = req.body.chatId as string | undefined;
         const path = req.body.path as string | undefined;
-        const location = req.body.path as string | undefined;
+        const location = req.body.location as string | undefined;
         removeFilePermissions(path, chatId, location);
         res.status(StatusCodes.OK);
+        res.send();
     }
 );
 
@@ -368,7 +369,7 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
 
     if (!chatId) throw new HttpError(StatusCodes.BAD_REQUEST, 'No chat specified');
 
-    const chat = getChat(chatId, 0);
+    const chat = getChat(chatId);
     const itemStats = await getStats(new Path(path));
 
     const types = <SharePermission[]>[SharePermission.Read];
@@ -426,13 +427,20 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
     };
     const parsedmsg = parseMessage(msg);
     appendSignatureToMessage(parsedmsg);
+    let modified = false;
     const contacts = chat.contacts.filter(c => c.id !== config.userid);
     for (const contact of contacts) {
+        const permission = existingShare?.permissions.find(p => p.chatId === contact.id);
+        if (permission?.types.length === types.length) continue;
         await sendMessageToApi(contact.location, parsedmsg);
+        modified = true;
     }
-
-    persistMessage(chat.chatId, parsedmsg);
-    sendEventToConnectedSockets('message', parsedmsg);
+    if (modified) {
+        chat.messages = chat.messages.filter(m => m.body?.id !== share.id);
+        persistChat(chat);
+        persistMessage(chat.chatId, parsedmsg);
+        sendEventToConnectedSockets('message', parsedmsg);
+    }
     res.json();
     res.status(StatusCodes.OK);
 });
