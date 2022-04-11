@@ -7,6 +7,7 @@ import PATH from 'path';
 import { config } from '../config/config';
 import Chat from '../models/chat';
 import { ITokenFile } from '../store/tokenStore';
+import { Exception } from '../types/errors/exceptionError';
 import { IdInterface, UserInterface } from '../types/index';
 import { parseFullChat, parsePartialChat } from './chatService';
 import { notifyPersist, SharesInterface } from './fileShareService';
@@ -63,8 +64,7 @@ export const getKey = (keyName: string): string => {
     try {
         return fs.readFileSync(PATH.join(userDirectory, keyName), 'utf8');
     } catch (ex) {
-        //@ts-ignore
-        if (ex.code === 'ENOENT') {
+        if ((ex as Exception).code === 'ENOENT') {
             console.log(keyName + ' not found!');
         }
         throw ex;
@@ -186,8 +186,7 @@ export const getShareConfig = (): SharesInterface => {
     try {
         return JSON.parse(fs.readFileSync(location, 'utf8'));
     } catch (ex) {
-        //@ts-ignore
-        if (ex.code === 'ENOENT') {
+        if ((ex as Exception).code === 'ENOENT') {
             console.log('Shares.json not found!');
             const obj = <SharesInterface>{
                 Shared: [],
