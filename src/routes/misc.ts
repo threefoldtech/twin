@@ -25,6 +25,7 @@ router.post('/updateDraft', (req: express.Request, res: express.Response) => {
     persistChat(chatWithUpdatedDraft);
     res.sendStatus(200);
 });
+
 router.get('/possibleMessages', async (_req, res) => {
     res.json(MessageTypes);
 });
@@ -46,6 +47,9 @@ router.get('/yggdrasil_address', async (_req, res) => {
 router.get('/getexternalresource', async (req: express.Request, res: express.Response) => {
     const resource = req.query.resource as string | undefined;
     if (!resource) throw new HttpError(StatusCodes.BAD_REQUEST, 'No resource was given');
+
+    // check if in contact list
+
     http.get(resource, function (resp) {
         // Setting the response headers correctly
         // resp.rawheaders = [key1,value1,key2,value2]
