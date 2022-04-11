@@ -8,6 +8,7 @@ import Chat from '../models/chat';
 import { getChatById } from '../service/chatService';
 import { getChat, persistChat } from '../service/dataService';
 import { getMyLocation } from '../service/locationService';
+import { getContacts } from '../store/contacts';
 import { MessageTypes } from '../types';
 import { HttpError } from '../types/errors/httpError';
 
@@ -48,7 +49,28 @@ router.get('/getexternalresource', async (req: express.Request, res: express.Res
     const resource = req.query.resource as string | undefined;
     if (!resource) throw new HttpError(StatusCodes.BAD_REQUEST, 'No resource was given');
 
-    // check if in contact list
+    // get contact location
+    const openIdx = resource.indexOf('[');
+    const closingIdx = resource.indexOf(']');
+    if (openIdx < 0 || closingIdx < 0) throw new HttpError(StatusCodes.BAD_REQUEST, 'Invalid IPv6 resource');
+    const ipv6 = resource.substring(openIdx + 1, closingIdx);
+    const myLocation = await getMyLocation();
+    const contacts = getContacts();
+
+    let isContact = true; // if ipv6 is own location, you should be seen as a contact (yourself)
+
+    // if not, check contact list
+    if (ipv6 !== myLocation) {
+        isContact = false;
+        for (let i = 0; i < contacts.length; i++) {
+            if (contacts[i].location === ipv6) {
+                isContact = true;
+                break;
+            }
+        }
+    }
+
+    if (!isContact) return;
 
     http.get(resource, function (resp) {
         // Setting the response headers correctly
@@ -63,6 +85,7 @@ router.get('/getexternalresource', async (req: express.Request, res: express.Res
             res.setHeader(resp.rawHeaders[index], resp.rawHeaders[index + 1]);
             index += 2;
         }
+        // TODO: test if pipe does not put file in memory
         resp.pipe(res);
     });
 });
