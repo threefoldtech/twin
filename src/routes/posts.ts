@@ -11,6 +11,7 @@ import { getMyLocation } from '../service/locationService';
 import { sendEventToConnectedSockets } from '../service/socketService';
 import { getFullIPv6ApiLocation } from '../service/urlService';
 import { contacts } from '../store/contacts';
+import { StatusCodes } from 'http-status-codes';
 
 const router = Router();
 
@@ -252,6 +253,16 @@ router.put('/comment/:postId', requiresAuthentication, async (req: express.Reque
     fs.writeFileSync(`${path}/post.json`, JSON.stringify(postConfig, null, 2));
 
     res.json({ status: 'commented' });
+});
+
+router.delete('/:postId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const postId: string = req.params.postId;
+    const path = PATH.join(socialDirectory, 'posts', postId);
+    if (!fs.existsSync(path)) throw new Error('Could not find post');
+    const post = JSON.parse(fs.readFileSync(`${path}/post.json`).toString());
+    console.log('post found ', post);
+    res.status(StatusCodes.OK);
+    res.send();
 });
 
 export default router;
