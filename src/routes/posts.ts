@@ -259,8 +259,8 @@ router.delete('/:postId', requiresAuthentication, async (req: express.Request, r
     const postId: string = req.params.postId;
     const path = PATH.join(socialDirectory, 'posts', postId);
     if (!fs.existsSync(path)) throw new Error('Could not find post');
-    const post = JSON.parse(fs.readFileSync(`${path}/post.json`).toString());
-    console.log('post found ', post);
+    fs.rmdirSync(path, { recursive: true });
+    sendEventToConnectedSockets('posts_updated', postId);
     res.status(StatusCodes.OK);
     res.send();
 });
