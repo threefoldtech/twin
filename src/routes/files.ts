@@ -34,7 +34,7 @@ router.post('/:chatid/:messageid', async (req, resp) => {
         body: <FileMessageType>{
             type: req.body.type,
             filename: fileToSave.name,
-            url: getFullIPv6ApiLocation(myLocation, `/files/${chatId}/${messageId}/${fileToSave.name}`),
+            url: getFullIPv6ApiLocation(myLocation, `/v1/files/${chatId}/${messageId}/${fileToSave.name}`),
         },
         id: messageId,
         timeStamp: new Date(),
