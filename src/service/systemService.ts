@@ -18,7 +18,7 @@ export const handleSystemMessage = (message: Message<{ contact: Contact; type: s
 
     switch (message.body.type) {
         case SystemMessageType.ADDUSER: {
-            const path = getFullIPv6ApiLocation(message.body.contact.location, '/group/invite');
+            const path = getFullIPv6ApiLocation(message.body.contact.location, '/v1/group/invite');
             chat.contacts.push(message.body.contact);
             //@todo send message request to invited 3 bot
             try {
