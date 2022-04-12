@@ -604,7 +604,7 @@ router.get('/attachment/download', requiresAuthentication, async (req: express.R
 
     const msg: Message<StringMessageTypeInterface> = {
         id: uuidv4(),
-        body: path as unknown as MessageBodyTypeInterface,
+        body: path,
         from: config.userid,
         to: owner,
         timeStamp: new Date(),
