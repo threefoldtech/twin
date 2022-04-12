@@ -22,7 +22,7 @@ router.put('/', async (req: express.Request, res: express.Response) => {
     persistChat(chat);
 
     chat.contacts.forEach(async c => {
-        const path = getFullIPv6ApiLocation(c.location, '/group/invite');
+        const path = getFullIPv6ApiLocation(c.location, '/v1/group/invite');
         console.log('sending group request to ', path);
         try {
             await axios.put(path, chat);
