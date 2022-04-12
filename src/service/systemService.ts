@@ -1,14 +1,15 @@
-import Message from '../models/message';
-import { ContactInterface, GroupUpdateType, MessageBodyTypeInterface, SystemMessageType } from '../types';
-import { getChatById, persistMessage } from './chatService';
-import Chat from '../models/chat';
-import { deleteChat, persistChat } from './dataService';
-import { config } from '../config/config';
-import Contact from '../models/contact';
-import { sendEventToConnectedSockets } from './socketService';
-import { sendMessageToApi } from './apiService';
-import { getFullIPv6ApiLocation } from './urlService';
 import axios from 'axios';
+
+import { config } from '../config/config';
+import Chat from '../models/chat';
+import Contact from '../models/contact';
+import Message from '../models/message';
+import { SystemMessageType } from '../types';
+import { sendMessageToApi } from './apiService';
+import { persistMessage } from './chatService';
+import { deleteChat, persistChat } from './dataService';
+import { sendEventToConnectedSockets } from './socketService';
+import { getFullIPv6ApiLocation } from './urlService';
 
 export const handleSystemMessage = (message: Message<{ contact: Contact; type: string }>, chat: Chat) => {
     if (chat.adminId !== message.from) {
@@ -16,10 +17,10 @@ export const handleSystemMessage = (message: Message<{ contact: Contact; type: s
     }
 
     switch (message.body.type) {
-        case SystemMessageType.ADDUSER:
+        case SystemMessageType.ADDUSER: {
+            const path = getFullIPv6ApiLocation(message.body.contact.location, '/group/invite');
             chat.contacts.push(message.body.contact);
             //@todo send message request to invited 3 bot
-            const path = getFullIPv6ApiLocation(message.body.contact.location, '/group/invite');
             try {
                 axios
                     .put(path, chat)
@@ -27,7 +28,7 @@ export const handleSystemMessage = (message: Message<{ contact: Contact; type: s
                         sendEventToConnectedSockets('chat_updated', chat);
                         sendMessageToApi(message.body.contact.location, message);
                     })
-                    .catch(e => {
+                    .catch(() => {
                         console.log('failed to send group request');
                     });
             } catch (e) {
@@ -35,6 +36,7 @@ export const handleSystemMessage = (message: Message<{ contact: Contact; type: s
             }
 
             break;
+        }
         case SystemMessageType.REMOVEUSER:
             if (message.body.contact.id === config.userid) {
                 deleteChat(<string>chat.chatId);

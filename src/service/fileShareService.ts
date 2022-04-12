@@ -3,6 +3,7 @@ import { config } from '../config/config';
 import Chat from '../models/chat';
 import Message from '../models/message';
 import {
+    AnonymousContactInterface,
     ContactInterface,
     FileShareDeleteMessageType,
     FileShareMessageType,
@@ -50,15 +51,15 @@ export interface SharesInterface {
     SharedWithMe: SharedFileInterface[];
 }
 
-function epoch(date: Date = new Date()) {
-    return new Date(date).getTime();
-}
+// function epoch(date: Date = new Date()) {
+//     return new Date(date).getTime();
+// }
 
-function epochToDate(epoch: number) {
-    if (epoch < 10000000000) epoch *= 1000; // convert to milliseconds (Epoch is usually expressed in seconds, but Javascript uses Milliseconds)
-    epoch = epoch + new Date().getTimezoneOffset() * -1; //for timeZone
-    return new Date(epoch);
-}
+// function epochToDate(epoch: number) {
+//     if (epoch < 10000000000) epoch *= 1000; // convert to milliseconds (Epoch is usually expressed in seconds, but Javascript uses Milliseconds)
+//     epoch = epoch + new Date().getTimezoneOffset() * -1; //for timeZone
+//     return new Date(epoch);
+// }
 
 export const updateSharePath = (oldPath: string, newPath: string) => {
     const allShares = getShareConfig();
@@ -148,8 +149,7 @@ export const removeFilePermissions = (path: string, chatId: string, location: st
     persistShareConfig(allShares);
 
     const chat = getChat(chatId);
-    // @ts-ignore
-    chat.messages = chat.messages.filter(m => m.body?.id !== share.id);
+    chat.messages = chat.messages.filter(m => (m.body as AnonymousContactInterface)?.id !== share.id);
     persistChat(chat);
 
     notifyDeleteSharePermission(deletedSharedPermission, share.id, location);
@@ -167,8 +167,7 @@ export const removeShare = (path: string) => {
         const chat = getChat(permission.chatId);
         if (!chat) continue;
         const location = chat.contacts.find(con => con.id === permission.chatId)?.location;
-        // @ts-ignore
-        chat.messages = chat.messages.filter(m => m.body?.id !== deletedShare.id);
+        chat.messages = chat.messages.filter(m => (m.body as AnonymousContactInterface)?.id !== deletedShare.id);
         persistChat(chat);
         notifyDeleteSharePermission(permission, deletedShare.id, location);
     }
@@ -375,8 +374,7 @@ export const handleIncommingFileShare = (message: Message<FileShareMessageType>,
         shareConfig.permissions,
         message.to
     );
-    // @ts-ignore
-    chat.messages = chat.messages.filter(m => m.body?.id !== shareConfig.id);
+    chat.messages = chat.messages.filter(m => (m.body as AnonymousContactInterface)?.id !== shareConfig.id);
     persistChat(chat);
     persistMessage(chat.chatId, message);
 };
@@ -409,8 +407,9 @@ export const handleIncommingFileShareDelete = (message: Message<FileShareDeleteM
     removeSharedWithMe(share.path);
     const chat = getChat(message.from);
     if (!chat) return;
-    // @ts-ignore
-    chat.messages = chat.messages.filter(m => m.body?.id !== shareId);
+    chat.messages = chat.messages.filter(
+        m => (m.body as AnonymousContactInterface)?.id !== (shareId as unknown as string)
+    );
     persistChat(chat);
 };
 

@@ -36,7 +36,14 @@ import { appendSignatureToMessage } from '../service/keyService';
 import { parseMessage } from '../service/messageService';
 import { sendEventToConnectedSockets } from '../service/socketService';
 import { isBlocked, Permission, Token, TokenData } from '../store/tokenStore';
-import { FileShareMessageType, IdInterface, MessageTypes, StringMessageTypeInterface } from '../types';
+import {
+    AnonymousContactInterface,
+    FileShareMessageType,
+    IdInterface,
+    MessageBodyTypeInterface,
+    MessageTypes,
+    StringMessageTypeInterface,
+} from '../types';
 import { DirectoryContent, DirectoryDto, FileDto, PathInfo } from '../types/dtos/fileDto';
 import { HttpError } from '../types/errors/httpError';
 import {
@@ -99,6 +106,7 @@ router.get('/directories/info', requiresAuthentication, async (req: express.Requ
         stats.isSocket()
     )
         throw new HttpError(StatusCodes.BAD_REQUEST, 'Path is not a directory');
+    res.status(StatusCodes.OK);
     return getFormattedDetails(path);
 });
 
@@ -436,8 +444,7 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
         modified = true;
     }
     if (modified) {
-        // @ts-ignore
-        chat.messages = chat.messages.filter(m => m.body?.id !== share.id);
+        chat.messages = chat.messages.filter(m => (m.body as AnonymousContactInterface)?.id !== share.id);
         persistChat(chat);
         persistMessage(chat.chatId, parsedmsg);
         sendEventToConnectedSockets('message', parsedmsg);
@@ -454,7 +461,7 @@ router.get('/files/getShares', requiresAuthentication, async (req: express.Reque
     res.status(StatusCodes.OK);
 });
 
-router.get('/attachments', requiresAuthentication, (req: express.Request, res: express.Response) => {
+router.get('/attachments', requiresAuthentication, (_req: express.Request, res: express.Response) => {
     const results = fs.readdirSync('/appdata/attachments/');
 
     res.json(results);
@@ -597,7 +604,7 @@ router.get('/attachment/download', requiresAuthentication, async (req: express.R
 
     const msg: Message<StringMessageTypeInterface> = {
         id: uuidv4(),
-        body: path,
+        body: path as unknown as MessageBodyTypeInterface,
         from: config.userid,
         to: owner,
         timeStamp: new Date(),
