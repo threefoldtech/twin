@@ -12,7 +12,7 @@ import { sendEventToConnectedSockets } from './socketService';
 import { getFullIPv6ApiLocation } from './urlService';
 
 export const handleSystemMessage = (message: Message<{ contact: Contact; type: string }>, chat: Chat) => {
-    if (chat.adminId !== message.from) {
+    if (message.body.type !== SystemMessageType.USER_LEFT_GROUP && chat.adminId !== message.from) {
         throw Error('not allowed');
     }
 
@@ -35,6 +35,11 @@ export const handleSystemMessage = (message: Message<{ contact: Contact; type: s
                 console.log('failed to send group request');
             }
 
+            break;
+        }
+        case SystemMessageType.USER_LEFT_GROUP: {
+            chat.contacts = chat.contacts.filter(c => c.id !== message.body.contact.id);
+            sendEventToConnectedSockets('chat_updated', chat);
             break;
         }
         case SystemMessageType.REMOVEUSER:
