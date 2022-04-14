@@ -42,12 +42,17 @@ export const handleSystemMessage = (message: Message<{ contact: Contact; type: S
             break;
         }
         case SystemMessageType.USER_LEFT_GROUP: {
-            if (message.body.contact.id === config.userid) {
+            const contact = message.body.contact.id;
+            if (contact === chat.adminId) {
+                const newAdmin = chat.contacts.filter(c => c.id !== contact)[0];
+                chat.adminId = newAdmin.id;
+            }
+            if (contact === config.userid) {
                 deleteChat(chat.chatId);
                 sendEventToConnectedSockets('chat_removed', chat.chatId);
                 return;
             }
-            chat.contacts = chat.contacts.filter(c => c.id !== message.body.contact.id);
+            chat.contacts = chat.contacts.filter(c => c.id !== contact);
             chat.messages.push(message);
             sendEventToConnectedSockets('chat_updated', chat);
             break;

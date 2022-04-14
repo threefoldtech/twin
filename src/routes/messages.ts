@@ -128,12 +128,7 @@ const handleGroupAdmin = async <ResBody, Locals>(
     }
 
     appendSignatureToMessage(message);
-    chat.contacts
-        .filter(c => c.id !== config.userid)
-        .forEach(c => {
-            console.log(`group sendMessage to ${c.id}`);
-            sendMessageToApi(c.location, message);
-        });
+    chat.contacts.filter(c => c.id !== config.userid).forEach(c => sendMessageToApi(c.location, message));
 
     if (message.type === <string>MessageTypes.SYSTEM) {
         handleSystemMessage(<any>message, chat);
@@ -141,12 +136,10 @@ const handleGroupAdmin = async <ResBody, Locals>(
         return;
     }
 
-    console.log(`received new group message from ${message.from}`);
     sendEventToConnectedSockets('message', message);
 
     if (message.type === MessageTypes.READ) {
         handleRead(message as Message<StringMessageTypeInterface>);
-
         res.json({ status: 'success' });
         return;
     }
@@ -158,7 +151,6 @@ const handleGroupAdmin = async <ResBody, Locals>(
         return;
     }
 
-    console.log(`persistMessage:${chat.chatId}`);
     persistMessage(chat.chatId, message);
     res.json({ status: 'success' });
     return;
@@ -221,11 +213,9 @@ router.put('/', async (req, res) => {
     }
 
     if (message.type === MessageTypes.SYSTEM) {
-        console.log('received a groupUpdate');
         const groupUpdateMsg = message as unknown as Message<GroupUpdateType>;
         if (groupUpdateMsg.body.type === 'ADDUSER' && groupUpdateMsg.body.contact.id === config.userid) {
-            console.log('I have been added to a group!');
-            syncNewChatWithAdmin(groupUpdateMsg.body.adminLocation, <string>groupUpdateMsg.to);
+            await syncNewChatWithAdmin(groupUpdateMsg.body.adminLocation, <string>groupUpdateMsg.to);
             res.json({ status: 'Successfully added chat' });
             return;
         }
