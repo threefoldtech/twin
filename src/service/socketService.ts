@@ -45,15 +45,15 @@ export const startSocketIo = (httpServer: http.Server) => {
             // sendMessage(chat.adminId, newMessage);
 
             // @todo refactor this
-            connections.getConnections().forEach((connection: string) => {
-                // if (connection == socket.id) {
-                //     // this is me
-                //     return
-                // }
+            // connections.getConnections().forEach((connection: string) => {
+            // if (connection == socket.id) {
+            //     // this is me
+            //     return
+            // }
 
-                io.to(connection).emit('message', newMessage);
-                console.log(`send message to socket ${connection}`);
-            });
+            // io.to(connection).emit('message', newMessage);
+            // console.log(`send message to socket ${connection}`);
+            // });
             const location = chat.contacts.find(c => c.id == chat.adminId).location;
 
             if (newMessage.type === MessageTypes.READ) {
@@ -63,7 +63,7 @@ export const startSocketIo = (httpServer: http.Server) => {
             }
 
             persistMessage(chat.chatId, newMessage);
-            sendMessageToApi(location, newMessage);
+            await sendMessageToApi(location, newMessage);
         });
 
         socket.on('update_message', messageData => {

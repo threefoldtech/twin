@@ -11,8 +11,11 @@ import { deleteChat, persistChat } from './dataService';
 import { sendEventToConnectedSockets } from './socketService';
 import { getFullIPv6ApiLocation } from './urlService';
 
-export const handleSystemMessage = (message: Message<{ contact: Contact; type: string }>, chat: Chat) => {
-    if (message.body.type !== SystemMessageType.USER_LEFT_GROUP && chat.adminId !== message.from) {
+export const handleSystemMessage = (message: Message<{ contact: Contact; type: SystemMessageType }>, chat: Chat) => {
+    if (
+        [SystemMessageType.ADDUSER, SystemMessageType.REMOVEUSER].includes(message.body.type) &&
+        chat.adminId !== message.from
+    ) {
         throw Error('not allowed');
     }
 
@@ -20,6 +23,7 @@ export const handleSystemMessage = (message: Message<{ contact: Contact; type: s
         case SystemMessageType.ADDUSER: {
             const path = getFullIPv6ApiLocation(message.body.contact.location, '/v1/group/invite');
             chat.contacts.push(message.body.contact);
+            chat.messages.push(message);
             //@todo send message request to invited 3 bot
             try {
                 axios
@@ -38,7 +42,13 @@ export const handleSystemMessage = (message: Message<{ contact: Contact; type: s
             break;
         }
         case SystemMessageType.USER_LEFT_GROUP: {
+            if (message.body.contact.id === config.userid) {
+                deleteChat(chat.chatId);
+                sendEventToConnectedSockets('chat_removed', chat.chatId);
+                return;
+            }
             chat.contacts = chat.contacts.filter(c => c.id !== message.body.contact.id);
+            chat.messages.push(message);
             sendEventToConnectedSockets('chat_updated', chat);
             break;
         }
@@ -49,6 +59,7 @@ export const handleSystemMessage = (message: Message<{ contact: Contact; type: s
                 return;
             }
             chat.contacts = chat.contacts.filter(c => c.id !== message.body.contact.id);
+            chat.messages.push(message);
 
             sendEventToConnectedSockets('chat_updated', chat);
             sendMessageToApi(message.body.contact.location, message);

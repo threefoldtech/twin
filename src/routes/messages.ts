@@ -262,6 +262,7 @@ router.put('/', async (req, res) => {
             res.json({ status: 'success' });
             return;
         case MessageTypes.SYSTEM:
+            console.log('handling system message as ', config.userid);
             handleSystemMessage(<any>message, chat);
 
             res.json({ status: 'success' });
