@@ -7,7 +7,7 @@ import Chat from '../models/chat';
 import Contact from '../models/contact';
 import Message from '../models/message';
 import { sendMessageToApi } from '../service/apiService';
-import { getChatById, persistMessage, syncNewChatWithAdmin } from '../service/chatService';
+import { persistMessage, syncNewChatWithAdmin } from '../service/chatService';
 import { getBlocklist, getChat, persistChat } from '../service/dataService';
 import {
     handleIncommingFileShare,

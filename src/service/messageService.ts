@@ -1,3 +1,9 @@
+import { UploadedFile } from 'express-fileupload';
+
+import { config } from '../config/config';
+import contact from '../models/contact';
+import Message from '../models/message';
+import { determineChatId } from '../routes/messages';
 import {
     ContactRequest,
     FileMessageType,
@@ -8,14 +14,9 @@ import {
     MessageTypes,
     StringMessageTypeInterface,
 } from '../types';
-import Message from '../models/message';
-import { getChat, getChatIds, persistChat, saveFile } from './dataService';
-import { sendEventToConnectedSockets } from './socketService';
-import { determineChatId } from '../routes/messages';
-import { UploadedFile } from 'express-fileupload';
 import { getChatById } from './chatService';
-import contact from '../models/contact';
-import { config } from '../config/config';
+import { getChat, persistChat, saveFile } from './dataService';
+import { sendEventToConnectedSockets } from './socketService';
 
 export const parseMessages = (messages: Array<any>) => messages.map(parseMessage);
 
@@ -125,7 +126,7 @@ export const parseMessage = (msg: any): MessageInterface<MessageBodyTypeInterfac
             return new Message<StringMessageTypeInterface>(
                 msg.from,
                 msg.to,
-                <String>msg.body,
+                <string>msg.body,
                 new Date(msg.timeStamp),
                 msg.id,
                 MessageTypes.EDIT,
@@ -138,7 +139,7 @@ export const parseMessage = (msg: any): MessageInterface<MessageBodyTypeInterfac
             return new Message<StringMessageTypeInterface>(
                 msg.from,
                 msg.to,
-                <String>msg.body,
+                <string>msg.body,
                 new Date(msg.timeStamp),
                 msg.id,
                 MessageTypes.DELETE,
@@ -151,7 +152,7 @@ export const parseMessage = (msg: any): MessageInterface<MessageBodyTypeInterfac
             return new Message<StringMessageTypeInterface>(
                 msg.from,
                 msg.to,
-                <String>msg.body,
+                <string>msg.body,
                 new Date(msg.timeStamp),
                 msg.id,
                 MessageTypes.QUOTE,
@@ -164,7 +165,7 @@ export const parseMessage = (msg: any): MessageInterface<MessageBodyTypeInterfac
             return new Message<StringMessageTypeInterface>(
                 msg.from,
                 msg.to,
-                <String>msg.body,
+                <string>msg.body,
                 new Date(msg.timeStamp),
                 msg.id,
                 MessageTypes.READ,
@@ -178,7 +179,7 @@ export const parseMessage = (msg: any): MessageInterface<MessageBodyTypeInterfac
             return new Message<MessageBodyTypeInterface>(
                 msg.from,
                 msg.to,
-                <String>msg.body,
+                <string>msg.body,
                 new Date(msg.timeStamp),
                 msg.id,
                 msg.type,
@@ -235,31 +236,27 @@ export const editMessage = (
     persistChat(chat);
 };
 
-export const renameShareInChat = (
-    shareConfig: FileShareMessageType,
-    contacts?: contact[]
-) => {
-    if (!contacts) contacts = [new contact(String(shareConfig.owner.id), null)]
-    contacts.filter(el => el.id !== config.userid).forEach(contact => {
+export const renameShareInChat = (shareConfig: FileShareMessageType, contacts?: contact[]) => {
+    if (!contacts) contacts = [new contact(String(shareConfig.owner.id), null)];
+    contacts
+        .filter(el => el.id !== config.userid)
+        .forEach(contact => {
+            const referencesToUpdate = getChatById(contact.id)
+                .messages.filter(msg => msg.type === 'FILE_SHARE')
+                .filter(el => (el.body as MessageInterface<FileMessageType>).id === shareConfig.id);
+            const updatedChat = getChatById(contact.id);
 
-        const referencesToUpdate = getChatById(contact.id)
-            .messages.filter(msg => msg.type === 'FILE_SHARE')
-            .filter(el => (el.body as MessageInterface<FileMessageType>).id === shareConfig.id);
-        let updatedChat = getChatById(contact.id);
-
-        referencesToUpdate.forEach(msg => (msg.body = shareConfig));
-        updatedChat.messages = updatedChat.messages.map(
-            old => referencesToUpdate.find(update => update.id === old.id) || old
-        );
-        persistChat(updatedChat);
-
-    });
-
+            referencesToUpdate.forEach(msg => (msg.body = shareConfig));
+            updatedChat.messages = updatedChat.messages.map(
+                old => referencesToUpdate.find(update => update.id === old.id) || old
+            );
+            persistChat(updatedChat);
+        });
 };
 export const handleRead = (message: Message<StringMessageTypeInterface>) => {
     // console.log('reading');
 
-    let chatId = determineChatId(message);
+    const chatId = determineChatId(message);
     const chat = getChat(chatId);
 
     const newRead = chat.messages.find(m => m.id === message.body);
