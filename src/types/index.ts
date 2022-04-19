@@ -50,6 +50,7 @@ export enum SystemMessageType {
     REMOVEUSER = 'REMOVEUSER',
     JOINED_VIDEOROOM = 'JOINED_VIDEOROOM',
     CONTACT_REQUEST_SEND = 'CONTACT_REQUEST_SEND',
+    USER_LEFT_GROUP = 'USER_LEFT_GROUP',
 }
 
 export enum FileTypes {
