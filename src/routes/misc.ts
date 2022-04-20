@@ -20,7 +20,6 @@ router.get('/healthcheck', async (_req, res) => {
 
 router.post('/updateDraft', (req: express.Request, res: express.Response) => {
     const draftMessage = req.body.params.draftMessage;
-    console.log(draftMessage);
     const chatWithUpdatedDraft = getChatById(draftMessage.to);
     chatWithUpdatedDraft.draft = draftMessage;
     persistChat(chatWithUpdatedDraft);
