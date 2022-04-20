@@ -71,22 +71,20 @@ router.get('/:external', requiresAuthentication, async (req: express.Request, re
     //Need boolean or else infinite loop
     const fetchPostsFromExternals = req?.params.external.toLowerCase() === 'true';
 
-    let posts: unknown[] = [];
+    const posts: unknown[] = [];
 
     //Getting posts from other twins
     if (fetchPostsFromExternals) {
-        for (const contact of contacts) {
-            //Checking if user is online
-            try {
-                const url = getFullIPv6ApiLocation(contact.location, '/v1/posts/false');
-                posts = (
-                    await axios.get(url, {
-                        timeout: 1000,
-                    })
-                ).data;
-            } catch (e) {
-                console.log("Can't make connection with other twin");
-            }
+        try {
+            await Promise.all(
+                contacts.map(async (contact: { location: string }) => {
+                    const url = getFullIPv6ApiLocation(contact.location, '/v1/posts/false');
+                    const { data } = await axios.get(url, { timeout: 3000 });
+                    posts.push(...data);
+                })
+            );
+        } catch (e) {
+            console.log("Can't make connection with other twin");
         }
     }
 
