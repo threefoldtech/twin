@@ -38,6 +38,7 @@ export enum MessageTypes {
     QUOTE = 'QUOTE',
     FILE_SHARE_DELETE = 'FILE_SHARE_DELETE',
     DOWNLOAD_ATTACHMENT = 'DOWNLOAD_ATTACHMENT',
+    POST_DELETE = 'POST_DELETE',
 }
 
 export enum MessageAction {
@@ -83,6 +84,7 @@ export interface MessageBodyTypeInterface {}
 export type StringMessageTypeInterface = MessageBodyTypeInterface;
 
 export interface ContactRequest extends MessageBodyTypeInterface, ContactInterface {}
+
 export interface FileMessageType extends MessageBodyTypeInterface {
     type: FileTypes;
     filename: string;
@@ -112,6 +114,7 @@ export interface ChatInterface {
     };
     name: string;
 }
+
 export interface PersonChatInterface extends ChatInterface {
     chatId: DtIdInterface;
     messages: MessageInterface<MessageBodyTypeInterface>[];

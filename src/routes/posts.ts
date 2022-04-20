@@ -12,6 +12,12 @@ import { sendEventToConnectedSockets } from '../service/socketService';
 import { getFullIPv6ApiLocation } from '../service/urlService';
 import { contacts } from '../store/contacts';
 import { StatusCodes } from 'http-status-codes';
+import Message from '../models/message';
+import { MessageTypes, StringMessageTypeInterface } from '../types';
+import { uuidv4 } from '../common';
+import { appendSignatureToMessage } from '../service/keyService';
+import { sendMessageToApi } from '../service/apiService';
+import { parseMessage } from '../service/messageService';
 
 const router = Router();
 
@@ -262,7 +268,23 @@ router.delete('/:postId', requiresAuthentication, async (req: express.Request, r
     const post = JSON.parse(fs.readFileSync(`${path}/post.json`).toString());
     if (post?.owner.location !== (await getMyLocation())) throw new Error('Not your post!');
     fs.rmdirSync(path, { recursive: true });
-    sendEventToConnectedSockets('posts_updated', postId);
+    sendEventToConnectedSockets('post_deleted', postId);
+    for (let contact of contacts) {
+        const msg: Message<StringMessageTypeInterface> = {
+            id: uuidv4(),
+            body: postId,
+            from: config.userid,
+            to: contact.id,
+            timeStamp: new Date(),
+            type: MessageTypes.POST_DELETE,
+            replies: [],
+            signatures: [],
+            subject: null,
+        };
+        const parsedMessage = parseMessage(msg);
+        appendSignatureToMessage(parsedMessage);
+        sendMessageToApi(contact.location, parsedMessage);
+    }
     res.status(StatusCodes.OK);
     res.send();
 });
