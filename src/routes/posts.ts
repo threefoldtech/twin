@@ -2,6 +2,7 @@ import axios from 'axios';
 import express, { Router } from 'express';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
+import { StatusCodes } from 'http-status-codes';
 import * as PATH from 'path';
 
 import { config } from '../config/config';
@@ -11,7 +12,6 @@ import { getMyLocation } from '../service/locationService';
 import { sendEventToConnectedSockets } from '../service/socketService';
 import { getFullIPv6ApiLocation } from '../service/urlService';
 import { contacts } from '../store/contacts';
-import { StatusCodes } from 'http-status-codes';
 
 const router = Router();
 
@@ -177,7 +177,7 @@ router.post('/someoneIsTyping', requiresAuthentication, async (req: express.Requ
 });
 
 router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const path = atob(req.params.path);
+    const path = Buffer.from(req.params.path, 'base64').toString('utf8');
     console.log(`PATH`, path);
     res.download(path);
 });
