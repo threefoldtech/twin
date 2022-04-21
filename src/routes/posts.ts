@@ -283,6 +283,7 @@ router.delete('/:postId', requiresAuthentication, async (req: express.Request, r
         };
         const parsedMessage = parseMessage(msg);
         appendSignatureToMessage(parsedMessage);
+        //todo make sendPostToApi or something similar like messages but for all posts updates
         sendMessageToApi(contact.location, parsedMessage);
     }
     res.status(StatusCodes.OK);
