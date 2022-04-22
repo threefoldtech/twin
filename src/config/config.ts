@@ -1,9 +1,11 @@
-let userid = process.env.USER_ID || 'jensmeire';
+const userid = process.env.USER_ID || 'patatje3';
 
-let appId = process.env.DIGITALTWIN_APPID || 'digitaltwin.jimbertesting.be';
-let environment = process.env.ENVIRONMENT || 'production';
+const appId = process.env.DIGITALTWIN_APPID || 'digitaltwin.jimbertesting.be';
+const environment = process.env.ENVIRONMENT || 'production';
 
 export const config = {
+    port: parseInt(process.env.PORT, 10) || 3000,
+    node_env: process.env.NODE_ENV || 'development',
     appBackend: environment === 'production' ? 'https://login.threefold.me' : 'https://login.staging.jimber.io',
     kycBackend: environment === 'production' ? 'https://openkyc.live' : 'http://openkyc.staging.jimber.org',
     appId: `${userid}.${appId}`,
@@ -26,4 +28,5 @@ export const config = {
             'tls://213.188.197.95:10020',
         ],
     },
+    sessionSecret: process.env.SESSION_SECRET || 'secret',
 };

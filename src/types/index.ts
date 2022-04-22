@@ -1,5 +1,3 @@
-import messages from '../routes/messages';
-import Message from '../models/message';
 import { SharedFileInterface } from '../service/fileShareService';
 
 export interface UserInterface extends AnonymousContactInterface {
@@ -52,6 +50,7 @@ export enum SystemMessageType {
     REMOVEUSER = 'REMOVEUSER',
     JOINED_VIDEOROOM = 'JOINED_VIDEOROOM',
     CONTACT_REQUEST_SEND = 'CONTACT_REQUEST_SEND',
+    USER_LEFT_GROUP = 'USER_LEFT_GROUP',
 }
 
 export enum FileTypes {
@@ -81,7 +80,7 @@ export interface MessageInterface<T> extends MessageBodyTypeInterface {
 
 export interface MessageBodyTypeInterface {}
 
-export interface StringMessageTypeInterface extends MessageBodyTypeInterface {}
+export type StringMessageTypeInterface = MessageBodyTypeInterface;
 
 export interface ContactRequest extends MessageBodyTypeInterface, ContactInterface {}
 export interface FileMessageType extends MessageBodyTypeInterface {
@@ -132,11 +131,9 @@ export interface AnonymousContactInterface {
     id: DtIdInterface;
 }
 
-export interface DtIdInterface extends IdInterface {}
+export type DtIdInterface = IdInterface;
 
-export interface IdInterface extends String {}
-
-const test: IdInterface = '';
+export type IdInterface = string;
 
 export interface WorkspaceInterface extends GroupChatInterface {
     subGroups: GroupChatInterface[];

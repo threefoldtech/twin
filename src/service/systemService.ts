@@ -1,25 +1,30 @@
-import Message from '../models/message';
-import { ContactInterface, GroupUpdateType, MessageBodyTypeInterface, SystemMessageType } from '../types';
-import { getChatById, persistMessage } from './chatService';
-import Chat from '../models/chat';
-import { deleteChat, persistChat } from './dataService';
-import { config } from '../config/config';
-import Contact from '../models/contact';
-import { sendEventToConnectedSockets } from './socketService';
-import { sendMessageToApi } from './apiService';
-import { getFullIPv6ApiLocation } from './urlService';
 import axios from 'axios';
 
-export const handleSystemMessage = (message: Message<{ contact: Contact; type: string }>, chat: Chat) => {
-    if (chat.adminId !== message.from) {
+import { config } from '../config/config';
+import Chat from '../models/chat';
+import Contact from '../models/contact';
+import Message from '../models/message';
+import { SystemMessageType } from '../types';
+import { sendMessageToApi } from './apiService';
+import { persistMessage } from './chatService';
+import { deleteChat, persistChat } from './dataService';
+import { sendEventToConnectedSockets } from './socketService';
+import { getFullIPv6ApiLocation } from './urlService';
+
+export const handleSystemMessage = (message: Message<{ contact: Contact; type: SystemMessageType }>, chat: Chat) => {
+    if (
+        [SystemMessageType.ADDUSER, SystemMessageType.REMOVEUSER].includes(message.body.type) &&
+        chat.adminId !== message.from
+    ) {
         throw Error('not allowed');
     }
 
     switch (message.body.type) {
-        case SystemMessageType.ADDUSER:
+        case SystemMessageType.ADDUSER: {
+            const path = getFullIPv6ApiLocation(message.body.contact.location, '/v1/group/invite');
             chat.contacts.push(message.body.contact);
+            chat.messages.push(message);
             //@todo send message request to invited 3 bot
-            const path = getFullIPv6ApiLocation(message.body.contact.location, '/group/invite');
             try {
                 axios
                     .put(path, chat)
@@ -27,7 +32,7 @@ export const handleSystemMessage = (message: Message<{ contact: Contact; type: s
                         sendEventToConnectedSockets('chat_updated', chat);
                         sendMessageToApi(message.body.contact.location, message);
                     })
-                    .catch(e => {
+                    .catch(() => {
                         console.log('failed to send group request');
                     });
             } catch (e) {
@@ -35,6 +40,23 @@ export const handleSystemMessage = (message: Message<{ contact: Contact; type: s
             }
 
             break;
+        }
+        case SystemMessageType.USER_LEFT_GROUP: {
+            const contact = message.body.contact.id;
+            if (contact === chat.adminId) {
+                const newAdmin = chat.contacts.filter(c => c.id !== contact)[0];
+                chat.adminId = newAdmin.id;
+            }
+            if (contact === config.userid) {
+                deleteChat(chat.chatId);
+                sendEventToConnectedSockets('chat_removed', chat.chatId);
+                return;
+            }
+            chat.contacts = chat.contacts.filter(c => c.id !== contact);
+            chat.messages.push(message);
+            sendEventToConnectedSockets('chat_updated', chat);
+            break;
+        }
         case SystemMessageType.REMOVEUSER:
             if (message.body.contact.id === config.userid) {
                 deleteChat(<string>chat.chatId);
@@ -42,6 +64,7 @@ export const handleSystemMessage = (message: Message<{ contact: Contact; type: s
                 return;
             }
             chat.contacts = chat.contacts.filter(c => c.id !== message.body.contact.id);
+            chat.messages.push(message);
 
             sendEventToConnectedSockets('chat_updated', chat);
             sendMessageToApi(message.body.contact.location, message);

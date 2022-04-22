@@ -1,19 +1,17 @@
-import { IdInterface } from '../types/index';
-import express, { json, Router } from 'express';
-import { getChatById } from '../service/chatService';
-import { getChat, persistChat } from '../service/dataService';
-import { sendEventToConnectedSockets } from '../service/socketService';
-import { config } from '../config/config';
-import { requiresAuthentication } from '../middlewares/authenticationMiddleware';
-import { HttpError } from '../types/errors/httpError';
+import axios from 'axios';
+import express, { Router } from 'express';
+import { UploadedFile } from 'express-fileupload';
+import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 import * as PATH from 'path';
-import fs from 'fs';
-import { UploadedFile } from 'express-fileupload';
+
+import { config } from '../config/config';
+import { requiresAuthentication } from '../middlewares/authenticationMiddleware';
+import { getBlocklist } from '../service/dataService';
 import { getMyLocation } from '../service/locationService';
-import { contacts } from '../store/contacts';
+import { sendEventToConnectedSockets } from '../service/socketService';
 import { getFullIPv6ApiLocation } from '../service/urlService';
-import axios from 'axios';
+import { contacts } from '../store/contacts';
 
 const router = Router();
 
@@ -27,14 +25,13 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
         filesToSave = [].concat(filesToSave);
     }
 
-    let path = PATH.join(socialDirectory, 'posts', id, 'files');
+    const path = PATH.join(socialDirectory, 'posts', id, 'files');
     fs.mkdirSync(path, { recursive: true });
 
-    let images = [];
+    const images = [];
 
     for (const file of filesToSave) {
         if (file?.tempFilePath && file?.mv) {
-            //@ts-ignore
             file.mv(PATH.join(path, file.name));
             images.push({ ...file, path: PATH.join(path, file.name) });
         } else if (file?.data) {
@@ -58,8 +55,8 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
             id: config.userid,
             location: await getMyLocation(),
         },
-        likes: [] as any[],
-        replies: [] as any[],
+        likes: [] as unknown[],
+        replies: [] as unknown[],
         images: images,
     };
 
@@ -74,32 +71,31 @@ router.get('/:external', requiresAuthentication, async (req: express.Request, re
     //Need boolean or else infinite loop
     const fetchPostsFromExternals = req?.params.external.toLowerCase() === 'true';
 
-    let posts: any[] = [];
+    const posts: unknown[] = [];
 
     //Getting posts from other twins
     if (fetchPostsFromExternals) {
-        for (const contact of contacts) {
-            //Checking if user is online
-            try {
-                const url = getFullIPv6ApiLocation(contact.location, '/posts/false');
-                posts = (
-                    await axios.get(url, {
-                        timeout: 1000,
-                    })
-                ).data;
-            } catch (e) {
-                console.log("Can't make connection with other twin");
-            }
+        try {
+            await Promise.all(
+                contacts.map(async (contact: { location: string }) => {
+                    const url = getFullIPv6ApiLocation(contact.location, '/v1/posts/false');
+                    const { data } = await axios.get(url, { timeout: 3000 });
+                    posts.push(...data);
+                })
+            );
+        } catch (e) {
+            console.log("Can't make connection with other twin");
         }
     }
 
-    let path = PATH.join(socialDirectory, 'posts');
+    const path = PATH.join(socialDirectory, 'posts');
 
     if (!fs.existsSync(path)) return res.json(posts);
     const dir = await fs.promises.opendir(path);
+    const blockedUsers = getBlocklist();
     for await (const dirent of dir) {
-        //@ts-ignore
-        const file = JSON.parse(fs.readFileSync(`${path}/${dirent.name}/post.json`));
+        const file = JSON.parse(fs.readFileSync(`${path}/${dirent.name}/post.json`).toString());
+        if (blockedUsers.includes(file.owner.id)) return;
         posts.push(file);
     }
 
@@ -113,7 +109,7 @@ router.get('/single/post', requiresAuthentication, async (req: express.Request, 
 
     if (myLocation !== creatorPost) {
         try {
-            const url = getFullIPv6ApiLocation(creatorPost, '/posts/single/post');
+            const url = getFullIPv6ApiLocation(creatorPost, '/v1/posts/single/post');
             const post = (
                 await axios.get(url, {
                     timeout: 2000,
@@ -134,8 +130,7 @@ router.get('/single/post', requiresAuthentication, async (req: express.Request, 
 
     const path = PATH.join(socialDirectory, 'posts', postId);
     if (!fs.existsSync(path)) throw new Error(`Post couldn't be found`);
-    //@ts-ignore
-    const post = JSON.parse(fs.readFileSync(`${path}/post.json`));
+    const post = JSON.parse(fs.readFileSync(`${path}/post.json`).toString());
 
     res.json(post);
 });
@@ -143,9 +138,10 @@ router.get('/single/post', requiresAuthentication, async (req: express.Request, 
 router.put('/typing', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const creatorPost = <string>req.body.location;
     const postId = <string>req.body.postId;
+    const userId = req.body.userId;
     const myLocation = await getMyLocation();
     if (myLocation !== creatorPost) {
-        const url = getFullIPv6ApiLocation(creatorPost, `/posts/typing`);
+        const url = getFullIPv6ApiLocation(creatorPost, `/v1/posts/typing`);
         await axios.put(url, {
             ...req.body,
         });
@@ -154,23 +150,33 @@ router.put('/typing', requiresAuthentication, async (req: express.Request, res: 
     }
 
     for (const contact of contacts) {
-        const url = getFullIPv6ApiLocation(contact.location, `/posts/someoneIsTyping`);
-        axios.post(url, req.body, {
-            timeout: 1000,
-        });
+        const url = getFullIPv6ApiLocation(contact.location, `/v1/posts/someoneIsTyping`);
+        axios.post(url, req.body);
     }
-    sendEventToConnectedSockets('post_typing', postId);
+
+    const data = {
+        post: postId,
+        user: userId,
+    };
+    sendEventToConnectedSockets('post_typing', data);
     res.json({ status: 'OK' });
 });
 
 router.post('/someoneIsTyping', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const postId = <string>req.body.postId;
-    sendEventToConnectedSockets('post_typing', postId);
+    const userId = req.body.userId;
+
+    const data = {
+        post: postId,
+        user: userId,
+    };
+    sendEventToConnectedSockets('post_typing', data);
     res.json({ status: 'OK' });
 });
 
 router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const path = atob(req.params.path);
+    const path = Buffer.from(req.params.path, 'base64').toString('utf8');
+    console.log(`PATH`, path);
     res.download(path);
 });
 
@@ -182,17 +188,14 @@ router.put('/like/:postId', requiresAuthentication, async (req: express.Request,
     const myLocation = await getMyLocation();
 
     //Note: check first config.userid === location from post, get postId in body of put. Or else infinite loop if the post was deleted
-    let path = PATH.join(socialDirectory, 'posts', postId);
+    const path = PATH.join(socialDirectory, 'posts', postId);
     if (myLocation === creatorPost) {
         if (!fs.existsSync(path)) return res.json({ status: 'post not found' });
-        //@ts-ignore
-        let postConfig = JSON.parse(fs.readFileSync(`${path}/post.json`));
+        const postConfig = JSON.parse(fs.readFileSync(`${path}/post.json`).toString());
         const { likes } = postConfig;
-        //@ts-ignore
-        if (likes.some(e => e.location === liker_location && e.id === liker_id)) {
+        if (likes.some((e: { location: string; id: string }) => e.location === liker_location && e.id === liker_id)) {
             postConfig.likes = postConfig.likes.filter(
-                //@ts-ignore
-                like => like.location !== liker_location && like.id !== liker_id
+                (like: { location: string; id: string }) => like.location !== liker_location && like.id !== liker_id
             );
             fs.writeFileSync(`${path}/post.json`, JSON.stringify(postConfig, null, 2));
             res.json({ status: 'unliked' });
@@ -207,7 +210,7 @@ router.put('/like/:postId', requiresAuthentication, async (req: express.Request,
         return;
     }
     //Sending to other twin
-    const url = getFullIPv6ApiLocation(creatorPost, `/posts/like/${postId}`);
+    const url = getFullIPv6ApiLocation(creatorPost, `/v1/posts/like/${postId}`);
     const status = (
         await axios.put(url, {
             owner: creatorPost,
@@ -220,12 +223,11 @@ router.put('/like/:postId', requiresAuthentication, async (req: express.Request,
 
 router.put('/comment/:postId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const postId = req.params.postId;
-    const { id, body, owner, post, type, replies, createdOn, likes, replyTo, isReplyToComment } = req.body;
-    //console.log('COMMENT');
+    const { post, replyTo, isReplyToComment } = req.body;
     const myLocation = await getMyLocation();
     if (post.owner.location !== myLocation) {
         //Sending to other twin
-        const url = getFullIPv6ApiLocation(post.owner.location, `/posts/comment/${postId}`);
+        const url = getFullIPv6ApiLocation(post.owner.location, `/v1/posts/comment/${postId}`);
         const { data: status } = await axios.put(url, req.body);
         //console.log(status);
         return res.json({ ...status });
@@ -233,13 +235,11 @@ router.put('/comment/:postId', requiresAuthentication, async (req: express.Reque
     //Okay post is mine
     const path = PATH.join(socialDirectory, 'posts', postId);
     if (!fs.existsSync(path)) return res.json({ status: 'post not found' });
-    //@ts-ignore
-    let postConfig = JSON.parse(fs.readFileSync(`${path}/post.json`));
+    const postConfig = JSON.parse(fs.readFileSync(`${path}/post.json`).toString());
     //Now checking if reply or not
     if (isReplyToComment) {
         //console.log(postConfig?.replies[replyTo]);
-        //@ts-ignore
-        const parentCommentId = postConfig.replies.findIndex(obj => obj.id === replyTo);
+        const parentCommentId = postConfig.replies.findIndex((obj: { id: string }) => obj.id === replyTo);
 
         //console.log(postConfig.replies[parentCommentId]);
         postConfig?.replies[parentCommentId]?.replies.push(req.body);
@@ -253,6 +253,16 @@ router.put('/comment/:postId', requiresAuthentication, async (req: express.Reque
     res.json({ status: 'commented' });
 });
 
-//@TODO will need to use this later
+router.delete('/:postId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const postId: string = req.params.postId;
+    const path = PATH.join(socialDirectory, 'posts', postId);
+    if (!fs.existsSync(path)) throw new Error('Could not find post');
+    const post = JSON.parse(fs.readFileSync(`${path}/post.json`).toString());
+    if (post?.owner.location !== (await getMyLocation())) throw new Error('Not your post!');
+    fs.rmdirSync(path, { recursive: true });
+    sendEventToConnectedSockets('posts_updated', postId);
+    res.status(StatusCodes.OK);
+    res.send();
+});
 
 export default router;

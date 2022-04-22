@@ -1,8 +1,25 @@
-import { getBlocklist, persistChat } from './../service/dataService';
 import { Router } from 'express';
+import { fromBuffer } from 'file-type';
+
+import { uuidv4 } from '../common';
+import { config } from '../config/config';
+import Chat from '../models/chat';
+import Contact from '../models/contact';
 import Message from '../models/message';
-import { contactRequests } from '../store/contactRequests';
+import { sendMessageToApi } from '../service/apiService';
+import { persistMessage, syncNewChatWithAdmin } from '../service/chatService';
+import { getBlocklist, getChat, persistChat } from '../service/dataService';
+import {
+    handleIncommingFileShare,
+    handleIncommingFileShareDelete,
+    handleIncommingFileShareUpdate,
+} from '../service/fileShareService';
+import { appendSignatureToMessage, verifyMessageSignature } from '../service/keyService';
+import { getMyLocation } from '../service/locationService';
+import { editMessage, handleRead, parseMessage } from '../service/messageService';
 import { sendEventToConnectedSockets } from '../service/socketService';
+import { handleSystemMessage } from '../service/systemService';
+import { contactRequests } from '../store/contactRequests';
 import {
     ContactRequest,
     DtIdInterface,
@@ -13,25 +30,7 @@ import {
     MessageTypes,
     StringMessageTypeInterface,
 } from '../types';
-import Contact from '../models/contact';
-import { editMessage, handleRead, parseMessage } from '../service/messageService';
-import { persistMessage, syncNewChatWithAdmin } from '../service/chatService';
-import { getChat } from '../service/dataService';
-import { config } from '../config/config';
-import { sendMessageToApi } from '../service/apiService';
-import Chat from '../models/chat';
-import { uuidv4 } from '../common';
-import { handleSystemMessage } from '../service/systemService';
-import { getMyLocation } from '../service/locationService';
-import { appendSignatureToMessage, verifyMessageSignature } from '../service/keyService';
-import {
-    handleIncommingFileShare,
-    handleIncommingFileShareDelete,
-    handleIncommingFileShareUpdate,
-} from '../service/fileShareService';
 import { getFile, Path } from '../utils/files';
-import { createNoSubstitutionTemplateLiteral } from 'typescript';
-import { fromBuffer } from 'file-type';
 
 const router = Router();
 
@@ -51,8 +50,13 @@ const handleContactRequest = async (message: Message<ContactRequest>) => {
         signatures: message.signatures ?? [],
         subject: null,
     };
+
+    // const chatExists = getChatById(message.from)?.contacts.some(c => c.location === otherContact.location);
+
+    // if (chatExists) return;
+
     const newchat = new Chat(
-        message.from,
+        message.from as string,
         [myself, otherContact],
         false,
         [requestMsg],
@@ -124,12 +128,7 @@ const handleGroupAdmin = async <ResBody, Locals>(
     }
 
     appendSignatureToMessage(message);
-    chat.contacts
-        .filter(c => c.id !== config.userid)
-        .forEach(c => {
-            console.log(`group sendMessage to ${c.id}`);
-            sendMessageToApi(c.location, message);
-        });
+    chat.contacts.filter(c => c.id !== config.userid).forEach(c => sendMessageToApi(c.location, message));
 
     if (message.type === <string>MessageTypes.SYSTEM) {
         handleSystemMessage(<any>message, chat);
@@ -137,12 +136,10 @@ const handleGroupAdmin = async <ResBody, Locals>(
         return;
     }
 
-    console.log(`received new group message from ${message.from}`);
     sendEventToConnectedSockets('message', message);
 
     if (message.type === MessageTypes.READ) {
         handleRead(message as Message<StringMessageTypeInterface>);
-
         res.json({ status: 'success' });
         return;
     }
@@ -154,7 +151,6 @@ const handleGroupAdmin = async <ResBody, Locals>(
         return;
     }
 
-    console.log(`persistMessage:${chat.chatId}`);
     persistMessage(chat.chatId, message);
     res.json({ status: 'success' });
     return;
@@ -217,12 +213,9 @@ router.put('/', async (req, res) => {
     }
 
     if (message.type === MessageTypes.SYSTEM) {
-        console.log('received a groupUpdate');
-        //@ts-ignore
-        const groupUpdateMsg: Message<GroupUpdateType> = message;
+        const groupUpdateMsg = message as unknown as Message<GroupUpdateType>;
         if (groupUpdateMsg.body.type === 'ADDUSER' && groupUpdateMsg.body.contact.id === config.userid) {
-            console.log('I have been added to a group!');
-            syncNewChatWithAdmin(groupUpdateMsg.body.adminLocation, <string>groupUpdateMsg.to);
+            await syncNewChatWithAdmin(groupUpdateMsg.body.adminLocation, <string>groupUpdateMsg.to);
             res.json({ status: 'Successfully added chat' });
             return;
         }
@@ -259,6 +252,7 @@ router.put('/', async (req, res) => {
             res.json({ status: 'success' });
             return;
         case MessageTypes.SYSTEM:
+            console.log('handling system message as ', config.userid);
             handleSystemMessage(<any>message, chat);
 
             res.json({ status: 'success' });
@@ -297,8 +291,8 @@ router.put('/', async (req, res) => {
                 });
             }
 
-            let url: string = decodeURI(new URL(<string>message.body).pathname).replace(
-                '/api/files/' + message.from,
+            const url: string = decodeURI(new URL(<string>message.body).pathname).replace(
+                '/api/v1/files/' + message.from,
                 '' + message.from + '/files'
             );
 

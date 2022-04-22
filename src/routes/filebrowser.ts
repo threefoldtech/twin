@@ -1,11 +1,56 @@
-import { removeFilePermissions, SharedFileInterface, updateShareName } from './../service/fileShareService';
-import express, { json, Router } from 'express';
+import AdmZip from 'adm-zip';
+import express, { Router } from 'express';
+import { UploadedFile } from 'express-fileupload';
+import { fromBuffer } from 'file-type';
+import * as fs from 'fs';
+import { pathExists } from 'fs-extra';
+import { StatusCodes } from 'http-status-codes';
+import { isUndefined } from 'lodash';
+import syncRequest from 'sync-request';
+
+import { uuidv4 } from '../common';
+import { config } from '../config/config';
+import { requiresAuthentication } from '../middlewares/authenticationMiddleware';
+import Message from '../models/message';
+import { sendMessageToApi } from '../service/apiService';
+import { persistMessage } from '../service/chatService';
+import { getChat, getShareConfig, persistChat } from '../service/dataService';
+import { getDocumentBrowserKey } from '../service/fileService';
+import {
+    createShare,
+    getShareByPath,
+    getSharePermissionForUser,
+    getSharesWithme,
+    getShareWithId,
+    removeFilePermissions,
+    removeShare,
+    SharedFileInterface,
+    SharePermission,
+    SharePermissionInterface,
+    ShareStatus,
+    updateShareName,
+    updateSharePath,
+} from '../service/fileShareService';
+import { createJwtToken, verifyJwtToken } from '../service/jwtService';
+import { appendSignatureToMessage } from '../service/keyService';
+import { parseMessage } from '../service/messageService';
+import { sendEventToConnectedSockets } from '../service/socketService';
+import { isBlocked, Permission, Token, TokenData } from '../store/tokenStore';
+import {
+    AnonymousContactInterface,
+    FileShareMessageType,
+    IdInterface,
+    MessageBodyTypeInterface,
+    MessageTypes,
+    StringMessageTypeInterface,
+} from '../types';
+import { DirectoryContent, DirectoryDto, FileDto, PathInfo } from '../types/dtos/fileDto';
+import { HttpError } from '../types/errors/httpError';
 import {
     copyWithRetry,
     createDir,
     createDirectoryWithRetry,
     filterOnString,
-    getFile,
     getFilesRecursive,
     getFormattedDetails,
     getStats,
@@ -18,55 +63,6 @@ import {
     saveFile,
     saveFileWithRetry,
 } from '../utils/files';
-import { HttpError } from '../types/errors/httpError';
-import { StatusCodes } from 'http-status-codes';
-import { DirectoryContent, DirectoryDto, FileDto, PathInfo } from '../types/dtos/fileDto';
-import { UploadedFile } from 'express-fileupload';
-import { requiresAuthentication } from '../middlewares/authenticationMiddleware';
-import { createJwtToken, parseJwt, verifyJwtToken } from '../service/jwtService';
-import { isBlocked, Permission, Token, TokenData } from '../store/tokenStore';
-import syncRequest from 'sync-request';
-import { config } from '../config/config';
-import { uuidv4 } from '../common';
-import * as fs from 'fs';
-import AdmZip from 'adm-zip';
-import {
-    createShare,
-    getShareByPath,
-    getSharePermissionForUser,
-    getSharesWithme,
-    getShareWithId,
-    removeShare,
-    SharePermission,
-    SharePermissionInterface,
-    ShareStatus,
-    updateSharePath,
-} from '../service/fileShareService';
-import { getChat, getShareConfig, persistShareConfig } from '../service/dataService';
-import {
-    FileShareMessageType,
-    IdInterface,
-    MessageBodyTypeInterface,
-    MessageInterface,
-    MessageTypes,
-    StringMessageTypeInterface,
-} from '../types';
-import Message from '../models/message';
-import { appendSignatureToMessage } from '../service/keyService';
-import { sendMessageToApi } from '../service/apiService';
-import { sendEventToConnectedSockets } from '../service/socketService';
-import { persistMessage } from '../service/chatService';
-import { parseMessage } from '../service/messageService';
-import crypto from 'crypto';
-import { getDocumentBrowserKey } from '../service/fileService';
-import { isCallChain } from 'typescript';
-import Contact from '../models/contact';
-import { isUndefined } from 'lodash';
-import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
-import chat from '../models/chat';
-import { fromBuffer } from 'file-type';
-import * as PATH from 'path';
-import { pathExists } from 'fs-extra';
 
 const router = Router();
 
@@ -77,7 +73,7 @@ interface FileToken extends TokenData {
 
 router.get('/directories/content', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let p = req.query.path;
-    let attachment = req.query.attachments === '1';
+    const attachment = req.query.attachments === '1';
 
     if (!p || typeof p !== 'string') p = '/';
     let path = new Path(p);
@@ -110,6 +106,7 @@ router.get('/directories/info', requiresAuthentication, async (req: express.Requ
         stats.isSocket()
     )
         throw new HttpError(StatusCodes.BAD_REQUEST, 'Path is not a directory');
+    res.status(StatusCodes.OK);
     return getFormattedDetails(path);
 });
 
@@ -131,12 +128,11 @@ router.post('/directories', requiresAuthentication, async (req: express.Request,
 
 router.get('/files/info', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     let p;
-    let shareConfig = getShareConfig();
     if (req.query.params) {
-        let params = Buffer.from(req.query.params as string, 'base64').toString();
-        let object = JSON.parse(params);
-        let shareId = object.shareId;
-        let token = object.token;
+        const params = Buffer.from(req.query.params as string, 'base64').toString();
+        const object = JSON.parse(params);
+        const shareId = object.shareId;
+        const token = object.token;
         console.log(object);
         const [payload, err] = verifyJwtToken<Token<FileToken>>(token);
         if (err) throw new HttpError(StatusCodes.UNAUTHORIZED, err.message);
@@ -212,13 +208,13 @@ router.delete('/files', requiresAuthentication, async (req: express.Request, res
 });
 
 router.get('/files', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    let p = req.query.path;
+    const p = req.query.path;
     if (!p || typeof p !== 'string') throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
 
     const path = new Path(p);
     if (await isPathDirectory(path)) {
         const zip = new AdmZip();
-        let uploadDir = fs.readdirSync(path.securedPath);
+        const uploadDir = fs.readdirSync(path.securedPath);
 
         for (let i = 0; i < uploadDir.length; i++) {
             zip.addLocalFile(path.securedPath + '/' + uploadDir[i]);
@@ -244,8 +240,8 @@ interface OnlyOfficeCallback {
 
 router.get('/internal/files', async (req: express.Request, res: express.Response) => {
     const attachment: boolean = req.query.attachment === 'true';
-    let p = req.query.path;
-    let token = req.query.token;
+    const p = req.query.path;
+    const token = req.query.token;
     if (!token || typeof token !== 'string') throw new HttpError(StatusCodes.UNAUTHORIZED, 'No valid token provided');
 
     if (!p || typeof p !== 'string') throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
@@ -310,7 +306,6 @@ router.post('/files/copy', requiresAuthentication, async (req: express.Request, 
 });
 
 router.post('/files/move', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    let config = getShareConfig();
     const data = req.body.paths;
     if (!data || data.length === 0) throw new HttpError(StatusCodes.BAD_REQUEST, 'No items to copy specified');
 
@@ -343,13 +338,13 @@ router.put('/files/rename', requiresAuthentication, async (req: express.Request,
 });
 
 router.get('/files/search', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    let term = req.query.searchTerm;
-    let dir = req.query.currentDir;
+    const term = req.query.searchTerm;
+    const dir = req.query.currentDir;
     if (!dir || typeof dir !== 'string') throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
 
     const path = new Path(dir);
-    let fileList = await getFilesRecursive(path);
-    let filteredList = await filterOnString(term.toString(), fileList);
+    const fileList = await getFilesRecursive(path);
+    const filteredList = await filterOnString(term.toString(), fileList);
 
     const results = filteredList.length > 0 ? filteredList : 'None';
     res.json(results);
@@ -362,9 +357,10 @@ router.post(
     async (req: express.Request, res: express.Response) => {
         const chatId = req.body.chatId as string | undefined;
         const path = req.body.path as string | undefined;
-        const location = req.body.path as string | undefined;
+        const location = req.body.location as string | undefined;
         removeFilePermissions(path, chatId, location);
         res.status(StatusCodes.OK);
+        res.send();
     }
 );
 
@@ -381,7 +377,7 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
 
     if (!chatId) throw new HttpError(StatusCodes.BAD_REQUEST, 'No chat specified');
 
-    const chat = getChat(chatId, 0);
+    const chat = getChat(chatId);
     const itemStats = await getStats(new Path(path));
 
     const types = <SharePermission[]>[SharePermission.Read];
@@ -401,7 +397,7 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
 
     let share: SharedFileInterface;
     if (!isUndefined(existingShare)) {
-        let id = existingShare.id;
+        const id = existingShare.id;
         // if (!existingShare.permissions.find(p => p.chatId === chatId)) {
         share = await createShare(
             path,
@@ -426,7 +422,7 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
         );
     }
 
-    let msg: Message<FileShareMessageType> = {
+    const msg: Message<FileShareMessageType> = {
         id: uuidv4(),
         body: share,
         from: config.userid,
@@ -439,28 +435,33 @@ router.post('/files/share', requiresAuthentication, async (req: express.Request,
     };
     const parsedmsg = parseMessage(msg);
     appendSignatureToMessage(parsedmsg);
+    let modified = false;
     const contacts = chat.contacts.filter(c => c.id !== config.userid);
     for (const contact of contacts) {
+        const permission = existingShare?.permissions.find(p => p.chatId === contact.id);
+        if (permission?.types.length === types.length) continue;
         await sendMessageToApi(contact.location, parsedmsg);
+        modified = true;
     }
-
-    persistMessage(chat.chatId, parsedmsg);
-    sendEventToConnectedSockets('message', parsedmsg);
+    if (modified) {
+        chat.messages = chat.messages.filter(m => (m.body as AnonymousContactInterface)?.id !== share.id);
+        persistChat(chat);
+        persistMessage(chat.chatId, parsedmsg);
+        sendEventToConnectedSockets('message', parsedmsg);
+    }
     res.json();
     res.status(StatusCodes.OK);
 });
 
 router.get('/files/getShares', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    let shareStatus = req.query.shareStatus as ShareStatus;
+    const shareStatus = req.query.shareStatus as ShareStatus;
     // console.log('status', shareStatus)
-    let results = await getSharesWithme(shareStatus);
+    const results = getSharesWithme(shareStatus);
     res.json(results);
     res.status(StatusCodes.OK);
 });
 
-router.get('/attachments', requiresAuthentication, (req: express.Request, res: express.Response) => {
-    const shareStatus = req.query.shareStatus as ShareStatus;
-
+router.get('/attachments', requiresAuthentication, (_req: express.Request, res: express.Response) => {
     const results = fs.readdirSync('/appdata/attachments/');
 
     res.json(results);
@@ -468,8 +469,8 @@ router.get('/attachments', requiresAuthentication, (req: express.Request, res: e
 });
 
 router.get('/files/getShareWithId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    let shareId = req.query.id as string;
-    let results = await getShareWithId(shareId, ShareStatus.SharedWithMe);
+    const shareId = req.query.id as string;
+    const results = getShareWithId(shareId, ShareStatus.SharedWithMe);
     if (isUndefined(results)) {
         res.json({ message: 'ACCESS_DENIED' });
     } else {
@@ -481,10 +482,10 @@ router.get(
     '/files/getSharedFileDownload',
     requiresAuthentication,
     async (req: express.Request, res: express.Response) => {
-        let params = Buffer.from(req.query.params as string, 'base64').toString();
-        let object = JSON.parse(params);
-        let shareId = object.shareId;
-        let token = object.token;
+        const params = Buffer.from(req.query.params as string, 'base64').toString();
+        const object = JSON.parse(params);
+        const shareId = object.shareId;
+        const token = object.token;
 
         if (!token || typeof token !== 'string')
             throw new HttpError(StatusCodes.UNAUTHORIZED, 'No valid token provided');
@@ -588,7 +589,7 @@ router.get('/share/:shareId/folder', async (req: express.Request, res: express.R
 router.get('/share/path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const path = <string>req.query.path;
     const allShares = getShareConfig();
-    let share = getShareByPath(allShares, path, ShareStatus.Shared);
+    const share = getShareByPath(allShares, path, ShareStatus.Shared);
     res.json(share);
     res.status(StatusCodes.OK);
 });
@@ -601,7 +602,7 @@ router.get('/attachment/download', requiresAuthentication, async (req: express.R
 
     const location = new URL(path).hostname.replace('[', '').replace(']', '');
 
-    let msg: Message<StringMessageTypeInterface> = {
+    const msg: Message<StringMessageTypeInterface> = {
         id: uuidv4(),
         body: path,
         from: config.userid,
@@ -628,6 +629,7 @@ router.get('/attachment/download', requiresAuthentication, async (req: express.R
         result = (await sendMessageToApi(location, parsedmsg, 'arraybuffer')).data;
     }
 
+    const mimetype = (await fromBuffer(Buffer.from(JSON.stringify(result), 'utf8')))?.mime || null;
     const file: UploadedFile = {
         name: null,
         data: Buffer.from(result),
@@ -635,13 +637,12 @@ router.get('/attachment/download', requiresAuthentication, async (req: express.R
         encoding: null,
         tempFilePath: null,
         truncated: null,
-        //@ts-ignore
-        mimetype: (await fromBuffer(Buffer.from(result, 'utf8')))?.mime || null,
+        mimetype,
         md5: null,
         mv: null,
     };
 
-    const yy = await saveFileWithRetry(
+    await saveFileWithRetry(
         new Path(<string>owner + '/' + path.split('/').pop(), '/appdata/attachments/'),
         file,
         0,

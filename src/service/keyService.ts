@@ -1,8 +1,8 @@
+import Contact from '../models/contact';
 import Message from '../models/message';
-import { base64ToUint8Array, createBase64Signature, verifySignature } from './encryptionService';
 import { getPrivateKey, getPublicKeyFromCache, setPublicKeyInCache } from '../store/keyStore';
 import { getPublicKey } from './apiService';
-import Contact from '../models/contact';
+import { createBase64Signature, verifySignature } from './encryptionService';
 
 export const appendSignatureToMessage = <T>(message: Message<T>) => {
     const secretKey = getPrivateKey();
@@ -21,6 +21,7 @@ export const verifyMessageSignature = async <T>(contact: Contact, message: Messa
         publicKey = base64Key;
         setPublicKeyInCache(contact.id, publicKey);
     }
+    // console.log(`PUBLIC KEY: ${publicKey}`);
     const messageWithoutSignature = {
         ...message,
         signatures: message.signatures.slice(signatureIndex + 1, message.signatures.length),

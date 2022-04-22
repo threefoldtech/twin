@@ -1,14 +1,17 @@
-import { IdInterface, UserInterface } from '../types/index';
-import { config } from '../config/config';
-import fs from 'fs';
-import Chat from '../models/chat';
-import { parseFullChat, parsePartialChat } from './chatService';
-import { uniqBy } from 'lodash';
-import im from 'imagemagick';
-import { ITokenFile } from '../store/tokenStore';
-import PATH from 'path';
 import { UploadedFile } from 'express-fileupload';
+import fs from 'fs';
+import im from 'imagemagick';
+import { uniqBy } from 'lodash';
+import PATH from 'path';
+
+import { config } from '../config/config';
+import Chat from '../models/chat';
+import { ITokenFile } from '../store/tokenStore';
+import { Exception } from '../types/errors/exceptionError';
+import { IdInterface, UserInterface } from '../types/index';
+import { parseFullChat, parsePartialChat } from './chatService';
 import { notifyPersist, SharesInterface } from './fileShareService';
+import { sendEventToConnectedSockets } from './socketService';
 
 const userDirectory = PATH.join(config.baseDir, '/user');
 const chatsDirectory = PATH.join(config.baseDir, '/chats');
@@ -61,8 +64,7 @@ export const getKey = (keyName: string): string => {
     try {
         return fs.readFileSync(PATH.join(userDirectory, keyName), 'utf8');
     } catch (ex) {
-        //@ts-ignore
-        if (ex.code === 'ENOENT') {
+        if ((ex as Exception).code === 'ENOENT') {
             console.log(keyName + ' not found!');
         }
         throw ex;
@@ -89,22 +91,22 @@ export const persistChat = (chat: Chat) => {
     const sortedChat = sortChat(chat);
     const path = PATH.join(chatsDirectory, sortedChat.chatId as string);
 
-    try {
-        fs.statSync(path);
-    } catch {
+    if (!fs.existsSync(path)) {
         fs.mkdirSync(path);
         fs.mkdirSync(PATH.join(path, '/files'));
     }
+
     fs.writeFileSync(PATH.join(path, '/chat.json'), JSON.stringify(sortedChat, null, 4), {
         flag: 'w',
     });
+    sendEventToConnectedSockets('chat_updated', chat);
 };
 export const deleteChat = (chatId: string) => {
     const path = PATH.join(chatsDirectory, chatId);
     try {
         fs.rmdirSync(path, { recursive: true });
     } catch (e) {
-        console.log(e);
+        // console.log(e);
         return false;
     }
     return true;
@@ -184,14 +186,13 @@ export const getShareConfig = (): SharesInterface => {
     try {
         return JSON.parse(fs.readFileSync(location, 'utf8'));
     } catch (ex) {
-        //@ts-ignore
-        if (ex.code === 'ENOENT') {
+        if ((ex as Exception).code === 'ENOENT') {
             console.log('Shares.json not found!');
-            let obj = <SharesInterface>{
+            const obj = <SharesInterface>{
                 Shared: [],
                 SharedWithMe: [],
             };
-            let json = JSON.stringify(obj);
+            const json = JSON.stringify(obj);
             fs.writeFileSync(location, json);
             return JSON.parse(fs.readFileSync(location, 'utf8'));
         }

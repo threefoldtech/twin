@@ -1,12 +1,14 @@
-import { IdInterface } from '../types/index';
 import express, { Router } from 'express';
-import { getAcceptedChatsWithPartialMessages, getChatRequests, getChatById } from '../service/chatService';
-import { getChat, persistChat } from '../service/dataService';
-import { sendEventToConnectedSockets } from '../service/socketService';
+import { StatusCodes } from 'http-status-codes';
+
 import { config } from '../config/config';
 import { requiresAuthentication } from '../middlewares/authenticationMiddleware';
+import { getAcceptedChatsWithPartialMessages, getChatById, getChatRequests } from '../service/chatService';
+import { getChat, persistChat } from '../service/dataService';
+import { sendEventToConnectedSockets } from '../service/socketService';
+import { contacts } from '../store/contacts';
 import { HttpError } from '../types/errors/httpError';
-import { StatusCodes } from 'http-status-codes';
+import { IdInterface } from '../types/index';
 
 const router = Router();
 
@@ -16,8 +18,10 @@ router.post('/', requiresAuthentication, (req: express.Request, res: express.Res
         //Flow to add contact request to contacts
         const id: IdInterface = <IdInterface>req.query.id;
         console.log('accepting', id);
-        let chat = getChatById(id);
+        const chat = getChatById(id);
         chat.acceptedChat = true;
+        const contact = chat.contacts.find(c => c.id === id);
+        contacts.push(contact);
         sendEventToConnectedSockets('new_chat', chat);
         persistChat(chat);
         res.json(chat);

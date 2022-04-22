@@ -1,16 +1,16 @@
-import { persistChat } from './../service/dataService';
-import { UploadedFile } from 'express-fileupload';
 import { Router } from 'express';
-import { getChat, saveFile } from '../service/dataService';
-import { FileMessageType, MessageTypes } from '../types';
-import Message from '../models/message';
+import { UploadedFile } from 'express-fileupload';
+
 import { config } from '../config/config';
-import { sendEventToConnectedSockets } from '../service/socketService';
+import Message from '../models/message';
 import { sendMessageToApi } from '../service/apiService';
-import { getFullIPv6ApiLocation } from '../service/urlService';
-import { getMyLocation } from '../service/locationService';
+import { getChat, persistChat, saveFile } from '../service/dataService';
 import { appendSignatureToMessage } from '../service/keyService';
+import { getMyLocation } from '../service/locationService';
 import { parseMessage } from '../service/messageService';
+import { sendEventToConnectedSockets } from '../service/socketService';
+import { getFullIPv6ApiLocation } from '../service/urlService';
+import { FileMessageType, MessageTypes } from '../types';
 
 const router = Router();
 
@@ -18,7 +18,7 @@ router.get('/:chatid/:messageid/:name', async (req, res) => {
     // @TODO fix this security
     const path = `${config.baseDir}chats/${req.params.chatid}/files/${req.params.messageid}/${req.params.name}`;
 
-    console.log('Path: ', path);
+    console.log(`PATH: ${path}`);
 
     res.download(path);
 });
@@ -28,13 +28,13 @@ router.post('/:chatid/:messageid', async (req, resp) => {
     const messageId = req.params.messageid;
     const fileToSave = <UploadedFile>req.files.file;
     saveFile(chatId, messageId, fileToSave);
-    let myLocation = await getMyLocation();
+    const myLocation = await getMyLocation();
     const message: Message<FileMessageType> = {
         from: config.userid,
         body: <FileMessageType>{
             type: req.body.type,
             filename: fileToSave.name,
-            url: getFullIPv6ApiLocation(myLocation, `/files/${chatId}/${messageId}/${fileToSave.name}`),
+            url: getFullIPv6ApiLocation(myLocation, `/v1/files/${chatId}/${messageId}/${fileToSave.name}`),
         },
         id: messageId,
         timeStamp: new Date(),

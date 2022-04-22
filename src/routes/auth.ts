@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { appCallback, getAppLoginUrl } from '../service/authService';
+
 import { yggdrasilIsInitialized } from '../index';
-import { HttpError } from '../types/errors/httpError';
-import { StatusCodes } from 'http-status-codes';
+import { appCallback, getAppLoginUrl } from '../service/authService';
+
 const router = Router();
 
 router.get('/', async (request, response) => {
@@ -16,7 +16,7 @@ router.get('/', async (request, response) => {
 });
 
 router.get('/signin', async (request, response) => {
-    let loginUrl = await getAppLoginUrl(request, `/api/auth/callback`);
+    let loginUrl = await getAppLoginUrl(request, `/api/v1/auth/callback`);
     loginUrl = loginUrl + '&username=' + request.query.username;
 
     console.log('url: ', loginUrl);
