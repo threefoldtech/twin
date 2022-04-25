@@ -4,7 +4,6 @@ import {
     Get,
     Param,
     Post,
-    Req,
     StreamableFile,
     UploadedFile,
     UseGuards,
@@ -14,7 +13,6 @@ import { ConfigService } from '@nestjs/config';
 import { createReadStream } from 'fs-extra';
 
 import { AuthGuard } from '../../guards/auth.guard';
-import { AuthenticatedRequest } from '../../types/requests';
 import { imageFileFilter } from '../../utils/image-file-filter';
 import { ConnectionService } from '../connection/connection.service';
 import { LocalFilesInterceptor } from '../file/interceptor/local-files.interceptor';
@@ -52,19 +50,20 @@ export class UserController {
 
     @Get('avatar/:avatarId')
     async getAvatar(@Param('avatarId') avatarId: string) {
-        // console.log(`Avatar: ${avatarId}`);
-        const filePath = `${this._configService.get<string>('baseDir')}user/avatar-${avatarId}`;
-        console.log(`FilePath: ${filePath}`);
+        let filePath = `${this._configService.get<string>('baseDir')}user/avatar-default`;
+        if (avatarId !== 'default') {
+            filePath = `${this._configService.get<string>('baseDir')}user/${avatarId}`;
+        }
         const stream = createReadStream(filePath);
         return new StreamableFile(stream);
     }
 
     @Post('avatar')
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
     @UseInterceptors(
         LocalFilesInterceptor({
             fieldName: 'file',
-            path: '/users/avatars',
+            path: 'user',
             isAvatar: true,
             fileFilter: imageFileFilter,
             limits: {
@@ -72,8 +71,9 @@ export class UserController {
             },
         })
     )
-    uploadAvatar(@Req() req: AuthenticatedRequest, @UploadedFile() file: Express.Multer.File): Promise<string> {
+    uploadAvatar(@UploadedFile() file: Express.Multer.File): Promise<string> {
         if (!file) throw new BadRequestException('provide a valid image');
-        return this._userService.addAvatar({ userId: req.userId, path: file.path });
+        const filename = file.filename.split('.')[0];
+        return this._userService.addAvatar({ path: filename });
     }
 }

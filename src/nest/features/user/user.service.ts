@@ -68,8 +68,9 @@ export class UserService {
     }
 
     async getUserAvatar(): Promise<string> {
+        const { avatar } = await this.getUserData();
         const myAddress = await this._locationService.getOwnLocation();
-        return `http://[${myAddress}]/api/v2/user/avatar/default`;
+        return `http://[${myAddress}]/api/v2/user/avatar/${avatar}`;
     }
 
     /**
@@ -91,17 +92,17 @@ export class UserService {
 
     /**
      * Adds the avatar path to user data.
-     * @param {string} userId - Users ID to add avatar to.
      * @param {string} path - Avatar path.
      * @return {string} - Updated user data ID.
      */
-    async addAvatar({ userId, path }: { userId: string; path: string }): Promise<string> {
+    async addAvatar({ path }: { path: string }): Promise<string> {
         try {
             const userToUpdate = await this.getUserData();
-            userToUpdate.userId = userId;
             userToUpdate.avatar = path;
             userToUpdate.lastSeen = new Date();
-            return await this._userRepo.save(userToUpdate);
+            await this._userRepo.save(userToUpdate);
+            const myAddress = await this._locationService.getOwnLocation();
+            return `http://[${myAddress}]/api/v2/user/avatar/${path}`;
         } catch (error) {
             throw new BadRequestException(error);
         }

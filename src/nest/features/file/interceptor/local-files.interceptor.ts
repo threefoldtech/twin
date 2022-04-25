@@ -4,6 +4,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 import { diskStorage } from 'multer';
 
+import { uuidv4 } from '../../../utils/uuid';
+
 interface LocalFilesInterceptorOptions {
     fieldName: string;
     path?: string;
@@ -17,16 +19,17 @@ export function LocalFilesInterceptor(options: LocalFilesInterceptorOptions): Ty
     class Interceptor implements NestInterceptor {
         fileInterceptor: NestInterceptor;
         constructor(private readonly _configService: ConfigService) {
-            const filesDestination = this._configService.get<string>('uploadDestination');
+            const filesDestination = this._configService.get<string>('baseDir');
 
             const destination = `${filesDestination}${options.path}`;
+            const avatarId = uuidv4();
 
             const multerOptions: MulterOptions = {
                 storage: diskStorage({
                     destination,
                     filename: (_, file, callback) => {
                         if (options.isAvatar)
-                            return callback(null, `${this._configService.get<string>('userId')}-avatar.png`);
+                            return callback(null, `${this._configService.get<string>('userId')}-avatar-${avatarId}`);
 
                         return callback(null, file.originalname);
                     },
