@@ -1,13 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { join } from 'path';
 import { Repository } from 'redis-om';
 
 import { ApiService } from '../api/api.service';
 import { ContactDTO } from '../contact/dtos/contact.dto';
 import { DbService } from '../db/db.service';
 import { EncryptionService } from '../encryption/encryption.service';
-import { FileService } from '../file/file.service';
 import { MessageDTO } from '../message/dtos/message.dto';
 import { Key, keySchema, KeyType } from './models/key.model';
 
@@ -15,17 +13,13 @@ import { Key, keySchema, KeyType } from './models/key.model';
 export class KeyService {
     private _keyRepo: Repository<Key>;
 
-    private _userDir = '';
-
     constructor(
         private readonly _configService: ConfigService,
         private readonly _dbService: DbService,
         private readonly _encryptionService: EncryptionService,
-        private readonly _apiService: ApiService,
-        private readonly _fileService: FileService
+        private readonly _apiService: ApiService
     ) {
         this._keyRepo = this._dbService.createRepository(keySchema);
-        this._userDir = join(this._configService.get('baseDir'), '/user');
     }
 
     /**
@@ -38,10 +32,6 @@ export class KeyService {
         const pkString = this._encryptionService.uint8ToBase64(pk);
         const userID = this._configService.get<string>('userId');
         try {
-            // save to file system
-            const path = join(this._userDir, keyType);
-            this._fileService.writeFile({ path, content: pkString });
-
             return this._keyRepo.createAndSave({
                 userID,
                 key: pkString,

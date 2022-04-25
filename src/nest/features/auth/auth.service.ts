@@ -8,7 +8,7 @@ import { KeyType } from '../key/models/key.model';
 
 @Injectable()
 export class AuthService {
-    tfLogin: ThreefoldLogin;
+    private tfLogin: ThreefoldLogin;
 
     constructor(
         private readonly _configService: ConfigService,
@@ -32,7 +32,6 @@ export class AuthService {
             );
             await this.tfLogin.init();
             const loginState = generateRandomString();
-            // console.log(loginState);
             return {
                 loginState,
                 loginUrl: this.tfLogin.generateLoginUrl(loginState, {
