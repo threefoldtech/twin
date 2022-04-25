@@ -31,13 +31,15 @@ export class KeyService {
      */
     async updateKey({ pk, keyType }: { pk: Uint8Array; keyType: KeyType }): Promise<Key> {
         const pkString = this._encryptionService.uint8ToBase64(pk);
-        const userID = this._configService.get<string>('userId');
+        const userId = this._configService.get<string>('userId');
         try {
-            return this._keyRepo.createAndSave({
-                userID,
-                key: pkString,
-                keyType,
-            });
+            const existingKey = await this.getKey(keyType, userId);
+            if (!existingKey)
+                return this._keyRepo.createAndSave({
+                    userId,
+                    key: pkString,
+                    keyType,
+                });
         } catch (error) {
             throw new BadRequestException(error);
         }
@@ -65,9 +67,9 @@ export class KeyService {
      * Gets the public or private key of logged in user.
      * @return {Key} - Public or private key.
      */
-    async getKey(keyType: KeyType): Promise<Key> {
+    async getKey(keyType: KeyType, userId: string): Promise<Key> {
         try {
-            return this._keyRepo.search().where('keyType').equals(keyType).return.first();
+            return this._keyRepo.search().where('keyType').equals(keyType).and('userId').equals(userId).return.first();
         } catch (error) {
             throw new NotFoundException(error);
         }
@@ -97,7 +99,8 @@ export class KeyService {
      * @return {MessageDTO} - message with appended signature.
      */
     async appendSignatureToMessage(message: MessageDTO<unknown>): Promise<MessageDTO<unknown>> {
-        const { key } = await this.getKey(KeyType.Private);
+        const userId = this._configService.get<string>('userId');
+        const { key } = await this.getKey(KeyType.Private, userId);
         if (!key) return;
         const signature = this._encryptionService.createBase64Signature({ data: message, secretKey: key });
         message.signatures ? message.signatures.unshift(signature) : (message.signatures = [signature]);
@@ -122,16 +125,15 @@ export class KeyService {
         signature: string;
     }): Promise<boolean> {
         const signatureIdx = message.signatures.findIndex(s => s === signature);
-        if (!signatureIdx) return false;
+        if (signatureIdx <= -1) return false;
 
-        let { key } = await this.getPublicKeyByUserID(contact.id);
-        if (!key) {
-            const base64key = await this._apiService.getContactPublicKey(contact.location);
-            if (!base64key) return false;
-            key = base64key;
+        const pk = await this.getPublicKeyByUserID(contact.id);
+        if (!pk) {
+            const key = await this._apiService.getContactPublicKey(contact.location);
+            if (!key) return false;
+            pk.key = key;
             await this.addContactPublicKey({ key, userID: contact.id });
         }
-
         const messageWithoutSignature = {
             ...message,
             signatures: message.signatures.slice(signatureIdx + 1, message.signatures.length),
@@ -140,7 +142,7 @@ export class KeyService {
         return this._encryptionService.verifySignature({
             data: messageWithoutSignature,
             signature,
-            publicKey: key,
+            publicKey: pk.key,
         });
     }
 }

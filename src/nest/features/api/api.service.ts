@@ -17,7 +17,6 @@ export class ApiService {
      */
     async registerDigitalTwin({ doubleName, signedAddress }: { doubleName: string; signedAddress: string }) {
         try {
-            // TODO: change to /nest/users/digitaltwin/:doubleName when implemented
             console.log(`Register Digital Twin called with doubleName: ${doubleName}, signedAddress: ${signedAddress}`);
             return await axios.put(
                 `${this._configService.get<string>('appBackend')}/api/users/digitaltwin/${doubleName}`,
@@ -47,8 +46,7 @@ export class ApiService {
         responseType?: ResponseType;
     }) {
         try {
-            // TODO: change to /nest/messages when implemented
-            return await axios.put(`http://[${location}]/api/v1/messages`, message, {
+            return await axios.put(`http://[${location}]/api/v2/messages`, message, {
                 responseType: responseType || 'json',
             });
         } catch (error) {
@@ -88,8 +86,7 @@ export class ApiService {
      */
     async getContactPublicKey(location: string): Promise<string> {
         try {
-            // TODO: change to /nest/user/public-key when implemented
-            const res = await axios.get<string>(`http://[${location}]/api/v1/user/publickey`);
+            const res = await axios.get<string>(`http://[${location}]/api/v2/user/publickey`);
             return res.data;
         } catch (error) {
             throw new BadRequestException(`unable to get public key from external API: ${error}`);

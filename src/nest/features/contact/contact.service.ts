@@ -107,7 +107,7 @@ export class ContactService {
             contactRequest as unknown as Message
         );
 
-        // await this._apiService.sendMessageToApi({ location: newContact.location, message: signedContactRequest });
+        await this._apiService.sendMessageToApi({ location: newContact.location, message: signedContactRequest });
 
         // this._chatGateway.emitMessageToConnectedClients('connection_request', chat);
 

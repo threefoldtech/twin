@@ -49,7 +49,7 @@ export class MessageController {
         console.log(`Message type: ${message.type}`);
         const blockedContacts = await this._blockedContactService.getBlockedContactList();
         const isBlocked = blockedContacts.find(c => c === message.from);
-        console.log(`isBlocked: ${isBlocked}`);
+
         if (isBlocked) throw new ForbiddenException('blocked');
 
         // needs to be checked first otherwise chat will always show as unaccepted
