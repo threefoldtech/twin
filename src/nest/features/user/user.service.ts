@@ -91,11 +91,11 @@ export class UserService {
     }
 
     /**
-     * Adds the avatar path to user data.
+     * Updates the avatar path to user data.
      * @param {string} path - Avatar path.
      * @return {string} - Updated user data ID.
      */
-    async addAvatar({ path }: { path: string }): Promise<string> {
+    async updateAvatar({ path }: { path: string }): Promise<string> {
         try {
             const userToUpdate = await this.getUserData();
             userToUpdate.avatar = path;
@@ -103,6 +103,21 @@ export class UserService {
             await this._userRepo.save(userToUpdate);
             const myAddress = await this._locationService.getOwnLocation();
             return `http://[${myAddress}]/api/v2/user/avatar/${path}`;
+        } catch (error) {
+            throw new BadRequestException(error);
+        }
+    }
+
+    /**
+     * Updates the user status.
+     * @param {string} status - Updated status.
+     */
+    async updateStatus({ status }: { status: string }): Promise<void> {
+        try {
+            const userToUpdate = await this.getUserData();
+            userToUpdate.status = status;
+            userToUpdate.lastSeen = new Date();
+            await this._userRepo.save(userToUpdate);
         } catch (error) {
             throw new BadRequestException(error);
         }

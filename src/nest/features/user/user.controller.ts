@@ -59,7 +59,7 @@ export class UserController {
     }
 
     @Post('avatar')
-    // @UseGuards(AuthGuard)
+    @UseGuards(AuthGuard)
     @UseInterceptors(
         LocalFilesInterceptor({
             fieldName: 'file',
@@ -74,6 +74,6 @@ export class UserController {
     uploadAvatar(@UploadedFile() file: Express.Multer.File): Promise<string> {
         if (!file) throw new BadRequestException('provide a valid image');
         const filename = file.filename.split('.')[0];
-        return this._userService.addAvatar({ path: filename });
+        return this._userService.updateAvatar({ path: filename });
     }
 }
