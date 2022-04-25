@@ -29,7 +29,7 @@ export const registerDigitaltwin = async (doubleName: string, derivedSeed: strin
     const keyPair = getKeyPair(derivedSeed);
     const data = new Uint8Array(Buffer.from(yggdrasilAddress));
     const signedAddress = Buffer.from(nacl.sign(data, keyPair.secretKey)).toString('base64');
-    await axios.put(`${config.appBackend}/api/v1/users/digitaltwin/${doubleName}`, {
+    await axios.put(`${config.appBackend}/api/users/digitaltwin/${doubleName}`, {
         app_id: config.appId,
         signed_yggdrasil_ip_address: signedAddress,
     });
