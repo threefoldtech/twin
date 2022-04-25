@@ -112,12 +112,13 @@ export class UserService {
      * Updates the user status.
      * @param {string} status - Updated status.
      */
-    async updateStatus({ status }: { status: string }): Promise<void> {
+    async updateStatus({ status }: { status: string }): Promise<boolean> {
         try {
             const userToUpdate = await this.getUserData();
             userToUpdate.status = status;
             userToUpdate.lastSeen = new Date();
             await this._userRepo.save(userToUpdate);
+            return true;
         } catch (error) {
             throw new BadRequestException(error);
         }

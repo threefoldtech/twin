@@ -38,7 +38,7 @@ export class ChatController {
     }
 
     @Get()
-    async getAcceptedChats(@Query('offset') offset = 0, @Query('count') count = 25): Promise<Chat[]> {
+    async getAcceptedChats(@Query('offset') offset = 0, @Query('count') count = 50): Promise<Chat[]> {
         return await this._chatService.getAcceptedChats({ offset, count });
     }
 }

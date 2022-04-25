@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../../guards/auth.guard';
+import { MessageBody } from '../message/types/message.type';
 import { ContactService } from './contact.service';
 import { CreateContactDTO } from './dtos/contact.dto';
 import { Contact } from './models/contact.model';
@@ -17,12 +18,7 @@ export class ContactController {
 
     @Post()
     @UseGuards(AuthGuard)
-    async createContact(@Body() { id, location, message }: CreateContactDTO): Promise<Contact> {
-        return await this._contactService.createNewContact({
-            id,
-            location,
-            contactRequest: false,
-            message,
-        });
+    async createContact(@Body() body: CreateContactDTO<MessageBody>): Promise<Contact> {
+        return await this._contactService.createNewContact(body);
     }
 }

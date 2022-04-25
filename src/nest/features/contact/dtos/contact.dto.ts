@@ -1,6 +1,6 @@
-import { IsBoolean, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
-import { Message } from '../../message/models/message.model';
+import { CreateMessageDTO } from '../../message/dtos/message.dto';
 
 export class ContactDTO {
     @IsString()
@@ -10,17 +10,17 @@ export class ContactDTO {
     location: string;
 }
 
-export class CreateContactDTO {
+export class CreateContactDTO<T> {
     @IsString()
     id: string;
 
     @IsString()
     location: string;
 
-    @IsBoolean()
     contactRequest: boolean;
 
-    message?: Message;
+    @IsNotEmpty()
+    message?: CreateMessageDTO<T>;
 }
 
 export class DeleteContactDTO {

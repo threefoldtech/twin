@@ -23,8 +23,7 @@ export class UserGateway implements OnGatewayInit {
     }
 
     @SubscribeMessage('status_update')
-    async handleStatusUpdate(@MessageBody() data: { status: string }) {
-        console.log(`CALLED CALLED CALLED`);
-        await this._userService.updateStatus({ status: data.status });
+    async handleStatusUpdate(@MessageBody() data: { status: string }): Promise<boolean> {
+        return await this._userService.updateStatus({ status: data.status });
     }
 }

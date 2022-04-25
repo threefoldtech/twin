@@ -7,9 +7,8 @@ import { ChatService } from '../../chat/chat.service';
 import { Chat } from '../../chat/models/chat.model';
 import { ContactService } from '../../contact/contact.service';
 import { CreateContactDTO } from '../../contact/dtos/contact.dto';
-import { MessageDTO } from '../dtos/message.dto';
+import { CreateMessageDTO, MessageDTO } from '../dtos/message.dto';
 import { MessageService } from '../message.service';
-import { Message } from '../models/message.model';
 import { ContactRequest, GroupUpdate, SystemMessage, SystemMessageType } from '../types/message.type';
 import {
     AddUserSystemState,
@@ -25,7 +24,12 @@ export abstract class MessageState<T> {
 export class ContactRequestMessageState implements MessageState<ContactRequest> {
     constructor(private readonly _messageService: MessageService, private readonly _contactService: ContactService) {}
 
-    async handle({ message }: { message: MessageDTO<ContactRequest>; chat: Chat }): Promise<CreateContactDTO> {
+    async handle({
+        message,
+    }: {
+        message: MessageDTO<ContactRequest>;
+        chat: Chat;
+    }): Promise<CreateContactDTO<ContactRequest>> {
         const from = message.body;
         const validSignature = await this._messageService.verifySignedMessage({
             isGroup: false,
@@ -37,7 +41,7 @@ export class ContactRequestMessageState implements MessageState<ContactRequest> 
         return await this._contactService.createNewContactRequest({
             id: from.id,
             location: from.location,
-            message: (<unknown>message) as Message,
+            message: (<unknown>message) as CreateMessageDTO<ContactRequest>,
             contactRequest: true,
         });
     }

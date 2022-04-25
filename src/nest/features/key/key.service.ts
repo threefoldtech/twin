@@ -20,6 +20,7 @@ export class KeyService {
         private readonly _apiService: ApiService
     ) {
         this._keyRepo = this._dbService.createRepository(keySchema);
+        this._keyRepo.createIndex();
     }
 
     /**
@@ -65,9 +66,8 @@ export class KeyService {
      * @return {Key} - Public or private key.
      */
     async getKey(keyType: KeyType): Promise<Key> {
-        const userId = this._configService.get<string>('userId');
         try {
-            return this._keyRepo.search().where('userId').equals(userId).and('keyType').equals(keyType).return.first();
+            return this._keyRepo.search().where('keyType').equals(keyType).return.first();
         } catch (error) {
             throw new NotFoundException(error);
         }
@@ -100,7 +100,8 @@ export class KeyService {
         const { key } = await this.getKey(KeyType.Private);
         if (!key) return;
         const signature = this._encryptionService.createBase64Signature({ data: message, secretKey: key });
-        message.signatures.unshift(signature);
+        message.signatures ? message.signatures.unshift(signature) : (message.signatures = [signature]);
+
         return message;
     }
 

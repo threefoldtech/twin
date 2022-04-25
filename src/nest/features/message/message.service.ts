@@ -49,7 +49,7 @@ export class MessageService {
                 replies: stringifyReplies(replies),
                 subject,
                 type,
-                signatures,
+                signatures: signatures ?? null,
             });
         } catch (error) {
             throw new BadRequestException(`unable to create message: ${error}`);

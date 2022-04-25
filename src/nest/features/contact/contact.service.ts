@@ -12,7 +12,7 @@ import { LocationService } from '../location/location.service';
 import { MessageDTO } from '../message/dtos/message.dto';
 import { MessageService } from '../message/message.service';
 import { Message } from '../message/models/message.model';
-import { ContactRequest, MessageType } from '../message/types/message.type';
+import { ContactRequest, MessageBody, MessageType } from '../message/types/message.type';
 import { CreateContactDTO, DeleteContactDTO } from './dtos/contact.dto';
 import { Contact, contactSchema } from './models/contact.model';
 
@@ -37,10 +37,10 @@ export class ContactService {
     /**
      * Gets contacts using pagination.
      * @param offset - Contact offset, defaults to 0.
-     * @param count - Amount of contacts to fetch, defaults to 25.
+     * @param count - Amount of contacts to fetch, defaults to 50.
      * @return {Contact[]} - Found contacts.
      */
-    async getContacts({ offset = 0, count = 25 }: { offset?: number; count?: number } = {}): Promise<Contact[]> {
+    async getContacts({ offset = 0, count = 50 }: { offset?: number; count?: number } = {}): Promise<Contact[]> {
         try {
             return await this._contactRepo.search().return.page(offset, count);
         } catch {
@@ -55,7 +55,7 @@ export class ContactService {
      * @param {CreateMessageDTO} message - Contact request message.
      * @return {Contact} - Created entity.
      */
-    async createNewContact({ id, location, message }: CreateContactDTO): Promise<Contact> {
+    async createNewContact({ id, location, message }: CreateContactDTO<MessageBody>): Promise<Contact> {
         const yggdrasilAddress = await this._locationService.getOwnLocation();
         // createEntity without saving to Redis
         const me = this._contactRepo.createEntity({
@@ -70,13 +70,14 @@ export class ContactService {
             newContact = await this._contactRepo.createAndSave({
                 id,
                 location,
+                contactRequest: false,
             });
         } catch (error) {
             throw new BadRequestException(`unable to create contact: ${error}`);
         }
 
         const signedMessage = await this._keyService.appendSignatureToMessage(newMessage);
-        const chat = this._chatService.createChat({
+        const chat = await this._chatService.createChat({
             chatId: newContact.id,
             name: newMessage.to,
             contacts: [newContact, me],
@@ -106,9 +107,9 @@ export class ContactService {
             contactRequest as unknown as Message
         );
 
-        await this._apiService.sendMessageToApi({ location: newContact.location, message: signedContactRequest });
+        // await this._apiService.sendMessageToApi({ location: newContact.location, message: signedContactRequest });
 
-        this._chatGateway.emitMessageToConnectedClients('connection_request', chat);
+        // this._chatGateway.emitMessageToConnectedClients('connection_request', chat);
 
         return newContact;
     }
@@ -120,7 +121,12 @@ export class ContactService {
      * @param {CreateMessageDTO} message - Contact request message.
      * @return {Contact} - Created entity.
      */
-    async createNewContactRequest({ id, location, contactRequest, message }: CreateContactDTO): Promise<Contact> {
+    async createNewContactRequest({
+        id,
+        location,
+        contactRequest,
+        message,
+    }: CreateContactDTO<ContactRequest>): Promise<Contact> {
         const yggdrasilAddress = await this._locationService.getOwnLocation();
         const me = this._contactRepo.createEntity({
             id: this._configService.get<string>('userId'),
@@ -191,7 +197,7 @@ export class ContactService {
      * @param {string} location - Contact IPv6.
      * @return {Contact} - Contact entity.
      */
-    async addContact({ id, location }: CreateContactDTO): Promise<Contact> {
+    async addContact({ id, location }: CreateContactDTO<ContactRequest>): Promise<Contact> {
         try {
             return await this._contactRepo.createAndSave({
                 id,
