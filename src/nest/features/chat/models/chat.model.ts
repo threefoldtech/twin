@@ -42,14 +42,15 @@ export class Chat extends Entity {
      * @return {Message[]} - The parsed messages.
      */
     parseMessages(draft = false): Message[] {
-        if (draft && this.draft.length) return this.draft.map(msg => JSON.parse(msg));
+        if (draft && this.draft.length) return this.draft.map(m => this.parseMessageBody(m));
 
-        this.messages.map(m => {
-            const msg: Message = JSON.parse(m);
-            return msg.parseBody();
-        });
+        return this.messages.map(m => this.parseMessageBody(m));
+    }
 
-        return this.messages.map(msg => JSON.parse(msg));
+    parseMessageBody(m: string) {
+        const msg: Message = JSON.parse(m);
+        msg.body = JSON.parse(msg.body);
+        return msg;
     }
 
     /**
