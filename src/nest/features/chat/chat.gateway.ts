@@ -54,7 +54,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         signedMessage.id = message.id;
 
         // notify contacts about creation of new chat
-        this.server.emit('message_to_client', signedMessage);
+        this.emitMessageToConnectedClients('message', signedMessage);
 
         // const contacts = chat.parseContacts();
 
@@ -99,7 +99,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      */
     handleConnection(client: Socket): void {
         this.logger.log(`new client connection: ${client.id}`);
-        // this.handleJoinChat(client);
     }
 
     /**

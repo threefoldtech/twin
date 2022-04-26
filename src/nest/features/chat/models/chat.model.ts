@@ -47,7 +47,12 @@ export class Chat extends Entity {
         return this.messages.map(m => this.parseMessageBody(m));
     }
 
-    parseMessageBody(m: string) {
+    /**
+     * Parses message or draft body strings to valid JSON.
+     * @param m - Message
+     * @return {Message} - The message with parsed body.
+     */
+    parseMessageBody(m: string): Message {
         const msg: Message = JSON.parse(m);
         msg.body = JSON.parse(msg.body);
         return msg;

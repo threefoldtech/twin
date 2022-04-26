@@ -127,7 +127,6 @@ export class ContactService {
         contactRequest,
         message,
     }: CreateContactDTO<ContactRequest>): Promise<Contact> {
-        console.log(`NEW CONTACT REQUEST`);
         const yggdrasilAddress = await this._locationService.getOwnLocation();
         const me = this._contactRepo.createEntity({
             id: this._configService.get<string>('userId'),
@@ -149,7 +148,7 @@ export class ContactService {
             id: uuidv4(),
             from: message.from,
             to: message.to,
-            body: `You have received a new message request from ${message.from}`,
+            body: JSON.stringify(`You have received a new message request from ${message.from}`),
             timeStamp: new Date(),
             type: MessageType.SYSTEM,
             subject: null,
@@ -157,7 +156,7 @@ export class ContactService {
             replies: [],
         };
 
-        const chat = this._chatService.createChat({
+        const chat = await this._chatService.createChat({
             chatId: message.from,
             name: message.from,
             contacts: [me, newContact],
@@ -169,7 +168,7 @@ export class ContactService {
             draft: [],
         });
 
-        this._chatGateway.emitMessageToConnectedClients('connection_request', chat);
+        this._chatGateway.emitMessageToConnectedClients('connection_request', chat.toJSON());
         return newContact;
     }
 
