@@ -4,6 +4,7 @@ import { ContactDTO } from '../../contact/dtos/contact.dto';
 import { Contact } from '../../contact/models/contact.model';
 import { MessageDTO } from '../../message/dtos/message.dto';
 import { Message } from '../../message/models/message.model';
+import { ChatDTO } from '../dtos/chat.dto';
 
 /**
  * Every model with string[] will later be parsed to the correct model type.
@@ -22,6 +23,19 @@ export interface Chat {
 }
 
 export class Chat extends Entity {
+    toJSON(): ChatDTO {
+        return {
+            chatId: this.chatId,
+            name: this.name,
+            contacts: this.parseContacts(),
+            messages: this.parseMessages(),
+            read: this.read,
+            acceptedChat: this.acceptedChat,
+            adminId: this.adminId,
+            isGroup: this.isGroup,
+            draft: this.parseMessages(true),
+        };
+    }
     /**
      * Parses message or draft strings to valid JSON.
      * @param draft - Parse drafts of messages if false. Defaults to false.
@@ -29,6 +43,11 @@ export class Chat extends Entity {
      */
     parseMessages(draft = false): Message[] {
         if (draft && this.draft.length) return this.draft.map(msg => JSON.parse(msg));
+
+        this.messages.map(m => {
+            const msg: Message = JSON.parse(m);
+            return msg.parseBody();
+        });
 
         return this.messages.map(msg => JSON.parse(msg));
     }

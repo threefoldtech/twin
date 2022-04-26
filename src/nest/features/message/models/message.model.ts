@@ -15,15 +15,7 @@ export interface Message {
     replies: Message[];
 }
 
-export class Message extends Entity {
-    /**
-     * Parses message body string to valid JSON.
-     * @return {T} - The parsed message body.
-     */
-    parseBody<T>(): T {
-        return JSON.parse(this.body);
-    }
-}
+export class Message extends Entity {}
 
 /**
  * Stringifies the message JSON to a string for Redis.

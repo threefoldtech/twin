@@ -36,7 +36,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      * TODO: WIP
      * Sends a new incoming message to all connected clients.
      */
-    @SubscribeMessage('message_to_server')
+    @SubscribeMessage('message')
     async handleIncomingMessage(@MessageBody() message: Message) {
         // correct from to message
         message.from = this._configService.get<string>('userId');
@@ -66,26 +66,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
         // persist message
         this._chatService.addMessageToChat({ chat, message: signedMessage });
-    }
-
-    /**
-     * Adds a user to a chat for socket io.
-     * @param {Socket} client - socket.io client.
-     */
-    @SubscribeMessage('join_chat')
-    handleJoinChat(client: Socket): void {
-        client.join('chat');
-        client.emit('joined_chat', 'chat');
-    }
-
-    /**
-     * Removes a user from a chat for socket io.
-     * @param {Socket} client - socket.io client.
-     */
-    @SubscribeMessage('leave_chat')
-    handleLeaveChat(client: Socket): void {
-        client.leave('chat');
-        client.emit('left_chat', 'chat');
     }
 
     @SubscribeMessage('block_chat')
@@ -128,7 +108,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      */
     handleDisconnect(client: Socket): void {
         this.logger.log(`client disconnected: ${client.id}`);
-        this.handleLeaveChat(client);
     }
 
     /**

@@ -109,7 +109,7 @@ export class ContactService {
 
         await this._apiService.sendMessageToApi({ location: newContact.location, message: signedContactRequest });
 
-        // this._chatGateway.emitMessageToConnectedClients('connection_request', chat);
+        this._chatGateway.emitMessageToConnectedClients('connection_request', chat.toJSON());
 
         return newContact;
     }
@@ -127,6 +127,7 @@ export class ContactService {
         contactRequest,
         message,
     }: CreateContactDTO<ContactRequest>): Promise<Contact> {
+        console.log(`NEW CONTACT REQUEST`);
         const yggdrasilAddress = await this._locationService.getOwnLocation();
         const me = this._contactRepo.createEntity({
             id: this._configService.get<string>('userId'),

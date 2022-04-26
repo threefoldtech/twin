@@ -127,13 +127,10 @@ export class KeyService {
         const signatureIdx = message.signatures.findIndex(s => s === signature);
         if (signatureIdx <= -1) return false;
 
-        const pk = await this.getPublicKeyByUserID(contact.id);
-        if (!pk) {
-            const key = await this._apiService.getContactPublicKey(contact.location);
-            if (!key) return false;
-            pk.key = key;
-            await this.addContactPublicKey({ key, userID: contact.id });
-        }
+        // let pk: Key | { key: string } = await this.getPublicKeyByUserID(contact.id);
+        const key = await this._apiService.getContactPublicKey(contact.location);
+        if (!key) return false;
+        await this.addContactPublicKey({ key, userID: contact.id });
         const messageWithoutSignature = {
             ...message,
             signatures: message.signatures.slice(signatureIdx + 1, message.signatures.length),
@@ -142,7 +139,7 @@ export class KeyService {
         return this._encryptionService.verifySignature({
             data: messageWithoutSignature,
             signature,
-            publicKey: pk.key,
+            publicKey: key,
         });
     }
 }
