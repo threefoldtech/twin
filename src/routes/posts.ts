@@ -73,22 +73,20 @@ router.get('/:external', requiresAuthentication, async (req: express.Request, re
     //Need boolean or else infinite loop
     const fetchPostsFromExternals = req?.params.external.toLowerCase() === 'true';
 
-    let posts: unknown[] = [];
+    const posts: unknown[] = [];
 
     //Getting posts from other twins
     if (fetchPostsFromExternals) {
-        for (const contact of contacts) {
-            //Checking if user is online
-            try {
-                const url = getFullIPv6ApiLocation(contact.location, '/v1/posts/false');
-                posts = (
-                    await axios.get(url, {
-                        timeout: 1000,
-                    })
-                ).data;
-            } catch (e) {
-                console.log("Can't make connection with other twin");
-            }
+        try {
+            await Promise.all(
+                contacts.map(async (contact: { location: string }) => {
+                    const url = getFullIPv6ApiLocation(contact.location, '/v1/posts/false');
+                    const { data } = await axios.get(url, { timeout: 3000 });
+                    posts.push(...data);
+                })
+            );
+        } catch (e) {
+            console.log("Can't make connection with other twin");
         }
     }
 
@@ -139,33 +137,6 @@ router.get('/single/post', requiresAuthentication, async (req: express.Request, 
     res.json(post);
 });
 
-router.post('/someoneIsTyping', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const postId = <string>req.body.postId;
-    const userId = req.body.userId;
-
-    const data = {
-        post: postId,
-        user: userId,
-    };
-    sendEventToConnectedSockets('post_typing', data);
-    res.json({ status: 'OK' });
-});
-
-router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const path = atob(req.params.path);
-    console.log(`PATH`, path);
-    res.download(path);
-});
-
-router.put('/', async (req: express.Request, res: express.Response) => {
-    const post = req.body;
-    if (!post) return;
-    console.log('got here ', post);
-    console.log('as user ', config.userid);
-    res.status(StatusCodes.OK);
-    res.send();
-});
-
 router.put('/typing', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const creatorPost = <string>req.body.location;
     const postId = <string>req.body.postId;
@@ -191,6 +162,24 @@ router.put('/typing', requiresAuthentication, async (req: express.Request, res: 
     };
     sendEventToConnectedSockets('post_typing', data);
     res.json({ status: 'OK' });
+});
+
+router.post('/someoneIsTyping', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const postId = <string>req.body.postId;
+    const userId = req.body.userId;
+
+    const data = {
+        post: postId,
+        user: userId,
+    };
+    sendEventToConnectedSockets('post_typing', data);
+    res.json({ status: 'OK' });
+});
+
+router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const path = Buffer.from(req.params.path, 'base64').toString('utf8');
+    console.log(`PATH`, path);
+    res.download(path);
 });
 
 router.put('/like/:postId', requiresAuthentication, async (req: express.Request, res: express.Response) => {

@@ -6,6 +6,7 @@ import { requiresAuthentication } from '../middlewares/authenticationMiddleware'
 import { getAcceptedChatsWithPartialMessages, getChatById, getChatRequests } from '../service/chatService';
 import { getChat, persistChat } from '../service/dataService';
 import { sendEventToConnectedSockets } from '../service/socketService';
+import { contacts } from '../store/contacts';
 import { HttpError } from '../types/errors/httpError';
 import { IdInterface } from '../types/index';
 
@@ -19,6 +20,8 @@ router.post('/', requiresAuthentication, (req: express.Request, res: express.Res
         console.log('accepting', id);
         const chat = getChatById(id);
         chat.acceptedChat = true;
+        const contact = chat.contacts.find(c => c.id === id);
+        contacts.push(contact);
         sendEventToConnectedSockets('new_chat', chat);
         persistChat(chat);
         res.json(chat);
