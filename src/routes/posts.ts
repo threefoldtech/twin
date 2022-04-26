@@ -12,12 +12,8 @@ import { sendEventToConnectedSockets } from '../service/socketService';
 import { getFullIPv6ApiLocation } from '../service/urlService';
 import { contacts } from '../store/contacts';
 import { StatusCodes } from 'http-status-codes';
-import Message from '../models/message';
-import { MessageTypes, StringMessageTypeInterface } from '../types';
-import { uuidv4 } from '../common';
-import { appendSignatureToMessage } from '../service/keyService';
-import { sendMessageToApi } from '../service/apiService';
-import { parseMessage } from '../service/messageService';
+import { POST_ACTIONS, POST_MODEL, SOCIAL_POST } from '../types';
+import { sendPostToApi } from '../service/apiService';
 
 const router = Router();
 
@@ -143,6 +139,33 @@ router.get('/single/post', requiresAuthentication, async (req: express.Request, 
     res.json(post);
 });
 
+router.post('/someoneIsTyping', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const postId = <string>req.body.postId;
+    const userId = req.body.userId;
+
+    const data = {
+        post: postId,
+        user: userId,
+    };
+    sendEventToConnectedSockets('post_typing', data);
+    res.json({ status: 'OK' });
+});
+
+router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const path = atob(req.params.path);
+    console.log(`PATH`, path);
+    res.download(path);
+});
+
+router.put('/', async (req: express.Request, res: express.Response) => {
+    const post = req.body;
+    if (!post) return;
+    console.log('got here ', post);
+    console.log('as user ', config.userid);
+    res.status(StatusCodes.OK);
+    res.send();
+});
+
 router.put('/typing', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const creatorPost = <string>req.body.location;
     const postId = <string>req.body.postId;
@@ -168,24 +191,6 @@ router.put('/typing', requiresAuthentication, async (req: express.Request, res: 
     };
     sendEventToConnectedSockets('post_typing', data);
     res.json({ status: 'OK' });
-});
-
-router.post('/someoneIsTyping', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const postId = <string>req.body.postId;
-    const userId = req.body.userId;
-
-    const data = {
-        post: postId,
-        user: userId,
-    };
-    sendEventToConnectedSockets('post_typing', data);
-    res.json({ status: 'OK' });
-});
-
-router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const path = atob(req.params.path);
-    console.log(`PATH`, path);
-    res.download(path);
 });
 
 router.put('/like/:postId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
@@ -265,26 +270,21 @@ router.delete('/:postId', requiresAuthentication, async (req: express.Request, r
     const postId: string = req.params.postId;
     const path = PATH.join(socialDirectory, 'posts', postId);
     if (!fs.existsSync(path)) throw new Error('Could not find post');
-    const post = JSON.parse(fs.readFileSync(`${path}/post.json`).toString());
+    const post: SOCIAL_POST = JSON.parse(fs.readFileSync(`${path}/post.json`).toString());
     if (post?.owner.location !== (await getMyLocation())) throw new Error('Not your post!');
     fs.rmdirSync(path, { recursive: true });
     sendEventToConnectedSockets('post_deleted', postId);
     for (let contact of contacts) {
-        const msg: Message<StringMessageTypeInterface> = {
-            id: uuidv4(),
-            body: postId,
-            from: config.userid,
-            to: contact.id,
-            timeStamp: new Date(),
-            type: MessageTypes.POST_DELETE,
-            replies: [],
-            signatures: [],
-            subject: null,
+        const p: POST_MODEL = {
+            ...post.post,
+            action: POST_ACTIONS.POST_DELETE,
         };
-        const parsedMessage = parseMessage(msg);
-        appendSignatureToMessage(parsedMessage);
+        console.log('post ', p);
+        await sendPostToApi(contact.location, p);
+        // const parsedMessage = parseMessage(msg);
+        // appendSignatureToMessage(parsedMessage);
         //todo make sendPostToApi or something similar like messages but for all posts updates
-        sendMessageToApi(contact.location, parsedMessage);
+        // sendMessageToApi(contact.location, parsedMessage);
     }
     res.status(StatusCodes.OK);
     res.send();

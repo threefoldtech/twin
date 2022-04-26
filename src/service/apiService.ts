@@ -1,7 +1,7 @@
 import axios, { ResponseType } from 'axios';
 
 import Message from '../models/message';
-import { MessageBodyTypeInterface } from '../types';
+import { MessageBodyTypeInterface, POST_MODEL } from '../types';
 import { parseFullChat } from './chatService';
 import { getFullIPv6ApiLocation } from './urlService';
 
@@ -17,6 +17,15 @@ export const sendMessageToApi = async (
         });
     } catch (e) {
         // console.error(`couldn't send message ${url}`, e);
+    }
+};
+
+export const sendPostToApi = async (location: string, post: POST_MODEL) => {
+    const url = getFullIPv6ApiLocation(location, '/v1/');
+    try {
+        return await axios.put(url, post);
+    } catch (e) {
+        console.error('failed to send post', e);
     }
 };
 
