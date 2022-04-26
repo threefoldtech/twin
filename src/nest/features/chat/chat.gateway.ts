@@ -14,7 +14,9 @@ import { Server, Socket } from 'socket.io';
 import { BlockedContactService } from '../blocked-contact/blocked-contact.service';
 import { Contact } from '../contact/models/contact.model';
 import { KeyService } from '../key/key.service';
+import { MessageDTO } from '../message/dtos/message.dto';
 import { Message } from '../message/models/message.model';
+import { MessageType } from '../message/types/message.type';
 import { ChatService } from './chat.service';
 import { Chat } from './models/chat.model';
 
@@ -37,7 +39,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      * Sends a new incoming message to all connected clients.
      */
     @SubscribeMessage('message')
-    async handleIncomingMessage(@MessageBody() message: Message) {
+    async handleIncomingMessage(@MessageBody() { message }: { chatId: string; message: Message }) {
+        console.log(`MESSAGE: ${message.type}`);
         // correct from to message
         message.from = this._configService.get<string>('userId');
 
@@ -53,16 +56,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         // set correct chatId to message
         signedMessage.id = message.id;
 
+        if (signedMessage.type === MessageType.READ) {
+            this.emitMessageToConnectedClients('message', signedMessage);
+            return await this._chatService.handleMessageRead(<MessageDTO<string>>signedMessage);
+        }
+
         // notify contacts about creation of new chat
         this.emitMessageToConnectedClients('message', signedMessage);
-
-        // const contacts = chat.parseContacts();
-
-        // const location = contacts.find(c => c.id == chat.adminId).location;
-
-        // if (signedMessage.type === MessageType.READ) {
-        //     // TODO: handle read
-        // }
 
         // persist message
         this._chatService.addMessageToChat({ chat, message: signedMessage });

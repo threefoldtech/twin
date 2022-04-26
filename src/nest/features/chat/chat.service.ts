@@ -189,6 +189,10 @@ export class ChatService {
         }
     }
 
+    /**
+     * Handles a message read.
+     * @param {MessateDTO} message - Message that is read.
+     */
     async handleMessageRead(message: MessageDTO<string>) {
         const chatId = this._messageService.determineChatID(message);
         const chat = await this.getChat(chatId);

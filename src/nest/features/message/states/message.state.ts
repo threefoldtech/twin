@@ -37,7 +37,6 @@ export class ContactRequestMessageState implements MessageState<ContactRequest> 
             fromContact: from,
             signedMessage: message,
         });
-        console.log(`VALID: ${validSignature}`);
         if (!validSignature) throw new BadRequestException(`failed to verify message signature`);
         return await this._contactService.createNewContactRequest({
             id: from.id,
