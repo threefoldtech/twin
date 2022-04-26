@@ -21,7 +21,7 @@ export const sendMessageToApi = async (
 };
 
 export const sendPostToApi = async (location: string, post: POST_MODEL) => {
-    const url = getFullIPv6ApiLocation(location, '/v1/');
+    const url = getFullIPv6ApiLocation(location, '/v1/posts');
     try {
         return await axios.put(url, post);
     } catch (e) {

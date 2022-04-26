@@ -137,6 +137,38 @@ router.get('/single/post', requiresAuthentication, async (req: express.Request, 
     res.json(post);
 });
 
+router.post('/someoneIsTyping', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const postId = <string>req.body.postId;
+    const userId = req.body.userId;
+
+    const data = {
+        post: postId,
+        user: userId,
+    };
+    sendEventToConnectedSockets('post_typing', data);
+    res.json({ status: 'OK' });
+});
+
+router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const path = Buffer.from(req.params.path, 'base64').toString('utf8');
+    console.log(`PATH`, path);
+    res.download(path);
+});
+
+router.put('/', async (req: express.Request, res: express.Response) => {
+    const post: POST_MODEL = req.body;
+    console.log(`got here as user ${config.userid}`, post);
+
+    switch (post?.action) {
+        case POST_ACTIONS.POST_DELETE: {
+            sendEventToConnectedSockets('post_deleted', post.id);
+            break;
+        }
+    }
+    res.status(StatusCodes.OK);
+    res.send();
+});
+
 router.put('/typing', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const creatorPost = <string>req.body.location;
     const postId = <string>req.body.postId;
@@ -162,24 +194,6 @@ router.put('/typing', requiresAuthentication, async (req: express.Request, res: 
     };
     sendEventToConnectedSockets('post_typing', data);
     res.json({ status: 'OK' });
-});
-
-router.post('/someoneIsTyping', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const postId = <string>req.body.postId;
-    const userId = req.body.userId;
-
-    const data = {
-        post: postId,
-        user: userId,
-    };
-    sendEventToConnectedSockets('post_typing', data);
-    res.json({ status: 'OK' });
-});
-
-router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const path = Buffer.from(req.params.path, 'base64').toString('utf8');
-    console.log(`PATH`, path);
-    res.download(path);
 });
 
 router.put('/like/:postId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
