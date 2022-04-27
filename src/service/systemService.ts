@@ -45,7 +45,7 @@ export const handleSystemMessage = (message: Message<{ contact: Contact; type: S
             const contact = message.body.contact.id;
             if (contact === chat.adminId) {
                 const newAdmin = chat.contacts.filter(c => c.id !== contact)[0];
-                chat.adminId = newAdmin.id;
+                chat.adminId = newAdmin?.id;
             }
             if (contact === config.userid) {
                 deleteChat(chat.chatId);
