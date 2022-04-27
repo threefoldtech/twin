@@ -157,7 +157,6 @@ export interface POST_MODEL {
     isGroupPost: boolean;
     createdOn: Date;
     lastModified: Date;
-    action?: POST_ACTIONS;
 }
 
 interface POST_OWNER {
@@ -208,4 +207,5 @@ export interface SOCIAL_POST {
     images: POST_IMAGE[];
     replies: COMMENT_MODEL[];
     isTyping?: String[];
+    action?: POST_ACTIONS;
 }

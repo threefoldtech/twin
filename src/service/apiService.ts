@@ -1,7 +1,7 @@
 import axios, { ResponseType } from 'axios';
 
 import Message from '../models/message';
-import { MessageBodyTypeInterface, POST_MODEL } from '../types';
+import { MessageBodyTypeInterface, SOCIAL_POST } from '../types';
 import { parseFullChat } from './chatService';
 import { getFullIPv6ApiLocation } from './urlService';
 
@@ -20,12 +20,12 @@ export const sendMessageToApi = async (
     }
 };
 
-export const sendPostToApi = async (location: string, post: POST_MODEL) => {
+export const sendPostToApi = async (location: string, post: SOCIAL_POST) => {
     const url = getFullIPv6ApiLocation(location, '/v1/posts');
     try {
         return await axios.put(url, post);
     } catch (e) {
-        console.error('failed to send post', e);
+        // console.error('failed to send post', e);
     }
 };
 

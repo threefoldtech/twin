@@ -156,17 +156,21 @@ router.get('/download/:path', requiresAuthentication, async (req: express.Reques
 });
 
 router.put('/', async (req: express.Request, res: express.Response) => {
-    const post: POST_MODEL = req.body;
-    console.log(`got here as user ${config.userid}`, post);
+    const post: SOCIAL_POST = req.body;
+
+    const contact = contacts.find(c => c.id === post.owner.id);
+    if (!contact) {
+        res.status(403).json({ status: 'Forbidden', reason: 'Not in contact' });
+        return;
+    }
 
     switch (post?.action) {
         case POST_ACTIONS.POST_DELETE: {
-            sendEventToConnectedSockets('post_deleted', post.id);
+            sendEventToConnectedSockets('post_deleted', post.post.id);
             break;
         }
     }
-    res.status(StatusCodes.OK);
-    res.send();
+    res.status(StatusCodes.OK).send();
 });
 
 router.put('/typing', requiresAuthentication, async (req: express.Request, res: express.Response) => {
@@ -278,16 +282,11 @@ router.delete('/:postId', requiresAuthentication, async (req: express.Request, r
     fs.rmdirSync(path, { recursive: true });
     sendEventToConnectedSockets('post_deleted', postId);
     for (let contact of contacts) {
-        const p: POST_MODEL = {
-            ...post.post,
+        const p: SOCIAL_POST = {
+            ...post,
             action: POST_ACTIONS.POST_DELETE,
         };
-        console.log('post ', p);
-        await sendPostToApi(contact.location, p);
-        // const parsedMessage = parseMessage(msg);
-        // appendSignatureToMessage(parsedMessage);
-        //todo make sendPostToApi or something similar like messages but for all posts updates
-        // sendMessageToApi(contact.location, parsedMessage);
+        sendPostToApi(contact.location, p);
     }
     res.status(StatusCodes.OK);
     res.send();
