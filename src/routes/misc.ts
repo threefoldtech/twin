@@ -22,7 +22,7 @@ router.post('/updateDraft', (req: express.Request, res: express.Response) => {
     const draftMessage = req.body.params.draftMessage;
     const chatWithUpdatedDraft = getChatById(draftMessage.to);
     chatWithUpdatedDraft.draft = draftMessage;
-    persistChat(chatWithUpdatedDraft);
+    //persistChat(chatWithUpdatedDraft);
     res.sendStatus(200);
 });
 
