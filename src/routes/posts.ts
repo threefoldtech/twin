@@ -11,7 +11,7 @@ import { getBlocklist } from '../service/dataService';
 import { getMyLocation } from '../service/locationService';
 import { sendEventToConnectedSockets } from '../service/socketService';
 import { getFullIPv6ApiLocation } from '../service/urlService';
-import { contacts } from '../store/contacts';
+import { contacts, getContacts } from '../store/contacts';
 
 const router = Router();
 
@@ -223,16 +223,22 @@ router.put('/like/:postId', requiresAuthentication, async (req: express.Request,
 
 router.put('/comment/:postId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const postId = req.params.postId;
-    const { post, replyTo, isReplyToComment } = req.body;
+
+    // // TODO: continue here
+    const { owner, post, replyTo, isReplyToComment } = req.body;
+    // handle own reply
     const myLocation = await getMyLocation();
-    if (post.owner.location !== myLocation) {
+    if (post.owner.location !== myLocation && owner.id !== post.owner.id) {
+        const contacts = getContacts();
+        const ownerContact = contacts.find(c => c.location === owner.location && c.id === owner.id);
+        if (!ownerContact) return res.status(403).json({ status: 'failed' });
+
         //Sending to other twin
         const url = getFullIPv6ApiLocation(post.owner.location, `/v1/posts/comment/${postId}`);
         const { data: status } = await axios.put(url, req.body);
         //console.log(status);
         return res.json({ ...status });
     }
-    //Okay post is mine
     const path = PATH.join(socialDirectory, 'posts', postId);
     if (!fs.existsSync(path)) return res.json({ status: 'post not found' });
     const postConfig = JSON.parse(fs.readFileSync(`${path}/post.json`).toString());
