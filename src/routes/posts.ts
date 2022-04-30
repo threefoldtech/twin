@@ -67,20 +67,18 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
     res.json({ status: 'success' });
 });
 
-router.get('/:external/:fromUser', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    //Need boolean or else infinite loop
-    const fetchPostsFromExternals = req?.params.external.toLowerCase() === 'true';
+router.get('/:fromUser', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const fromUser = req?.params.fromUser;
     const posts: unknown[] = [];
 
     //Getting posts from other twins
-    if (fetchPostsFromExternals) {
+    if (fromUser === config.userid) {
         try {
             const blockedUsers = getBlocklist();
-            const filteredContacts = contacts.filter(c => !blockedUsers.includes(c.id) || c.id === config.userid);
+            const filteredContacts = contacts.filter(c => !blockedUsers.includes(c.id));
             await Promise.all(
                 filteredContacts.map(async contact => {
-                    const url = getFullIPv6ApiLocation(contact.location, `/v1/posts/false/${config.userid}`);
+                    const url = getFullIPv6ApiLocation(contact.location, `/v1/posts/${config.userid}`);
                     const { data } = await axios.get(url, { timeout: 3000 });
                     posts.push(...data);
                 })
