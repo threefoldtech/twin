@@ -7,11 +7,12 @@ import * as PATH from 'path';
 
 import { config } from '../config/config';
 import { requiresAuthentication } from '../middlewares/authenticationMiddleware';
-import { getBlocklist } from '../service/dataService';
+import { getBlocklist, getChat, getChatIds } from '../service/dataService';
 import { getMyLocation } from '../service/locationService';
 import { sendEventToConnectedSockets } from '../service/socketService';
 import { getFullIPv6ApiLocation } from '../service/urlService';
-import { contacts } from '../store/contacts';
+import { contacts, getContacts } from '../store/contacts';
+import Chat from '../models/chat';
 
 const router = Router();
 
@@ -75,7 +76,7 @@ router.get('/:fromUser', requiresAuthentication, async (req: express.Request, re
     if (fromUser === config.userid) {
         try {
             const blockedUsers = getBlocklist();
-            const filteredContacts = contacts.filter(c => !blockedUsers.includes(c.id));
+            const filteredContacts = getContacts().filter(c => !blockedUsers.includes(c.id));
             await Promise.all(
                 filteredContacts.map(async contact => {
                     const url = getFullIPv6ApiLocation(contact.location, `/v1/posts/${config.userid}`);
