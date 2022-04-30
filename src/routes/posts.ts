@@ -80,7 +80,6 @@ router.get('/:external/:fromUser', requiresAuthentication, async (req: express.R
             const filteredContacts = contacts.filter(c => !blockedUsers.includes(c.id) || c.id === config.userid);
             await Promise.all(
                 filteredContacts.map(async contact => {
-                    console.log('contact ', contact.id);
                     const url = getFullIPv6ApiLocation(contact.location, `/v1/posts/false/${config.userid}`);
                     const { data } = await axios.get(url, { timeout: 3000 });
                     posts.push(...data);
