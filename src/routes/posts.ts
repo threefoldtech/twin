@@ -67,18 +67,21 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
     res.json({ status: 'success' });
 });
 
-router.get('/:external', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+router.get('/:external/:fromUser', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     //Need boolean or else infinite loop
     const fetchPostsFromExternals = req?.params.external.toLowerCase() === 'true';
-
+    const fromUser = req?.params.fromUser;
     const posts: unknown[] = [];
 
     //Getting posts from other twins
     if (fetchPostsFromExternals) {
         try {
+            const blockedUsers = getBlocklist();
+            const filteredContacts = contacts.filter(c => !blockedUsers.includes(c.id) || c.id === config.userid);
             await Promise.all(
-                contacts.map(async (contact: { location: string }) => {
-                    const url = getFullIPv6ApiLocation(contact.location, '/v1/posts/false');
+                filteredContacts.map(async contact => {
+                    console.log('contact ', contact.id);
+                    const url = getFullIPv6ApiLocation(contact.location, `/v1/posts/false/${config.userid}`);
                     const { data } = await axios.get(url, { timeout: 3000 });
                     posts.push(...data);
                 })
@@ -95,11 +98,11 @@ router.get('/:external', requiresAuthentication, async (req: express.Request, re
     const blockedUsers = getBlocklist();
     for await (const dirent of dir) {
         const file = JSON.parse(fs.readFileSync(`${path}/${dirent.name}/post.json`).toString());
-        if (blockedUsers.includes(file.owner.id)) return;
+        if (blockedUsers.includes(fromUser)) return;
         posts.push(file);
     }
 
-    res.json(posts);
+    await res.json(posts);
 });
 
 router.get('/single/post', requiresAuthentication, async (req: express.Request, res: express.Response) => {
