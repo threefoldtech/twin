@@ -10,6 +10,7 @@ import { sendMessageToApi } from './apiService';
 import { getChatById, persistMessage } from './chatService';
 import { deleteChat, getBlocklist, persistBlocklist } from './dataService';
 import { appendSignatureToMessage } from './keyService';
+import { getMyLocation } from './locationService';
 import { editMessage, handleRead, parseMessage } from './messageService';
 
 const socketio = require('socket.io');
@@ -23,9 +24,11 @@ export const startSocketIo = (httpServer: http.Server) => {
         },
     });
 
-    io.on('connection', (socket: Socket) => {
+    io.on('connection', async (socket: Socket) => {
         console.log(`${socket.id} connected`);
         connections.add(socket.id);
+        const myLocation = await getMyLocation();
+        sendEventToConnectedSockets('yggdrasil', myLocation);
 
         socket.on('disconnect', () => {
             console.log(`${socket.id} disconnected`);
