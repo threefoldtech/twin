@@ -27,6 +27,8 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
         filesToSave = [].concat(filesToSave);
     }
 
+    if (body.length > 2000) return res.json({ status: 'failed' });
+
     const path = PATH.join(socialDirectory, 'posts', id, 'files');
     fs.mkdirSync(path, { recursive: true });
 
