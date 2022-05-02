@@ -98,6 +98,9 @@ export const startSocketIo = (httpServer: http.Server) => {
             persistBlocklist(blockList);
             sendEventToConnectedSockets('chat_blocked', id);
         });
+        socket.on('remove_blocked_chat', (name: string) => {
+            persistBlocklist(getBlocklist().filter(b => b != name));
+        });
     });
 };
 
