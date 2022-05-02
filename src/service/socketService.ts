@@ -27,8 +27,10 @@ export const startSocketIo = (httpServer: http.Server) => {
     io.on('connection', async (socket: Socket) => {
         console.log(`${socket.id} connected`);
         connections.add(socket.id);
+
         const myLocation = await getMyLocation();
         sendEventToConnectedSockets('yggdrasil', myLocation);
+        sendEventToConnectedSockets('blocked_contacts', getBlocklist());
 
         socket.on('disconnect', () => {
             console.log(`${socket.id} disconnected`);
