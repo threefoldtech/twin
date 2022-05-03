@@ -11,6 +11,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+import { ApiService } from '../api/api.service';
 import { BlockedContactService } from '../blocked-contact/blocked-contact.service';
 import { KeyService } from '../key/key.service';
 import { MessageDTO } from '../message/dtos/message.dto';
@@ -29,32 +30,34 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         private readonly _configService: ConfigService,
         private readonly _keyService: KeyService,
         private readonly _blockedContactService: BlockedContactService,
+        private readonly _apiService: ApiService,
         @Inject(forwardRef(() => ChatService))
         private readonly _chatService: ChatService
     ) {}
 
     /**
-     * TODO: WIP
      * Sends a new incoming message to all connected clients.
      */
     @SubscribeMessage('message')
     async handleIncomingMessage(@MessageBody() { message }: { chatId: string; message: Message }) {
         console.log(`MESSAGE: ${message.type}`);
+
+        // get chat data
+        const chat = await this._chatService.getChat(message.to);
+        if (!chat) return;
         // correct from to message
         message.from = this._configService.get<string>('userId');
 
         // sign message
         const signedMessage = await this._keyService.appendSignatureToMessage(message);
 
-        // get chat data
-        const chat = await this._chatService.getChat(`${message.from}-${message.to}`);
-        if (!chat) return;
-
         // set correct chatId to message
         signedMessage.id = message.id;
 
+        const contacts = chat.parseContacts();
+        const location = contacts.find(c => c.id === chat.adminId).location;
         if (signedMessage.type === MessageType.READ) {
-            this.emitMessageToConnectedClients('message', signedMessage);
+            await this._apiService.sendMessageToApi({ location, message: <MessageDTO<string>>signedMessage });
             return await this._chatService.handleMessageRead(<MessageDTO<string>>signedMessage);
         }
 
@@ -63,6 +66,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
         // persist message
         this._chatService.addMessageToChat({ chat, message: signedMessage });
+
+        return await this._apiService.sendMessageToApi({ location, message: <MessageDTO<string>>signedMessage });
     }
 
     @SubscribeMessage('block_chat')

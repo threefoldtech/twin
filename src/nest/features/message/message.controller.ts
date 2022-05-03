@@ -57,7 +57,7 @@ export class MessageController {
             return await this._messageStateHandlers.get(MessageType.CONTACT_REQUEST).handle({ message, chat: null });
 
         // check if chat has been accepted
-        const contact = await this._contactService.getAcceptedContact(message.from);
+        const contact = await this._contactService.getContact(message.to);
         if (!contact) throw new ForbiddenException(`contact has not yet accepted your chat request`);
 
         const chatId = this._messageService.determineChatID(message);
