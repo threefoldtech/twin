@@ -57,11 +57,7 @@ export class ReadMessageState implements MessageState<string> {
 }
 
 export class StringMessageState implements MessageState<string> {
-    constructor(
-        private readonly _chatService: ChatService,
-        private readonly _chatGateway: ChatGateway,
-        private readonly _apiService: ApiService
-    ) {}
+    constructor(private readonly _chatService: ChatService, private readonly _chatGateway: ChatGateway) {}
 
     async handle({ message, chat }: { message: MessageDTO<string>; chat: Chat }): Promise<string> {
         this._chatGateway.emitMessageToConnectedClients('message', message);
@@ -76,7 +72,6 @@ export class SystemMessageState implements MessageState<SystemMessage> {
     private _subSystemMessageStateHandlers = new Map<SystemMessageType, SubSystemMessageState>();
 
     constructor(
-        private readonly _messageService: MessageService,
         private readonly _chatService: ChatService,
         private readonly _configService: ConfigService,
         private readonly _apiService: ApiService,

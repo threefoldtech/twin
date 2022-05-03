@@ -17,6 +17,7 @@ import { imageFileFilter } from '../../utils/image-file-filter';
 import { LocalFilesInterceptor } from '../file/interceptor/local-files.interceptor';
 import { KeyService } from '../key/key.service';
 import { KeyType } from '../key/models/key.model';
+import { StatusUpdate } from '../message/types/message.type';
 import { UserGateway } from './user.gateway';
 import { UserService } from './user.service';
 
@@ -37,13 +38,14 @@ export class UserController {
     }
 
     @Get('status')
-    async getStatus() {
+    async getStatus(): Promise<StatusUpdate> {
         const isOnline = (await this._userGateway.getConnections()) > 0 ? true : false;
         const userData = await this._userService.getUserData();
         const avatar = await this._userService.getUserAvatar();
+        const user = userData.entityData;
 
         return {
-            ...userData.entityData,
+            ...user,
             avatar,
             isOnline,
         };

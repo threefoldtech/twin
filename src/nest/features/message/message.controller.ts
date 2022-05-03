@@ -40,18 +40,12 @@ export class MessageController {
         // system message handler
         this._messageStateHandlers.set(
             MessageType.SYSTEM,
-            new SystemMessageState(
-                this._messageService,
-                this._chatService,
-                this._configService,
-                this._apiService,
-                this._chatGateway
-            )
+            new SystemMessageState(this._chatService, this._configService, this._apiService, this._chatGateway)
         );
         // string message handler
         this._messageStateHandlers.set(
             MessageType.STRING,
-            new StringMessageState(this._chatService, this._chatGateway, this._apiService)
+            new StringMessageState(this._chatService, this._chatGateway)
         );
     }
 
