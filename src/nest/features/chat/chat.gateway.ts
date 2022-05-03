@@ -16,6 +16,7 @@ import { BlockedContactService } from '../blocked-contact/blocked-contact.servic
 import { KeyService } from '../key/key.service';
 import { MessageDTO } from '../message/dtos/message.dto';
 import { Message } from '../message/models/message.model';
+import { MessageType } from '../message/types/message.type';
 import { ChatService } from './chat.service';
 
 @WebSocketGateway({ cors: '*' })
@@ -53,11 +54,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         // set correct chatId to message
         signedMessage.id = message.id;
 
+        const contacts = chat.parseContacts();
+        const location = contacts.find(c => c.id === message.to).location;
+        if (signedMessage.type === MessageType.READ) {
+            return await this._apiService.sendMessageToApi({ location, message: <MessageDTO<string>>signedMessage });
+        }
+
         // persist message
         this._chatService.addMessageToChat({ chat, message: signedMessage });
 
-        const contacts = chat.parseContacts();
-        const location = contacts.find(c => c.id === message.to).location;
         return await this._apiService.sendMessageToApi({ location, message: <MessageDTO<string>>signedMessage });
     }
 
