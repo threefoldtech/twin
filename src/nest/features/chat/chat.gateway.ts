@@ -40,7 +40,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      */
     @SubscribeMessage('message')
     async handleIncomingMessage(@MessageBody() { message }: { chatId: string; message: Message }) {
-        console.log(`MESSAGE: ${message.type}`);
+        console.log(`MESSAGE TYPE: ${message.type}`);
 
         // get chat data
         const chat = await this._chatService.getChat(message.to);

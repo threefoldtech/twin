@@ -8,7 +8,13 @@ import { ChatService } from '../chat/chat.service';
 import { ContactService } from '../contact/contact.service';
 import { CreateMessageDTO, MessageDTO } from './dtos/message.dto';
 import { MessageService } from './message.service';
-import { ContactRequestMessageState, MessageState, ReadMessageState, SystemMessageState } from './states/message.state';
+import {
+    ContactRequestMessageState,
+    MessageState,
+    ReadMessageState,
+    StringMessageState,
+    SystemMessageState,
+} from './states/message.state';
 import { MessageType } from './types/message.type';
 
 @Controller('messages')
@@ -42,6 +48,8 @@ export class MessageController {
                 this._chatGateway
             )
         );
+        // string message handler
+        this._messageStateHandlers.set(MessageType.STRING, new StringMessageState(this._chatService));
     }
 
     @Put()
@@ -56,16 +64,18 @@ export class MessageController {
         if (message.type === MessageType.CONTACT_REQUEST)
             return await this._messageStateHandlers.get(MessageType.CONTACT_REQUEST).handle({ message, chat: null });
 
+        // TODO: fix
         // check if chat has been accepted
-        const contact = await this._contactService.getContact(message.to);
-        if (!contact) throw new ForbiddenException(`contact has not yet accepted your chat request`);
+        // const contact = await this._contactService.getContact(message.to);
+        // if (!contact) throw new ForbiddenException(`contact has not yet accepted your chat request`);
 
         const chatId = this._messageService.determineChatID(message);
         const chat = await this._chatService.getChat(chatId);
 
+        // TODO: fix
         // message needs to be from the chat admin when performing System tasks.
-        if (message.type === MessageType.SYSTEM && chat.adminId !== message.from)
-            throw new ForbiddenException(`not allowed`);
+        // if (message.type === MessageType.SYSTEM && chat.adminId !== message.from)
+        //     throw new ForbiddenException(`not allowed`);
 
         const userId = this._configService.get<string>('userId');
         if (chat.isGroup && chat.adminId === userId) await this._chatService.handleGroupAdmin({ chat, message });

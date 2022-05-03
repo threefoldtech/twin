@@ -25,8 +25,10 @@ export class AddUserSystemState implements SubSystemMessageState {
         if (userId === contact.id)
             return await this._chatService.syncNewChatWithAdmin({ adminLocation, chatID: message.to });
 
-        await this._apiService.sendGroupInvitation({ location: contact.location, chat });
         this._chatGateway.emitMessageToConnectedClients('chat_updated', chat);
+
+        await this._apiService.sendGroupInvitation({ location: contact.location, chat });
+        await this._chatService.addMessageToChat({ chat, message });
         return await this._apiService.sendMessageToApi({ location: contact.location, message });
     }
 }
@@ -50,7 +52,7 @@ export class RemoveUserSystemState implements SubSystemMessageState {
         this._chatGateway.emitMessageToConnectedClients('chat_updated', chat);
 
         await this._chatService.removeContactFromChat({ chat, contactId: contact.id });
-
+        await this._chatService.addMessageToChat({ chat, message });
         return await this._apiService.sendMessageToApi({ location: contact.location, message });
     }
 }

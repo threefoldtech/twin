@@ -234,8 +234,9 @@ export class ChatService {
         if (newRead && oldRead && !(newRead.timeStamp.getTime() < oldRead.timeStamp.getTime())) {
             chat.read[message.from] = message.body;
             this._chatGateway.emitMessageToConnectedClients('message', message);
-            return await this._chatRepo.save(chat);
+            await this._chatRepo.save(chat);
         }
+        return chat;
     }
 
     /**
