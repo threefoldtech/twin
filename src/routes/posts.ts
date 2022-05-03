@@ -4,7 +4,7 @@ import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 import * as PATH from 'path';
-
+import { BadRequestException } from '@nestjs/common';
 import { config } from '../config/config';
 import { requiresAuthentication } from '../middlewares/authenticationMiddleware';
 import { getBlocklist, getChat, getChatIds } from '../service/dataService';
@@ -70,6 +70,11 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
 
 router.get('/:fromUser', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const fromUser = req?.params.fromUser;
+
+    if (!fromUser) {
+        throw new BadRequestException('Failed to get posts');
+    }
+
     const posts: unknown[] = [];
 
     //Getting posts from other twins
