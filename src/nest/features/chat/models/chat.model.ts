@@ -4,6 +4,7 @@ import { ContactDTO } from '../../contact/dtos/contact.dto';
 import { Contact } from '../../contact/models/contact.model';
 import { MessageDTO } from '../../message/dtos/message.dto';
 import { Message } from '../../message/models/message.model';
+import { MessageType } from '../../message/types/message.type';
 import { ChatDTO } from '../dtos/chat.dto';
 
 /**
@@ -42,9 +43,9 @@ export class Chat extends Entity {
      * @return {Message[]} - The parsed messages.
      */
     parseMessages(draft = false): Message[] {
-        if (draft && this.draft.length) return this.draft.map(m => this.parseMessageBody(m));
+        if (draft && this.draft.length) return this.draft.map(m => JSON.parse(m));
 
-        return this.messages.map(m => this.parseMessageBody(m));
+        return this.messages.map(m => JSON.parse(m));
     }
 
     /**
@@ -54,7 +55,7 @@ export class Chat extends Entity {
      */
     parseMessageBody(m: string): Message {
         const msg: Message = JSON.parse(m);
-        msg.body = JSON.parse(msg.body);
+        if (msg.type === MessageType.SYSTEM) msg.body = JSON.parse(msg.body);
         return msg;
     }
 

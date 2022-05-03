@@ -16,7 +16,6 @@ import { BlockedContactService } from '../blocked-contact/blocked-contact.servic
 import { KeyService } from '../key/key.service';
 import { MessageDTO } from '../message/dtos/message.dto';
 import { Message } from '../message/models/message.model';
-import { MessageType } from '../message/types/message.type';
 import { ChatService } from './chat.service';
 
 @WebSocketGateway({ cors: '*' })
@@ -40,7 +39,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      */
     @SubscribeMessage('message')
     async handleIncomingMessage(@MessageBody() { message }: { chatId: string; message: Message }) {
-        console.log(`MESSAGE TYPE: ${message.type}`);
+        console.log(`Socket Message Type: ${message.type}`);
 
         // get chat data
         const chat = await this._chatService.getChat(message.to);
@@ -54,25 +53,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         // set correct chatId to message
         signedMessage.id = message.id;
 
-        const contacts = chat.parseContacts();
-        const location = contacts.find(c => c.id === chat.adminId).location;
-        if (signedMessage.type === MessageType.READ) {
-            await this._apiService.sendMessageToApi({ location, message: <MessageDTO<string>>signedMessage });
-            return await this._chatService.handleMessageRead(<MessageDTO<string>>signedMessage);
-        }
-
-        // notify contacts about creation of new chat
-        this.emitMessageToConnectedClients('message', signedMessage);
-
         // persist message
         this._chatService.addMessageToChat({ chat, message: signedMessage });
 
+        const contacts = chat.parseContacts();
+        const location = contacts.find(c => c.id === message.to).location;
         return await this._apiService.sendMessageToApi({ location, message: <MessageDTO<string>>signedMessage });
     }
 
     @SubscribeMessage('block_chat')
     async handleBlockChat(@MessageBody() id: string) {
-        console.log(`ID: ${id}`);
         await this._blockedContactService.addBlockedContact({ id });
         this.emitMessageToConnectedClients('chat_blocked', id);
     }

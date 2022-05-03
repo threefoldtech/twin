@@ -4,7 +4,6 @@ import { ConfigService } from '@nestjs/config';
 import { ApiService } from '../../api/api.service';
 import { ChatGateway } from '../../chat/chat.gateway';
 import { ChatService } from '../../chat/chat.service';
-import { ChatDTO } from '../../chat/dtos/chat.dto';
 import { Chat } from '../../chat/models/chat.model';
 import { ContactService } from '../../contact/contact.service';
 import { CreateContactDTO } from '../../contact/dtos/contact.dto';
@@ -58,9 +57,17 @@ export class ReadMessageState implements MessageState<string> {
 }
 
 export class StringMessageState implements MessageState<string> {
-    constructor(private readonly _chatService: ChatService) {}
+    constructor(
+        private readonly _chatService: ChatService,
+        private readonly _chatGateway: ChatGateway,
+        private readonly _apiService: ApiService
+    ) {}
 
     async handle({ message, chat }: { message: MessageDTO<string>; chat: Chat }): Promise<string> {
+        this._chatGateway.emitMessageToConnectedClients('message', message);
+
+        console.log(`MESSAGE: ${JSON.stringify(message)}`);
+        // await this._apiService.sendMessageToApi({ location: (message.to as unknown as ContactDTO).location, message });
         return await this._chatService.addMessageToChat({ chat, message });
     }
 }

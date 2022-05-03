@@ -49,12 +49,15 @@ export class MessageController {
             )
         );
         // string message handler
-        this._messageStateHandlers.set(MessageType.STRING, new StringMessageState(this._chatService));
+        this._messageStateHandlers.set(
+            MessageType.STRING,
+            new StringMessageState(this._chatService, this._chatGateway, this._apiService)
+        );
     }
 
     @Put()
     async handleIncomingMessage(@Body() message: CreateMessageDTO<unknown>) {
-        console.log(`Message type: ${message.type}`);
+        console.log(`REST Message type: ${message.type}`);
         const blockedContacts = await this._blockedContactService.getBlockedContactList();
         const isBlocked = blockedContacts.find(c => c === message.from);
 
