@@ -26,4 +26,9 @@ export class UserGateway implements OnGatewayInit {
     async handleStatusUpdate(@MessageBody() data: { status: string }): Promise<boolean> {
         return await this._userService.updateStatus({ status: data.status });
     }
+
+    async getConnections(): Promise<number> {
+        const sockets = await this.server.allSockets();
+        return sockets.size;
+    }
 }

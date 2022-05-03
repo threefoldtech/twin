@@ -14,19 +14,19 @@ import { createReadStream } from 'fs-extra';
 
 import { AuthGuard } from '../../guards/auth.guard';
 import { imageFileFilter } from '../../utils/image-file-filter';
-import { ConnectionService } from '../connection/connection.service';
 import { LocalFilesInterceptor } from '../file/interceptor/local-files.interceptor';
 import { KeyService } from '../key/key.service';
 import { KeyType } from '../key/models/key.model';
+import { UserGateway } from './user.gateway';
 import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
     constructor(
         private readonly _configService: ConfigService,
-        private readonly _connectionService: ConnectionService,
         private readonly _keyService: KeyService,
-        private readonly _userService: UserService
+        private readonly _userService: UserService,
+        private readonly _userGateway: UserGateway
     ) {}
 
     @Get('publickey')
@@ -38,7 +38,7 @@ export class UserController {
 
     @Get('status')
     async getStatus() {
-        const isOnline = (await this._connectionService.getConnections()).length ? true : false;
+        const isOnline = (await this._userGateway.getConnections()) > 0 ? true : false;
         const userData = await this._userService.getUserData();
         const avatar = await this._userService.getUserAvatar();
 

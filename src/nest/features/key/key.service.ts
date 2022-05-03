@@ -130,7 +130,7 @@ export class KeyService {
         // let pk: Key | { key: string } = await this.getPublicKeyByUserID(contact.id);
         const key = await this._apiService.getContactPublicKey(contact.location);
         if (!key) return false;
-        await this.addContactPublicKey({ key, userID: contact.id });
+        // await this.addContactPublicKey({ key, userID: contact.id });
         const messageWithoutSignature = {
             ...message,
             signatures: message.signatures.slice(signatureIdx + 1, message.signatures.length),

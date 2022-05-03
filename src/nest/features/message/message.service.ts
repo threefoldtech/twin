@@ -77,6 +77,8 @@ export class MessageService {
     }): Promise<boolean> {
         let signatureIdx = 0;
 
+        if (!fromContact) return false;
+
         const userID = this._configService.get<string>('userId');
         if (isGroup && adminContact?.id !== userID) {
             const adminVerified = await this._keyService.verifyMessageSignature({
@@ -87,8 +89,6 @@ export class MessageService {
             if (!adminVerified) return false;
             signatureIdx++;
         }
-
-        if (!fromContact) return false;
 
         return await this._keyService.verifyMessageSignature({
             contact: fromContact,

@@ -51,6 +51,19 @@ export class ContactService {
     }
 
     /**
+     * Gets a contact by id.
+     * @param {string} id - Contact id.
+     * @return {Contact} - Found contact.
+     */
+    async getContact(id: string): Promise<Contact> {
+        try {
+            return await this._contactRepo.search().where('id').equals(id).return.first();
+        } catch (error) {
+            throw new NotFoundException('contact not found');
+        }
+    }
+
+    /**
      * Creates a new contact.
      * @param {string} id - Contact ID.
      * @param {string} location - Contact IPv6.
@@ -69,11 +82,13 @@ export class ContactService {
 
         let newContact;
         try {
-            newContact = await this._contactRepo.createAndSave({
-                id,
-                location,
-                contactRequest: false,
-            });
+            newContact = await this.getContact(id);
+            if (!newContact)
+                newContact = await this._contactRepo.createAndSave({
+                    id,
+                    location,
+                    contactRequest: false,
+                });
         } catch (error) {
             throw new BadRequestException(`unable to create contact: ${error}`);
         }
@@ -137,11 +152,13 @@ export class ContactService {
 
         let newContact;
         try {
-            newContact = await this._contactRepo.createAndSave({
-                id,
-                location,
-                contactRequest,
-            });
+            newContact = await this.getContact(id);
+            if (!newContact)
+                newContact = await this._contactRepo.createAndSave({
+                    id,
+                    location,
+                    contactRequest,
+                });
         } catch (error) {
             throw new BadRequestException(`unable to create contact: ${error}`);
         }

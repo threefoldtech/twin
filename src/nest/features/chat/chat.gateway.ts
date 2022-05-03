@@ -12,13 +12,11 @@ import {
 import { Server, Socket } from 'socket.io';
 
 import { BlockedContactService } from '../blocked-contact/blocked-contact.service';
-import { Contact } from '../contact/models/contact.model';
 import { KeyService } from '../key/key.service';
 import { MessageDTO } from '../message/dtos/message.dto';
 import { Message } from '../message/models/message.model';
 import { MessageType } from '../message/types/message.type';
 import { ChatService } from './chat.service';
-import { Chat } from './models/chat.model';
 
 @WebSocketGateway({ cors: '*' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
