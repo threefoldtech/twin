@@ -52,24 +52,24 @@ router.get('/getexternalresource', async (req: express.Request, res: express.Res
     const openIdx = resource.indexOf('[');
     const closingIdx = resource.indexOf(']');
     if (openIdx < 0 || closingIdx < 0) throw new HttpError(StatusCodes.BAD_REQUEST, 'Invalid IPv6 resource');
-    const ipv6 = resource.substring(openIdx + 1, closingIdx);
-    const myLocation = await getMyLocation();
-    const contacts = getContacts();
+    // const ipv6 = resource.substring(openIdx + 1, closingIdx);
+    // const myLocation = await getMyLocation();
+    // const contacts = getContacts();
 
-    let isContact = true; // if ipv6 is own location, you should be seen as a contact (yourself)
+    // let isContact = true; // if ipv6 is own location, you should be seen as a contact (yourself)
 
     // if not, check contact list
-    if (ipv6 !== myLocation) {
-        isContact = false;
-        for (let i = 0; i < contacts.length; i++) {
-            if (contacts[i].location === ipv6) {
-                isContact = true;
-                break;
-            }
-        }
-    }
+    // if (ipv6 !== myLocation) {
+    //     isContact = false;
+    //     for (let i = 0; i < contacts.length; i++) {
+    //         if (contacts[i].location === ipv6) {
+    //             isContact = true;
+    //             break;
+    //         }
+    //     }
+    // }
 
-    if (!isContact) return;
+    // if (!isContact) return;
 
     http.get(resource, function (resp) {
         // Setting the response headers correctly
