@@ -105,7 +105,7 @@ router.get('/:fromUser', requiresAuthentication, async (req: express.Request, re
         posts.push(file);
     }
 
-    await res.json(posts);
+    return res.json(posts);
 });
 
 router.get('/single/post', requiresAuthentication, async (req: express.Request, res: express.Response) => {
