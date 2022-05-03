@@ -2,7 +2,6 @@ import axios from 'axios';
 import express, { Router } from 'express';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
-import { StatusCodes } from 'http-status-codes';
 import * as PATH from 'path';
 import { BadRequestException } from '@nestjs/common';
 import { config } from '../config/config';
@@ -13,6 +12,9 @@ import { sendEventToConnectedSockets } from '../service/socketService';
 import { getFullIPv6ApiLocation } from '../service/urlService';
 import { contacts, getContacts } from '../store/contacts';
 import Chat from '../models/chat';
+import { StatusCodes } from 'http-status-codes';
+import { POST_ACTIONS, POST_MODEL, SOCIAL_POST } from '../types';
+import { sendPostToApi } from '../service/apiService';
 
 const router = Router();
 
@@ -25,6 +27,8 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
     if (Object.prototype.toString.call(filesToSave) !== '[object Array]') {
         filesToSave = [].concat(filesToSave);
     }
+
+    if (body.length > 2000) return res.json({ status: 'failed' });
 
     const path = PATH.join(socialDirectory, 'posts', id, 'files');
     fs.mkdirSync(path, { recursive: true });
@@ -141,6 +145,42 @@ router.get('/single/post', requiresAuthentication, async (req: express.Request, 
     res.json(post);
 });
 
+router.post('/someoneIsTyping', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const postId = <string>req.body.postId;
+    const userId = req.body.userId;
+
+    const data = {
+        post: postId,
+        user: userId,
+    };
+    sendEventToConnectedSockets('post_typing', data);
+    res.json({ status: 'OK' });
+});
+
+router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const path = Buffer.from(req.params.path, 'base64').toString('utf8');
+    console.log(`PATH`, path);
+    res.download(path);
+});
+
+router.put('/', async (req: express.Request, res: express.Response) => {
+    const post: SOCIAL_POST = req.body;
+
+    const contact = contacts.find(c => c.id === post.owner.id);
+    if (!contact) {
+        res.status(403).json({ status: 'Forbidden', reason: 'Not in contact' });
+        return;
+    }
+
+    switch (post?.action) {
+        case POST_ACTIONS.POST_DELETE: {
+            sendEventToConnectedSockets('post_deleted', post.post.id);
+            break;
+        }
+    }
+    res.status(StatusCodes.OK).send();
+});
+
 router.put('/typing', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const creatorPost = <string>req.body.location;
     const postId = <string>req.body.postId;
@@ -166,24 +206,6 @@ router.put('/typing', requiresAuthentication, async (req: express.Request, res: 
     };
     sendEventToConnectedSockets('post_typing', data);
     res.json({ status: 'OK' });
-});
-
-router.post('/someoneIsTyping', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const postId = <string>req.body.postId;
-    const userId = req.body.userId;
-
-    const data = {
-        post: postId,
-        user: userId,
-    };
-    sendEventToConnectedSockets('post_typing', data);
-    res.json({ status: 'OK' });
-});
-
-router.get('/download/:path', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    const path = Buffer.from(req.params.path, 'base64').toString('utf8');
-    console.log(`PATH`, path);
-    res.download(path);
 });
 
 router.put('/like/:postId', requiresAuthentication, async (req: express.Request, res: express.Response) => {
@@ -263,10 +285,17 @@ router.delete('/:postId', requiresAuthentication, async (req: express.Request, r
     const postId: string = req.params.postId;
     const path = PATH.join(socialDirectory, 'posts', postId);
     if (!fs.existsSync(path)) throw new Error('Could not find post');
-    const post = JSON.parse(fs.readFileSync(`${path}/post.json`).toString());
+    const post: SOCIAL_POST = JSON.parse(fs.readFileSync(`${path}/post.json`).toString());
     if (post?.owner.location !== (await getMyLocation())) throw new Error('Not your post!');
     fs.rmdirSync(path, { recursive: true });
-    sendEventToConnectedSockets('posts_updated', postId);
+    sendEventToConnectedSockets('post_deleted', postId);
+    for (let contact of contacts) {
+        const p: SOCIAL_POST = {
+            ...post,
+            action: POST_ACTIONS.POST_DELETE,
+        };
+        sendPostToApi(contact.location, p);
+    }
     res.status(StatusCodes.OK);
     res.send();
 });

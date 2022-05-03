@@ -31,6 +31,7 @@ import {
     StringMessageTypeInterface,
 } from '../types';
 import { getFile, Path } from '../utils/files';
+import { StatusCodes } from 'http-status-codes';
 
 const router = Router();
 
@@ -301,6 +302,11 @@ router.put('/', async (req, res) => {
 
             res.set('Content-Type', mime?.mime || null);
             res.send(file);
+            return;
+        case MessageTypes.POST_DELETE:
+            sendEventToConnectedSockets('post_deleted', message.body);
+            res.status(StatusCodes.OK);
+            res.send();
             return;
     }
 
