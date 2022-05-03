@@ -1,6 +1,8 @@
 import {
     BadRequestException,
     ForbiddenException,
+    forwardRef,
+    Inject,
     Injectable,
     InternalServerErrorException,
     NotFoundException,
@@ -9,12 +11,14 @@ import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
 import { ApiService } from '../api/api.service';
+import { ContactService } from '../contact/contact.service';
 import { DbService } from '../db/db.service';
 import { KeyService } from '../key/key.service';
 import { MessageDTO } from '../message/dtos/message.dto';
 import { MessageService } from '../message/message.service';
 import { stringifyMessage } from '../message/models/message.model';
-import { CreateChatDTO } from './dtos/chat.dto';
+import { ChatGateway } from './chat.gateway';
+import { ChatDTO, CreateChatDTO } from './dtos/chat.dto';
 import { Chat, chatSchema, stringifyContacts, stringifyMessages } from './models/chat.model';
 
 @Injectable()
@@ -26,7 +30,10 @@ export class ChatService {
         private readonly _configService: ConfigService,
         private readonly _apiService: ApiService,
         private readonly _messageService: MessageService,
-        private readonly _keyService: KeyService
+        private readonly _keyService: KeyService,
+        private readonly _contactService: ContactService,
+        @Inject(forwardRef(() => ChatGateway))
+        private readonly _chatGateway: ChatGateway
     ) {
         this._chatRepo = this._dbService.createRepository(chatSchema);
         this._chatRepo.createIndex();
@@ -72,14 +79,36 @@ export class ChatService {
     }
 
     /**
-     * Gets chats using pagination.
-     * @param offset - Chat offset, defaults to 0.
-     * @param count - Amount of chats to fetch, defaults to 25.
-     * @return {Chat[]} - Found chats.
+     * Accepts a chat request.
+     * @param {string} chatId - Chat Id.
+     * @return {ChatDTO} - Accepted chat.
      */
-    async getChats({ offset = 0, count = 25 }: { offset?: number; count?: number } = {}): Promise<Chat[]> {
+    async acceptChatRequest(chatId: string): Promise<ChatDTO> {
+        const chat = await this.getChat(chatId);
+        if (!chat) return;
+        chat.acceptedChat = true;
+        const contacts = chat.parseContacts();
+        const contact = contacts.find(c => c.id === chatId);
+        if (contact) await this._contactService.addContact(contact);
+        this._chatGateway.emitMessageToConnectedClients('new_chat', chat.toJSON());
         try {
-            return await this._chatRepo.search().return.page(offset, count);
+            await this._chatRepo.save(chat);
+            return chat.toJSON();
+        } catch (error) {
+            throw new BadRequestException(`unable to accept chat request: ${error}`);
+        }
+    }
+
+    /**
+     * Gets chats using pagination.
+     * @param {number} offset - Chat offset, defaults to 0.
+     * @param {number} count - Amount of chats to fetch, defaults to 25.
+     * @return {ChatDTO[]} - Found chats.
+     */
+    async getChats({ offset = 0, count = 25 }: { offset?: number; count?: number } = {}): Promise<ChatDTO[]> {
+        try {
+            const chats = await this._chatRepo.search().return.page(offset, count);
+            return chats.map(chat => chat.toJSON());
         } catch (error) {
             throw new NotFoundException('no chats found');
         }
@@ -91,9 +120,10 @@ export class ChatService {
      * @param count - Amount of chats to fetch, defaults to 25.
      * @return {Chat[]} - Found chats.
      */
-    async getAcceptedChats({ offset = 0, count = 25 }: { offset?: number; count?: number } = {}): Promise<Chat[]> {
+    async getAcceptedChats({ offset = 0, count = 25 }: { offset?: number; count?: number } = {}): Promise<ChatDTO[]> {
         try {
-            return await this._chatRepo.search().where('acceptedChat').true().return.page(offset, count);
+            const chats = await this._chatRepo.search().where('acceptedChat').true().return.page(offset, count);
+            return chats.map(chat => chat.toJSON());
         } catch (error) {
             throw new NotFoundException('no accepted chats found');
         }
@@ -108,7 +138,7 @@ export class ChatService {
         try {
             return await this._chatRepo.search().where('chatId').eq(chatId).return.first();
         } catch (error) {
-            throw new ForbiddenException(`not in contact`);
+            throw new ForbiddenException(`not in contacts`);
         }
     }
 

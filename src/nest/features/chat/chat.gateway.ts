@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { forwardRef, Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
     MessageBody,
@@ -30,8 +30,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     constructor(
         private readonly _configService: ConfigService,
         private readonly _keyService: KeyService,
-        private readonly _chatService: ChatService,
-        private readonly _blockedContactService: BlockedContactService
+        private readonly _blockedContactService: BlockedContactService,
+        @Inject(forwardRef(() => ChatService))
+        private readonly _chatService: ChatService
     ) {}
 
     /**
@@ -48,10 +49,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         const signedMessage = await this._keyService.appendSignatureToMessage(message);
 
         // get chat data
-        let chat = await this._chatService.getChat(`${message.from}-${message.to}`);
-        if (!chat) {
-            chat = await this.createNewChat(signedMessage);
-        }
+        const chat = await this._chatService.getChat(`${message.from}-${message.to}`);
+        if (!chat) return;
 
         // set correct chatId to message
         signedMessage.id = message.id;
@@ -107,35 +106,5 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      */
     handleDisconnect(client: Socket): void {
         this.logger.log(`client disconnected: ${client.id}`);
-    }
-
-    /**
-     * Creates a new chat if chat is not found.
-     * @param {string} from - From id.
-     * @param {string} to - To id.
-     * @return {Chat} - The created chat.
-     */
-    private async createNewChat({ from, to }: { from: string; to: string }): Promise<Chat> {
-        const contacts = [
-            {
-                id: from,
-                location: 'localhost',
-            },
-            {
-                id: to,
-                location: 'localhost',
-            },
-        ];
-        return await this._chatService.createChat({
-            chatId: `${from}-${to}`,
-            name: `${from}-${to}`,
-            contacts: contacts as Contact[],
-            messages: [],
-            acceptedChat: false,
-            adminId: from,
-            read: [],
-            isGroup: false,
-            draft: [],
-        });
     }
 }

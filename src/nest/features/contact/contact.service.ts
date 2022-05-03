@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
@@ -22,12 +22,14 @@ export class ContactService {
 
     constructor(
         private readonly _dbService: DbService,
-        private readonly _chatService: ChatService,
         private readonly _messageService: MessageService,
         private readonly _locationService: LocationService,
         private readonly _configService: ConfigService,
         private readonly _keyService: KeyService,
         private readonly _apiService: ApiService,
+        @Inject(forwardRef(() => ChatService))
+        private readonly _chatService: ChatService,
+        @Inject(forwardRef(() => ChatGateway))
         private readonly _chatGateway: ChatGateway
     ) {
         this._contactRepo = this._dbService.createRepository(contactSchema);
@@ -94,7 +96,7 @@ export class ContactService {
             from: newMessage.from,
             to: newContact.id,
             body: {
-                id: newContact.id,
+                id: newMessage.from,
                 location: yggdrasilAddress as string,
             },
             timeStamp: new Date(),
