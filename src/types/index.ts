@@ -102,8 +102,9 @@ export interface SystemMessageInterface extends MessageBodyTypeInterface {
 }
 
 export interface GroupUpdateType extends SystemMessageInterface {
-    contact: AnonymousContactInterface | ContactInterface;
+    contact: ContactInterface;
     adminLocation: string;
+    nextAdmin?: string;
 }
 
 export interface ChatInterface {

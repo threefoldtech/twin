@@ -3,14 +3,15 @@ import express, { Router } from 'express';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
 import * as PATH from 'path';
-
+import { BadRequestException } from '@nestjs/common';
 import { config } from '../config/config';
 import { requiresAuthentication } from '../middlewares/authenticationMiddleware';
-import { getBlocklist } from '../service/dataService';
+import { getBlocklist, getChat, getChatIds } from '../service/dataService';
 import { getMyLocation } from '../service/locationService';
 import { sendEventToConnectedSockets } from '../service/socketService';
 import { getFullIPv6ApiLocation } from '../service/urlService';
-import { contacts } from '../store/contacts';
+import { contacts, getContacts } from '../store/contacts';
+import Chat from '../models/chat';
 import { StatusCodes } from 'http-status-codes';
 import { POST_ACTIONS, POST_MODEL, SOCIAL_POST } from '../types';
 import { sendPostToApi } from '../service/apiService';
@@ -71,18 +72,23 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
     res.json({ status: 'success' });
 });
 
-router.get('/:external', requiresAuthentication, async (req: express.Request, res: express.Response) => {
-    //Need boolean or else infinite loop
-    const fetchPostsFromExternals = req?.params.external.toLowerCase() === 'true';
+router.get('/:fromUser', requiresAuthentication, async (req: express.Request, res: express.Response) => {
+    const fromUser = req?.params.fromUser;
+
+    if (!fromUser) {
+        throw new BadRequestException('Failed to get posts');
+    }
 
     const posts: unknown[] = [];
 
     //Getting posts from other twins
-    if (fetchPostsFromExternals) {
+    if (fromUser === config.userid) {
         try {
+            const blockedUsers = getBlocklist();
+            const filteredContacts = getContacts().filter(c => !blockedUsers.includes(c.id));
             await Promise.all(
-                contacts.map(async (contact: { location: string }) => {
-                    const url = getFullIPv6ApiLocation(contact.location, '/v1/posts/false');
+                filteredContacts.map(async contact => {
+                    const url = getFullIPv6ApiLocation(contact.location, `/v1/posts/${config.userid}`);
                     const { data } = await axios.get(url, { timeout: 3000 });
                     posts.push(...data);
                 })
@@ -99,11 +105,11 @@ router.get('/:external', requiresAuthentication, async (req: express.Request, re
     const blockedUsers = getBlocklist();
     for await (const dirent of dir) {
         const file = JSON.parse(fs.readFileSync(`${path}/${dirent.name}/post.json`).toString());
-        if (blockedUsers.includes(file.owner.id)) return;
+        if (blockedUsers.includes(fromUser)) return;
         posts.push(file);
     }
 
-    res.json(posts);
+    return res.json(posts);
 });
 
 router.get('/single/post', requiresAuthentication, async (req: express.Request, res: express.Response) => {
