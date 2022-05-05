@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createReadStream } from 'fs-extra';
+import { Put } from 'tsoa';
 
 import { AuthGuard } from '../../guards/auth.guard';
 import { imageFileFilter } from '../../utils/image-file-filter';
@@ -49,6 +50,11 @@ export class UserController {
             avatar,
             isOnline,
         };
+    }
+
+    @Put('update-status')
+    async updateContactStatus(status: StatusUpdate) {
+        console.log(`UPDATE STATUS: ${status}`);
     }
 
     @Get('avatar/:avatarId')

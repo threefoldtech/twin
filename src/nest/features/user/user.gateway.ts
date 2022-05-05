@@ -48,14 +48,26 @@ export class UserGateway implements OnGatewayInit {
      */
     async handleConnection() {
         const contacts = await this._contactService.getContacts();
-        Promise.all(contacts.map(async c => console.log(c)));
+        Promise.all(
+            contacts.map(async c => {
+                const resource = `http://[${c.location}]/api/v2/user/status`;
+                const { data } = await this._apiService.getExternalResource({ resource });
+                await this._apiService.sendStatusUpdate({ location: c.location, status: data });
+            })
+        );
     }
 
     /**
      * Handles a socket.io client disconnection.
      */
-    handleDisconnect(): void {
-        // TODO: send api message with status update to all contacts
-        // this will give realtime status online/offline
+    async handleDisconnect() {
+        const contacts = await this._contactService.getContacts();
+        Promise.all(
+            contacts.map(async c => {
+                const resource = `http://[${c.location}]/api/v2/user/status`;
+                const { data } = await this._apiService.getExternalResource({ resource });
+                await this._apiService.sendStatusUpdate({ location: c.location, status: data });
+            })
+        );
     }
 }

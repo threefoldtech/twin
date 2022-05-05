@@ -5,6 +5,7 @@ import axios, { ResponseType } from 'axios';
 import { ChatDTO } from '../chat/dtos/chat.dto';
 import { Chat } from '../chat/models/chat.model';
 import { MessageDTO } from '../message/dtos/message.dto';
+import { StatusUpdate } from '../message/types/message.type';
 
 @Injectable()
 export class ApiService {
@@ -51,6 +52,15 @@ export class ApiService {
             });
         } catch (error) {
             throw new BadRequestException(`unable to send message: ${error}`);
+        }
+    }
+
+    async sendStatusUpdate({ location, status }: { location: string; status: StatusUpdate }) {
+        try {
+            console.log(`LOCATION: ${location}`);
+            return await axios.put(`http://[${location}]/api/v2/user/update-status`, status);
+        } catch (error) {
+            throw new BadRequestException(`unable to update status: ${error}`);
         }
     }
 
