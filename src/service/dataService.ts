@@ -12,6 +12,8 @@ import { IdInterface, UserInterface } from '../types/index';
 import { parseFullChat, parsePartialChat } from './chatService';
 import { notifyPersist, SharesInterface } from './fileShareService';
 import { sendEventToConnectedSockets } from './socketService';
+import Contact from '../models/contact';
+import axios from 'axios';
 
 const userDirectory = PATH.join(config.baseDir, '/user');
 const chatsDirectory = PATH.join(config.baseDir, '/chats');
@@ -197,6 +199,11 @@ export const getShareConfig = (): SharesInterface => {
             return JSON.parse(fs.readFileSync(location, 'utf8'));
         }
     }
+};
+
+export const getAllUsers = async (): Promise<Contact[]> => {
+    const result = await axios.get(`${config.appBackend}api/users/digitaltwin`, {});
+    return result.data;
 };
 
 export const persistShareConfig = (config: SharesInterface) => {

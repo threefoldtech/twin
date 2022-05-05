@@ -8,7 +8,7 @@ import { updateLastSeen, updateStatus } from '../store/user';
 import { MessageBodyTypeInterface, MessageTypes, StringMessageTypeInterface } from '../types';
 import { sendMessageToApi } from './apiService';
 import { getChatById, persistMessage } from './chatService';
-import { deleteChat, getBlocklist, persistBlocklist } from './dataService';
+import { deleteChat, getAllUsers, getBlocklist, persistBlocklist } from './dataService';
 import { appendSignatureToMessage } from './keyService';
 import { getMyLocation } from './locationService';
 import { editMessage, handleRead, parseMessage } from './messageService';
@@ -31,6 +31,8 @@ export const startSocketIo = (httpServer: http.Server) => {
         const myLocation = await getMyLocation();
         sendEventToConnectedSockets('yggdrasil', myLocation);
         sendEventToConnectedSockets('blocked_contacts', getBlocklist());
+
+        // sendEventToConnectedSockets('users_loaded', await getAllUsers())
 
         socket.on('disconnect', () => {
             console.log(`${socket.id} disconnected`);
@@ -98,7 +100,7 @@ export const startSocketIo = (httpServer: http.Server) => {
             persistBlocklist(blockList);
             sendEventToConnectedSockets('chat_blocked', id);
         });
-        socket.on('remove_blocked_chat', (name: string) => {
+        socket.on('unblock_chat', (name: string) => {
             persistBlocklist(getBlocklist().filter(b => b != name));
         });
     });
