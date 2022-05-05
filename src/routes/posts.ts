@@ -23,6 +23,7 @@ const socialDirectory = PATH.join(config.baseDir, '/social');
 router.post('/', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const { id, type, body, isGroupPost, createdOn, lastModified } = req.body;
     let filesToSave = <UploadedFile[]>req?.files.images;
+    if (filesToSave.length > 10) return res.json({ status: 'failed' });
 
     if (Object.prototype.toString.call(filesToSave) !== '[object Array]') {
         filesToSave = [].concat(filesToSave);
