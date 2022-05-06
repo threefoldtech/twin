@@ -202,7 +202,7 @@ export const getShareConfig = (): SharesInterface => {
 };
 
 export const getAllUsers = async (): Promise<Contact[]> => {
-    const result = await axios.get(`${config.appBackend}api/users/digitaltwin`, {});
+    const result = await axios.get(`${config.appBackend}/api/users/digitaltwin`);
     return result.data;
 };
 

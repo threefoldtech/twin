@@ -32,7 +32,8 @@ export const startSocketIo = (httpServer: http.Server) => {
         sendEventToConnectedSockets('yggdrasil', myLocation);
         sendEventToConnectedSockets('blocked_contacts', getBlocklist());
 
-        // sendEventToConnectedSockets('users_loaded', await getAllUsers())
+        const users = await getAllUsers();
+        sendEventToConnectedSockets('users_loaded', users);
 
         socket.on('disconnect', () => {
             console.log(`${socket.id} disconnected`);
