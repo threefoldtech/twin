@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { UploadedFile } from 'express-fileupload';
+import express from 'express';
 
 import { config } from '../config/config';
 import Message from '../models/message';
@@ -11,6 +12,7 @@ import { parseMessage } from '../service/messageService';
 import { sendEventToConnectedSockets } from '../service/socketService';
 import { getFullIPv6ApiLocation } from '../service/urlService';
 import { FileMessageType, MessageTypes } from '../types';
+import { hasSpecialCharacters } from '../service/fileService';
 
 const router = Router();
 
@@ -23,10 +25,13 @@ router.get('/:chatid/:messageid/:name', async (req, res) => {
     res.download(path);
 });
 
-router.post('/:chatid/:messageid', async (req, resp) => {
+router.post('/:chatid/:messageid', async (req: express.Request, res: express.Response) => {
     const chatId = req.params.chatid;
     const messageId = req.params.messageid;
     const fileToSave = <UploadedFile>req.files.file;
+    if (fileToSave && hasSpecialCharacters(fileToSave.name)) {
+        return res.json({ status: 'failed to send file. No special characters allowed' });
+    }
     saveFile(chatId, messageId, fileToSave);
     const myLocation = await getMyLocation();
     const message: Message<FileMessageType> = {
@@ -51,7 +56,7 @@ router.post('/:chatid/:messageid', async (req, resp) => {
     await sendMessageToApi(chat.contacts.find(contact => contact.id === chat.adminId).location, messageToSend);
     chat.addMessage(messageToSend);
     persistChat(chat);
-    resp.sendStatus(200);
+    res.sendStatus(200);
 });
 
 export default router;
