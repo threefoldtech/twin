@@ -228,17 +228,17 @@ export class ChatService {
         const chatId = this._messageService.determineChatID(message);
         const chat = await this.getChat(chatId);
 
-        // const chatMessages = chat.parseMessages();
+        const chatMessages = chat.parseMessages();
+        const newRead = chatMessages.find(m => m.id === message.body);
+        const oldRead = chatMessages.find(m => m.id === chat.read[message.from]);
 
-        // const newRead = chatMessages.find(m => m.id === message.body);
-        // const oldRead = chatMessages.find(m => m.id === chat.read[message.from]);
+        if (oldRead && newRead && newRead.timeStamp.getTime() < oldRead.timeStamp.getTime()) {
+            return;
+        }
 
-        // console.log(`HANDLE MESSAGE READ CALLED: ${JSON.stringify(chat)}`);
-        // if (newRead && oldRead && !(newRead.timeStamp.getTime() < oldRead.timeStamp.getTime())) {
-        //     chat.read[message.from] = message.body;
-        //     this._chatGateway.emitMessageToConnectedClients('message', message);
-        //     await this._chatRepo.save(chat);
-        // }
+        chat.read[0] = message.body;
+        this._chatGateway.emitMessageToConnectedClients('message', message);
+        await this._chatRepo.save(chat);
         return chat;
     }
 
