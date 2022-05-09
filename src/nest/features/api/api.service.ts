@@ -13,8 +13,9 @@ export class ApiService {
 
     /**
      * Registers a digital twin to the central users backend API.
-     * @param {string} doubleName - Username paired with .3bot.
-     * @param {string} signedAddress - Signed Yggdrasil address.
+     * @param {Object} obj - Object.
+     * @param {string} obj.doubleName - Username paired with .3bot.
+     * @param {string} obj.signedAddress - Signed Yggdrasil address.
      */
     async registerDigitalTwin({ doubleName, signedAddress }: { doubleName: string; signedAddress: string }) {
         try {
@@ -33,9 +34,10 @@ export class ApiService {
 
     /**
      * Sends a message to another digital twin.
-     * @param {string} location - IPv6 location to send message to.
-     * @param {MessageDTO} message - Message to send.
-     * @param {ResponseType} responseType - Axios optional response type.
+     * @param {Object} obj - Object.
+     * @param {string} obj.location - IPv6 location to send message to.
+     * @param {MessageDTO} obj.message - Message to send.
+     * @param {ResponseType} obj.responseType - Axios optional response type.
      */
     async sendMessageToApi({
         location,
@@ -66,9 +68,10 @@ export class ApiService {
 
     /**
      * Sends a group invitation to contacts in chat.
-     * @param {string} location - IPv6 location to send invite to.
-     * @param {Chat} chat - Chat with contacts to invite.
-     * @param {ResponseType} responseType - Axios optional response type.
+     * @param {Object} obj - Object.
+     * @param {string} obj.location - IPv6 location to send invite to.
+     * @param {Chat} obj.chat - Chat with contacts to invite.
+     * @param {ResponseType} obj.responseType - Axios optional response type.
      */
     async sendGroupInvitation({
         location,
@@ -94,7 +97,7 @@ export class ApiService {
      * @param {string} location - IPv6 location to get public key from.
      * @return {string} - Contacts public key.
      */
-    async getContactPublicKey(location: string): Promise<string> {
+    async getContactPublicKey({ location }: { location: string }): Promise<string> {
         try {
             const res = await axios.get<string>(`http://[${location}]/api/v2/user/publickey`);
             return res.data;
@@ -105,20 +108,25 @@ export class ApiService {
 
     /**
      * Gets the admins chat from given location.
-     * @param {string} location - IPv6 location to get the chat from.
-     * @param {string} chatID - chat ID to fetch from location.
+     * @param {Object} obj - Object.
+     * @param {string} obj.location - IPv6 location to get the chat from.
+     * @param {string} obj.chatId - chat ID to fetch from location.
      * @return {ChatDTO} - Found chat.
      */
-    async getAdminChat({ location, chatID }: { location: string; chatID: string }): Promise<ChatDTO> {
+    async getAdminChat({ location, chatId }: { location: string; chatId: string }): Promise<ChatDTO> {
         try {
             // TODO: change to /nest/messages/:chatId when implemented
-            const res = await axios.get<ChatDTO>(`http://[${location}]/api/v1/messages/${chatID}`);
+            const res = await axios.get<ChatDTO>(`http://[${location}]/api/v1/messages/${chatId}`);
             return res.data;
         } catch (error) {
             throw new BadRequestException(`unable to get admins chat: ${error}`);
         }
     }
 
+    /**
+     * Used to talk to other twins.
+     * @param {string} resource - Twin to contact with resource.
+     */
     async getExternalResource({ resource }: { resource: string }) {
         try {
             return await axios.get(resource);

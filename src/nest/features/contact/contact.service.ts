@@ -38,8 +38,9 @@ export class ContactService {
 
     /**
      * Gets contacts using pagination.
-     * @param offset - Contact offset, defaults to 0.
-     * @param count - Amount of contacts to fetch, defaults to 50.
+     * @param {Object} obj - Object.
+     * @param {number} obj.offset - Contact offset, defaults to 0.
+     * @param {number} obj.count - Amount of contacts to fetch, defaults to 50.
      * @return {Contact[]} - Found contacts.
      */
     async getContacts({ offset = 0, count = 50 }: { offset?: number; count?: number } = {}): Promise<Contact[]> {
@@ -55,7 +56,7 @@ export class ContactService {
      * @param {string} id - Contact id.
      * @return {Contact} - Found contact.
      */
-    async getContact(id: string): Promise<Contact> {
+    async getContact({ id }: { id: string }): Promise<Contact> {
         try {
             return await this._contactRepo.search().where('id').equals(id).return.first();
         } catch (error) {
@@ -65,9 +66,10 @@ export class ContactService {
 
     /**
      * Creates a new contact.
-     * @param {string} id - Contact ID.
-     * @param {string} location - Contact IPv6.
-     * @param {CreateMessageDTO} message - Contact request message.
+     * @param {Object} obj - Object.
+     * @param {string} obj.id - Contact ID.
+     * @param {string} obj.location - Contact IPv6.
+     * @param {CreateMessageDTO} obj.message - Contact request message.
      * @return {Contact} - Created entity.
      */
     async createNewContact({ id, location, message }: CreateContactDTO<MessageBody>): Promise<Contact> {
@@ -82,7 +84,7 @@ export class ContactService {
 
         let newContact;
         try {
-            newContact = await this.getContact(id);
+            newContact = await this.getContact({ id });
             if (!newContact)
                 newContact = await this._contactRepo.createAndSave({
                     id,
@@ -93,7 +95,7 @@ export class ContactService {
             throw new BadRequestException(`unable to create contact: ${error}`);
         }
 
-        const signedMessage = await this._keyService.appendSignatureToMessage(newMessage);
+        const signedMessage = await this._keyService.appendSignatureToMessage({ message: newMessage });
         const chat = await this._chatService.createChat({
             chatId: newContact.id,
             name: newMessage.to,
@@ -120,9 +122,9 @@ export class ContactService {
             signatures: [],
             replies: [],
         };
-        const signedContactRequest = await this._keyService.appendSignatureToMessage(
-            contactRequest as unknown as Message
-        );
+        const signedContactRequest = await this._keyService.appendSignatureToMessage({
+            message: contactRequest as unknown as Message,
+        });
 
         await this._apiService.sendMessageToApi({ location: newContact.location, message: signedContactRequest });
 
@@ -133,9 +135,10 @@ export class ContactService {
 
     /**
      * Creates a new contact request.
-     * @param {string} id - Contact ID.
-     * @param {string} location - Contact IPv6.
-     * @param {CreateMessageDTO} message - Contact request message.
+     * @param {Object} obj - Object.
+     * @param {string} obj.id - Contact ID.
+     * @param {string} obj.location - Contact IPv6.
+     * @param {CreateMessageDTO} obj.message - Contact request message.
      * @return {Contact} - Created entity.
      */
     async createNewContactRequest({
@@ -152,7 +155,7 @@ export class ContactService {
 
         let newContact;
         try {
-            newContact = await this.getContact(id);
+            newContact = await this.getContact({ id });
             if (!newContact)
                 newContact = await this._contactRepo.createAndSave({
                     id,
@@ -196,7 +199,7 @@ export class ContactService {
      * @param {string} contactId - Contacts Id.
      * @return {Contact} - Found contact.
      */
-    async getAcceptedContact(contactId: string): Promise<Contact> {
+    async getAcceptedContact({ contactId }: { contactId: string }): Promise<Contact> {
         try {
             return await this._contactRepo
                 .search()
@@ -212,8 +215,9 @@ export class ContactService {
 
     /**
      * Adds an existing contact.
-     * @param {string} id - Contact ID.
-     * @param {string} location - Contact IPv6.
+     * @param {Object} obj - Object.
+     * @param {string} obj.id - Contact ID.
+     * @param {string} obj.location - Contact IPv6.
      * @return {Contact} - Contact entity.
      */
     async addContact({ id, location }: CreateContactDTO<ContactRequest>): Promise<Contact> {

@@ -244,10 +244,10 @@ export class ChatService {
     /**
      * Get the group chat of the admin based on the chatID.
      * @param {string} adminLocation - External admin location to get chat from.
-     * @param {string} chatID - Chat ID to fetch from location.
+     * @param {string} chatId - Chat ID to fetch from location.
      */
-    async syncNewChatWithAdmin({ adminLocation, chatID }: { adminLocation: string; chatID: string }): Promise<Chat> {
-        const chat = await this._apiService.getAdminChat({ location: adminLocation, chatID });
+    async syncNewChatWithAdmin({ adminLocation, chatId }: { adminLocation: string; chatId: string }): Promise<Chat> {
+        const chat = await this._apiService.getAdminChat({ location: adminLocation, chatId });
         // this._socketService.server.emit('new_chat', chat);
         return await this.createChat(chat);
     }
@@ -267,7 +267,7 @@ export class ChatService {
         });
         if (!validSignature) throw new BadRequestException(`failed to verify message signature`);
 
-        const signedMessage = await this._keyService.appendSignatureToMessage(message);
+        const signedMessage = await this._keyService.appendSignatureToMessage({ message });
         const userId = this._configService.get<string>('userId');
         const receivingContacts = contacts.filter(c => c.id !== userId);
         // send in parallel whilst still waiting until all contacts have received the message

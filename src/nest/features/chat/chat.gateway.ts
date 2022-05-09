@@ -49,7 +49,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         message.from = this._configService.get<string>('userId');
 
         // sign message
-        const signedMessage = await this._keyService.appendSignatureToMessage(message);
+        const signedMessage = await this._keyService.appendSignatureToMessage({ message });
 
         // set correct chatId to message
         signedMessage.id = message.id;

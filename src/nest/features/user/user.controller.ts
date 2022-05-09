@@ -34,7 +34,10 @@ export class UserController {
     @Get('publickey')
     @UseGuards(AuthGuard)
     async getPublicKey(): Promise<string> {
-        const pk = await this._keyService.getKey(KeyType.Public, this._configService.get<string>('userId'));
+        const pk = await this._keyService.getKey({
+            keyType: KeyType.Public,
+            userId: this._configService.get<string>('userId'),
+        });
         return pk.key;
     }
 

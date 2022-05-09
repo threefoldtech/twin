@@ -48,6 +48,7 @@ export class UserGateway implements OnGatewayInit {
      */
     async handleConnection() {
         const contacts = await this._contactService.getContacts();
+        console.log(`C CONTACTS: ${JSON.stringify(contacts)}`);
         Promise.all(
             contacts.map(async c => {
                 const resource = `http://[${c.location}]/api/v2/user/status`;
@@ -62,6 +63,7 @@ export class UserGateway implements OnGatewayInit {
      */
     async handleDisconnect() {
         const contacts = await this._contactService.getContacts();
+        console.log(`DC CONTACTS: ${JSON.stringify(contacts)}`);
         Promise.all(
             contacts.map(async c => {
                 const resource = `http://[${c.location}]/api/v2/user/status`;

@@ -25,15 +25,16 @@ export class KeyService {
 
     /**
      * Updates either private or public key based on the key type.
-     * @param {Uint8Array} pk - Private/Public key in Uint8Array format.
-     * @param {KeyType} keyType - Identifies a key as public or private.
+     * @param {Object} obj - Object.
+     * @param {Uint8Array} obj.pk - Private/Public key in Uint8Array format.
+     * @param {KeyType} obj.keyType - Identifies a key as public or private.
      * @return {Key} - Created entity.
      */
     async updateKey({ pk, keyType }: { pk: Uint8Array; keyType: KeyType }): Promise<Key> {
         const pkString = this._encryptionService.uint8ToBase64(pk);
         const userId = this._configService.get<string>('userId');
         try {
-            const existingKey = await this.getKey(keyType, userId);
+            const existingKey = await this.getKey({ keyType, userId });
             if (!existingKey)
                 return this._keyRepo.createAndSave({
                     userId,
@@ -47,8 +48,9 @@ export class KeyService {
 
     /**
      * Adds an external contacts public key to cache.
-     * @param {Uint8Array} pk - Private/Public key in Uint8Array format.
-     * @param {string} userID - Contact ID.
+     * @param {Object} obj - Object.
+     * @param {Uint8Array} obj.pk - Private/Public key in Uint8Array format.
+     * @param {string} obj.userID - Contact ID.
      * @return {Key} - Created Key entity.
      */
     async addContactPublicKey({ key, userID }: { key: string; userID: string }): Promise<Key> {
@@ -65,29 +67,14 @@ export class KeyService {
 
     /**
      * Gets the public or private key of logged in user.
-     * @return {Key} - Public or private key.
+     * @param {Object} obj - Object.
+     * @param {KeyType} obj.keyType - Key type to get.
+     * @param {string} obj.userId - User Id to get key from.
+     * @return {Key} - Found public or private key.
      */
-    async getKey(keyType: KeyType, userId: string): Promise<Key> {
+    async getKey({ keyType, userId }: { keyType: KeyType; userId: string }): Promise<Key> {
         try {
             return this._keyRepo.search().where('keyType').equals(keyType).and('userId').equals(userId).return.first();
-        } catch (error) {
-            throw new NotFoundException(error);
-        }
-    }
-
-    /**
-     * Gets the public key from user by given ID.
-     * @return {Key} - Public key.
-     */
-    async getPublicKeyByUserID(userID: string): Promise<Key> {
-        try {
-            return this._keyRepo
-                .search()
-                .where('userId')
-                .equals(userID)
-                .and('keyType')
-                .equals(KeyType.Public)
-                .return.first();
         } catch (error) {
             throw new NotFoundException(error);
         }
@@ -98,9 +85,9 @@ export class KeyService {
      * @param {MessageDTO} message - Message to add signature to.
      * @return {MessageDTO} - message with appended signature.
      */
-    async appendSignatureToMessage(message: MessageDTO<unknown>): Promise<MessageDTO<unknown>> {
+    async appendSignatureToMessage({ message }: { message: MessageDTO<unknown> }): Promise<MessageDTO<unknown>> {
         const userId = this._configService.get<string>('userId');
-        const { key } = await this.getKey(KeyType.Private, userId);
+        const { key } = await this.getKey({ keyType: KeyType.Private, userId });
         if (!key) return;
         const signature = this._encryptionService.createBase64Signature({ data: message, secretKey: key });
         message.signatures ? message.signatures.unshift(signature) : (message.signatures = [signature]);
@@ -110,9 +97,10 @@ export class KeyService {
 
     /**
      * Verifies a message's signature.
-     * @param {Contact} contact - Contact to get public key from.
-     * @param {Message} message - Message with signature.
-     * @param {string} signature - Signature to verify.
+     * @param {Object} obj - Object.
+     * @param {Contact} obj.contact - Contact to get public key from.
+     * @param {Message} obj.message - Message with signature.
+     * @param {string} obj.signature - Signature to verify.
      * @return {boolean} - Message signature is valid or not.
      */
     async verifyMessageSignature<T>({
@@ -128,7 +116,7 @@ export class KeyService {
         if (signatureIdx <= -1) return false;
 
         // let pk: Key | { key: string } = await this.getPublicKeyByUserID(contact.id);
-        const key = await this._apiService.getContactPublicKey(contact.location);
+        const key = await this._apiService.getContactPublicKey({ location: contact.location });
         if (!key) return false;
         // await this.addContactPublicKey({ key, userID: contact.id });
         const messageWithoutSignature = {
