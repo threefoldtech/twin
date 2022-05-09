@@ -58,7 +58,6 @@ export class UserController {
 
     @Put('update-status')
     async updateContactStatus(@Body() status: StatusUpdate) {
-        console.log(`UPDATE STATUS: ${JSON.stringify(status)}`);
         this._userGateway.emitMessageToConnectedClients('update_status', status);
         return true;
     }

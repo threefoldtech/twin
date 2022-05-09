@@ -41,13 +41,14 @@ export class ChatService {
 
     /**
      * Creates a new chat.
-     * @param {string} name - The name of the new chat.
-     * @param {Contact[]} contacts - List of chat contacts.
-     * @param {Message[]} messages - List of chat messages.
-     * @param {string} adminId - Admin ID of the chat.
-     * @param {string[]} read - Group of user IDs that have read the last messages in chat.
-     * @param {boolean} isGroup - Group chat or not.
-     * @param {Message[]} draft - List of draft messages.
+     * @param {Object} obj - Object.
+     * @param {string} obj.name - The name of the new chat.
+     * @param {Contact[]} obj.contacts - List of chat contacts.
+     * @param {Message[]} obj.messages - List of chat messages.
+     * @param {string} obj.adminId - Admin ID of the chat.
+     * @param {string[]} obj.read - Group of user IDs that have read the last messages in chat.
+     * @param {boolean} obj.isGroup - Group chat or not.
+     * @param {Message[]} obj.draft - List of draft messages.
      * @return {Chat} - Created entity.
      */
     async createChat({

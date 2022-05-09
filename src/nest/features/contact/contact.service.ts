@@ -102,7 +102,7 @@ export class ContactService {
             contacts: [newContact, me],
             messages: [signedMessage],
             acceptedChat: true,
-            adminId: me.id,
+            adminId: newContact.id,
             read: [],
             isGroup: false,
             draft: [],
@@ -184,7 +184,7 @@ export class ContactService {
             contacts: [me, newContact],
             messages: [contactRequestMsg as Message],
             acceptedChat: false,
-            adminId: message.from,
+            adminId: message.to,
             read: [],
             isGroup: false,
             draft: [],
@@ -221,6 +221,8 @@ export class ContactService {
      * @return {Contact} - Contact entity.
      */
     async addContact({ id, location }: CreateContactDTO<ContactRequest>): Promise<Contact> {
+        const existingContact = await this.getContact({ id });
+        if (existingContact) return;
         try {
             return await this._contactRepo.createAndSave({
                 id,

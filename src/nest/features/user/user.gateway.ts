@@ -32,11 +32,6 @@ export class UserGateway implements OnGatewayInit {
         this.server = server;
     }
 
-    // @SubscribeMessage('status_update')
-    // async handleStatusUpdate(@MessageBody() data: { status: string }): Promise<boolean> {
-    //     return await this._userService.updateStatus({ status: data.status });
-    // }
-
     /**
      * Returns the connecten sockets length.
      */

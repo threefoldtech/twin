@@ -64,6 +64,9 @@ export class MessageController {
         const chatId = this._messageService.determineChatID(message);
         const chat = await this._chatService.getChat(chatId);
 
+        if (message.type === MessageType.SYSTEM && chat.adminId !== message.from)
+            throw new ForbiddenException(`not allowed`);
+
         const userId = this._configService.get<string>('userId');
         if (chat.isGroup && chat.adminId === userId) await this._chatService.handleGroupAdmin({ chat, message });
 
