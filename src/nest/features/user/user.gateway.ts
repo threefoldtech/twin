@@ -2,8 +2,8 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnGatewayInit, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
+import { StatusUpdate } from 'types/status.type';
 
-import { StatusUpdate } from '../../types/status-types';
 import { ApiService } from '../api/api.service';
 import { ContactService } from '../contact/contact.service';
 import { Contact } from '../contact/models/contact.model';
@@ -30,7 +30,6 @@ export class UserGateway implements OnGatewayInit {
     async afterInit(server: Server) {
         this.logger.log(`user gateway setup successful`);
         this.server = server;
-        this.contacts = await this._contactService.getContacts();
     }
 
     // @SubscribeMessage('status_update')
@@ -50,6 +49,7 @@ export class UserGateway implements OnGatewayInit {
      * Handles a new socket.io client connection.
      */
     async handleConnection() {
+        this.contacts = await this._contactService.getContacts();
         const status: StatusUpdate = {
             id: this._configService.get<string>('userId'),
             isOnline: true,
@@ -61,6 +61,7 @@ export class UserGateway implements OnGatewayInit {
      * Handles a socket.io client disconnection.
      */
     async handleDisconnect() {
+        this.contacts = await this._contactService.getContacts();
         const status: StatusUpdate = {
             id: this._configService.get<string>('userId'),
             isOnline: false,
@@ -74,5 +75,14 @@ export class UserGateway implements OnGatewayInit {
                 await this._apiService.sendStatusUpdate({ location: c.location, status });
             })
         );
+    }
+
+    /**
+     * Emits message to connected clients.
+     * @param {string} event - Event to emit.
+     * @param {unknown} message - Message to send.
+     */
+    emitMessageToConnectedClients(event: string, message: unknown): void {
+        this.server.emit(event, message);
     }
 }

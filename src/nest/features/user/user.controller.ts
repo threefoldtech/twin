@@ -1,9 +1,11 @@
 import {
     BadRequestException,
+    Body,
     Controller,
     Get,
     Param,
     Post,
+    Put,
     StreamableFile,
     UploadedFile,
     UseGuards,
@@ -11,10 +13,9 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createReadStream } from 'fs-extra';
-import { Put } from 'tsoa';
+import { Status, StatusUpdate } from 'types/status.type';
 
 import { AuthGuard } from '../../guards/auth.guard';
-import { Status, StatusUpdate } from '../../types/status-types';
 import { imageFileFilter } from '../../utils/image-file-filter';
 import { LocalFilesInterceptor } from '../file/interceptor/local-files.interceptor';
 import { KeyService } from '../key/key.service';
@@ -56,9 +57,9 @@ export class UserController {
     }
 
     @Put('update-status')
-    async updateContactStatus(status: StatusUpdate) {
-        console.log(`UPDATE STATUS: ${status}`);
-        // send to connected sockets
+    async updateContactStatus(@Body() status: StatusUpdate) {
+        console.log(`UPDATE STATUS: ${JSON.stringify(status)}`);
+        this._userGateway.emitMessageToConnectedClients('update_status', status);
         return true;
     }
 

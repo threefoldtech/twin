@@ -47,7 +47,7 @@ export class ContactService {
         try {
             return await this._contactRepo.search().return.page(offset, count);
         } catch {
-            throw new NotFoundException('no contacts found');
+            return [];
         }
     }
 
