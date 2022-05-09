@@ -1,6 +1,4 @@
-import { EntityData } from 'redis-om';
-
-import { ContactDTO } from '../../contact/dtos/contact.dto';
+import { ContactDTO } from '../features/contact/dtos/contact.dto';
 
 export interface MessageBody {
     message: string;
@@ -10,11 +8,6 @@ export interface MessageBody {
 export interface ContactRequest {
     id: string;
     location: string;
-}
-
-export interface StatusUpdate extends EntityData {
-    avatar: string;
-    isOnline: boolean;
 }
 
 export interface SystemMessage {

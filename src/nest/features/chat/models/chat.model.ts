@@ -1,10 +1,10 @@
 import { Entity, Schema } from 'redis-om';
 
+import { MessageType } from '../../../types/message-types';
 import { ContactDTO } from '../../contact/dtos/contact.dto';
 import { Contact } from '../../contact/models/contact.model';
 import { MessageDTO } from '../../message/dtos/message.dto';
 import { Message } from '../../message/models/message.model';
-import { MessageType } from '../../message/types/message.type';
 import { ChatDTO } from '../dtos/chat.dto';
 
 /**

@@ -2,6 +2,7 @@ import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException 
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'redis-om';
 
+import { ContactRequest, MessageBody, MessageType } from '../../types/message-types';
 import { uuidv4 } from '../../utils/uuid';
 import { ApiService } from '../api/api.service';
 import { ChatGateway } from '../chat/chat.gateway';
@@ -12,7 +13,6 @@ import { LocationService } from '../location/location.service';
 import { MessageDTO } from '../message/dtos/message.dto';
 import { MessageService } from '../message/message.service';
 import { Message } from '../message/models/message.model';
-import { ContactRequest, MessageBody, MessageType } from '../message/types/message.type';
 import { CreateContactDTO, DeleteContactDTO } from './dtos/contact.dto';
 import { Contact, contactSchema } from './models/contact.model';
 

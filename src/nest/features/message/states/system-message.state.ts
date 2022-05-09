@@ -1,11 +1,11 @@
 import { ConfigService } from '@nestjs/config';
 
+import { GroupUpdate, SystemMessage } from '../../../types/message-types';
 import { ApiService } from '../../api/api.service';
 import { ChatGateway } from '../../chat/chat.gateway';
 import { ChatService } from '../../chat/chat.service';
 import { Chat } from '../../chat/models/chat.model';
 import { MessageDTO } from '../dtos/message.dto';
-import { GroupUpdate, SystemMessage } from '../types/message.type';
 
 export abstract class SubSystemMessageState {
     abstract handle({ message, chat }: { message: MessageDTO<SystemMessage>; chat: Chat }): Promise<unknown>;
@@ -23,7 +23,7 @@ export class AddUserSystemState implements SubSystemMessageState {
         const { contact, adminLocation } = message.body as GroupUpdate;
         const userId = this._configService.get<string>('userId');
         if (userId === contact.id)
-            return await this._chatService.syncNewChatWithAdmin({ adminLocation, chatID: message.to });
+            return await this._chatService.syncNewChatWithAdmin({ adminLocation, chatId: message.to });
 
         this._chatGateway.emitMessageToConnectedClients('chat_updated', chat);
 

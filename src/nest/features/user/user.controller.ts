@@ -14,11 +14,11 @@ import { createReadStream } from 'fs-extra';
 import { Put } from 'tsoa';
 
 import { AuthGuard } from '../../guards/auth.guard';
+import { Status, StatusUpdate } from '../../types/status-types';
 import { imageFileFilter } from '../../utils/image-file-filter';
 import { LocalFilesInterceptor } from '../file/interceptor/local-files.interceptor';
 import { KeyService } from '../key/key.service';
 import { KeyType } from '../key/models/key.model';
-import { StatusUpdate } from '../message/types/message.type';
 import { UserGateway } from './user.gateway';
 import { UserService } from './user.service';
 
@@ -42,7 +42,7 @@ export class UserController {
     }
 
     @Get('status')
-    async getStatus(): Promise<StatusUpdate> {
+    async getStatus(): Promise<Status> {
         const isOnline = (await this._userGateway.getConnections()) > 0 ? true : false;
         const userData = await this._userService.getUserData();
         const avatar = await this._userService.getUserAvatar();
@@ -58,6 +58,8 @@ export class UserController {
     @Put('update-status')
     async updateContactStatus(status: StatusUpdate) {
         console.log(`UPDATE STATUS: ${status}`);
+        // send to connected sockets
+        return true;
     }
 
     @Get('avatar/:avatarId')

@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../../guards/auth.guard';
-import { MessageBody } from '../message/types/message.type';
+import { MessageBody } from '../../types/message-types';
 import { ContactService } from './contact.service';
 import { CreateContactDTO } from './dtos/contact.dto';
 import { Contact } from './models/contact.model';

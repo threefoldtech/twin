@@ -11,12 +11,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+import { MessageType } from '../../types/message-types';
 import { ApiService } from '../api/api.service';
 import { BlockedContactService } from '../blocked-contact/blocked-contact.service';
 import { KeyService } from '../key/key.service';
 import { MessageDTO } from '../message/dtos/message.dto';
 import { Message } from '../message/models/message.model';
-import { MessageType } from '../message/types/message.type';
 import { ChatService } from './chat.service';
 
 @WebSocketGateway({ cors: '*' })

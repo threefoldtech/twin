@@ -1,6 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { ContactRequest, GroupUpdate, SystemMessage, SystemMessageType } from '../../../types/message-types';
 import { ApiService } from '../../api/api.service';
 import { ChatGateway } from '../../chat/chat.gateway';
 import { ChatService } from '../../chat/chat.service';
@@ -9,7 +10,6 @@ import { ContactService } from '../../contact/contact.service';
 import { CreateContactDTO } from '../../contact/dtos/contact.dto';
 import { CreateMessageDTO, MessageDTO } from '../dtos/message.dto';
 import { MessageService } from '../message.service';
-import { ContactRequest, GroupUpdate, SystemMessage, SystemMessageType } from '../types/message.type';
 import {
     AddUserSystemState,
     PersistSystemMessage,

@@ -1,6 +1,7 @@
 import { Body, Controller, ForbiddenException, Get, Param, Put, Query } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { MessageType } from '../../types/message-types';
 import { ApiService } from '../api/api.service';
 import { BlockedContactService } from '../blocked-contact/blocked-contact.service';
 import { ChatGateway } from '../chat/chat.gateway';
@@ -15,7 +16,6 @@ import {
     StringMessageState,
     SystemMessageState,
 } from './states/message.state';
-import { MessageType } from './types/message.type';
 
 @Controller('messages')
 export class MessageController {

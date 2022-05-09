@@ -2,10 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { ResponseType } from 'axios';
 
+import { StatusUpdate } from '../../types/status-types';
 import { ChatDTO } from '../chat/dtos/chat.dto';
 import { Chat } from '../chat/models/chat.model';
 import { MessageDTO } from '../message/dtos/message.dto';
-import { StatusUpdate } from '../message/types/message.type';
 
 @Injectable()
 export class ApiService {
@@ -59,7 +59,8 @@ export class ApiService {
 
     async sendStatusUpdate({ location, status }: { location: string; status: StatusUpdate }) {
         try {
-            console.log(`LOCATION: ${location}`);
+            console.log(`Contact: ${JSON.stringify(location)}`);
+            console.log(`Status: ${JSON.stringify(status)}`);
             return await axios.put(`http://[${location}]/api/v2/user/update-status`, status);
         } catch (error) {
             throw new BadRequestException(`unable to update status: ${error}`);

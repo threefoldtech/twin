@@ -1,14 +1,12 @@
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MessageBody, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { OnGatewayInit, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 
-import { uuidv4 } from '../../utils/uuid';
+import { StatusUpdate } from '../../types/status-types';
 import { ApiService } from '../api/api.service';
 import { ContactService } from '../contact/contact.service';
-import { MessageDTO } from '../message/dtos/message.dto';
-import { StatusUpdate } from '../message/types/message.type';
-import { UserService } from './user.service';
+import { Contact } from '../contact/models/contact.model';
 
 @WebSocketGateway({ cors: '*' })
 export class UserGateway implements OnGatewayInit {
@@ -17,8 +15,9 @@ export class UserGateway implements OnGatewayInit {
 
     private logger: Logger = new Logger('UserGateway');
 
+    private contacts: Contact[];
+
     constructor(
-        private readonly _userService: UserService,
         private readonly _contactService: ContactService,
         private readonly _apiService: ApiService,
         private readonly _configService: ConfigService
@@ -28,16 +27,20 @@ export class UserGateway implements OnGatewayInit {
      * Handles socket initialization.
      * @param {Server} server - socket.io server.
      */
-    afterInit(server: Server) {
+    async afterInit(server: Server) {
         this.logger.log(`user gateway setup successful`);
         this.server = server;
+        this.contacts = await this._contactService.getContacts();
     }
 
-    @SubscribeMessage('status_update')
-    async handleStatusUpdate(@MessageBody() data: { status: string }): Promise<boolean> {
-        return await this._userService.updateStatus({ status: data.status });
-    }
+    // @SubscribeMessage('status_update')
+    // async handleStatusUpdate(@MessageBody() data: { status: string }): Promise<boolean> {
+    //     return await this._userService.updateStatus({ status: data.status });
+    // }
 
+    /**
+     * Returns the connecten sockets length.
+     */
     async getConnections(): Promise<number> {
         const sockets = await this.server.allSockets();
         return sockets.size;
@@ -47,28 +50,28 @@ export class UserGateway implements OnGatewayInit {
      * Handles a new socket.io client connection.
      */
     async handleConnection() {
-        const contacts = await this._contactService.getContacts();
-        console.log(`C CONTACTS: ${JSON.stringify(contacts)}`);
-        Promise.all(
-            contacts.map(async c => {
-                const resource = `http://[${c.location}]/api/v2/user/status`;
-                const { data } = await this._apiService.getExternalResource({ resource });
-                await this._apiService.sendStatusUpdate({ location: c.location, status: data });
-            })
-        );
+        const status: StatusUpdate = {
+            id: this._configService.get<string>('userId'),
+            isOnline: true,
+        };
+        this.handleStatusEmit({ status });
     }
 
     /**
      * Handles a socket.io client disconnection.
      */
     async handleDisconnect() {
-        const contacts = await this._contactService.getContacts();
-        console.log(`DC CONTACTS: ${JSON.stringify(contacts)}`);
+        const status: StatusUpdate = {
+            id: this._configService.get<string>('userId'),
+            isOnline: false,
+        };
+        this.handleStatusEmit({ status });
+    }
+
+    private async handleStatusEmit({ status }: { status: StatusUpdate }) {
         Promise.all(
-            contacts.map(async c => {
-                const resource = `http://[${c.location}]/api/v2/user/status`;
-                const { data } = await this._apiService.getExternalResource({ resource });
-                await this._apiService.sendStatusUpdate({ location: c.location, status: data });
+            this.contacts.map(async c => {
+                await this._apiService.sendStatusUpdate({ location: c.location, status });
             })
         );
     }
