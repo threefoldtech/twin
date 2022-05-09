@@ -47,6 +47,8 @@ export class MessageController {
             MessageType.STRING,
             new StringMessageState(this._chatService, this._chatGateway)
         );
+        // string message handler
+        this._messageStateHandlers.set(MessageType.GIF, new StringMessageState(this._chatService, this._chatGateway));
     }
 
     @Put()
