@@ -1,21 +1,21 @@
+import { BadRequestException } from '@nestjs/common';
 import axios from 'axios';
 import express, { Router } from 'express';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
+import { StatusCodes } from 'http-status-codes';
 import * as PATH from 'path';
-import { BadRequestException } from '@nestjs/common';
+
 import { config } from '../config/config';
 import { requiresAuthentication } from '../middlewares/authenticationMiddleware';
-import { getBlocklist, getChat, getChatIds } from '../service/dataService';
+import { sendPostToApi } from '../service/apiService';
+import { getBlocklist } from '../service/dataService';
+import { hasSpecialCharacters } from '../service/fileService';
 import { getMyLocation } from '../service/locationService';
 import { sendEventToConnectedSockets } from '../service/socketService';
 import { getFullIPv6ApiLocation } from '../service/urlService';
 import { contacts, getContacts } from '../store/contacts';
-import Chat from '../models/chat';
-import { StatusCodes } from 'http-status-codes';
-import { POST_ACTIONS, POST_MODEL, SOCIAL_POST } from '../types';
-import { sendPostToApi } from '../service/apiService';
-import { hasSpecialCharacters } from '../service/fileService';
+import { POST_ACTIONS, SOCIAL_POST } from '../types';
 
 const router = Router();
 
@@ -39,7 +39,7 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
     const images = [];
 
     for (const file of filesToSave) {
-        if (hasSpecialCharacters(file.name)) {
+        if (hasSpecialCharacters(file?.name)) {
             return res.json({ status: 'Failed to create post. No special characters allowed' });
         }
         if (file?.tempFilePath && file?.mv) {
@@ -295,7 +295,7 @@ router.delete('/:postId', requiresAuthentication, async (req: express.Request, r
     if (post?.owner.location !== (await getMyLocation())) throw new Error('Not your post!');
     fs.rmdirSync(path, { recursive: true });
     sendEventToConnectedSockets('post_deleted', postId);
-    for (let contact of contacts) {
+    for (const contact of contacts) {
         const p: SOCIAL_POST = {
             ...post,
             action: POST_ACTIONS.POST_DELETE,
