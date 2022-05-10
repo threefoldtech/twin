@@ -4,14 +4,14 @@ import { config } from '../config/config';
 import Chat from '../models/chat';
 import Contact from '../models/contact';
 import Message from '../models/message';
-import { SystemMessageType } from '../types';
+import { GroupUpdateType, SystemMessageType } from '../types';
 import { sendMessageToApi } from './apiService';
 import { persistMessage } from './chatService';
 import { deleteChat, persistChat } from './dataService';
 import { sendEventToConnectedSockets } from './socketService';
 import { getFullIPv6ApiLocation } from './urlService';
 
-export const handleSystemMessage = (message: Message<{ contact: Contact; type: SystemMessageType }>, chat: Chat) => {
+export const handleSystemMessage = (message: Message<GroupUpdateType>, chat: Chat) => {
     if (
         [SystemMessageType.ADDUSER, SystemMessageType.REMOVEUSER].includes(message.body.type) &&
         chat.adminId !== message.from
@@ -43,8 +43,9 @@ export const handleSystemMessage = (message: Message<{ contact: Contact; type: S
         }
         case SystemMessageType.USER_LEFT_GROUP: {
             const contact = message.body.contact.id;
-            if (contact === chat.adminId) {
-                const newAdmin = chat.contacts.filter(c => c.id !== contact)[0];
+            if (contact === chat.adminId && chat.contacts.length > 1) {
+                let newAdmin = chat.contacts.find(c => c.id === message.body.nextAdmin);
+                if (!newAdmin) newAdmin = chat.contacts.filter(c => c.id !== contact)[0];
                 chat.adminId = newAdmin.id;
             }
             if (contact === config.userid) {

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { fromBuffer } from 'file-type';
+import express from 'express';
 
 import { uuidv4 } from '../common';
 import { config } from '../config/config';
@@ -31,6 +32,7 @@ import {
     StringMessageTypeInterface,
 } from '../types';
 import { getFile, Path } from '../utils/files';
+import { StatusCodes } from 'http-status-codes';
 
 const router = Router();
 
@@ -157,7 +159,7 @@ const handleGroupAdmin = async <ResBody, Locals>(
 };
 
 // Should be externally availble
-router.put('/', async (req, res) => {
+router.put('/', async (req: express.Request, res: express.Response) => {
     // @ TODO check if valid
 
     const msg = req.body;
@@ -301,6 +303,11 @@ router.put('/', async (req, res) => {
 
             res.set('Content-Type', mime?.mime || null);
             res.send(file);
+            return;
+        case MessageTypes.POST_DELETE:
+            sendEventToConnectedSockets('post_deleted', message.body);
+            res.status(StatusCodes.OK);
+            res.send();
             return;
     }
 

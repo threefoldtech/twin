@@ -38,6 +38,7 @@ export enum MessageTypes {
     QUOTE = 'QUOTE',
     FILE_SHARE_DELETE = 'FILE_SHARE_DELETE',
     DOWNLOAD_ATTACHMENT = 'DOWNLOAD_ATTACHMENT',
+    POST_DELETE = 'POST_DELETE',
 }
 
 export enum MessageAction {
@@ -83,6 +84,7 @@ export interface MessageBodyTypeInterface {}
 export type StringMessageTypeInterface = MessageBodyTypeInterface;
 
 export interface ContactRequest extends MessageBodyTypeInterface, ContactInterface {}
+
 export interface FileMessageType extends MessageBodyTypeInterface {
     type: FileTypes;
     filename: string;
@@ -100,8 +102,9 @@ export interface SystemMessageInterface extends MessageBodyTypeInterface {
 }
 
 export interface GroupUpdateType extends SystemMessageInterface {
-    contact: AnonymousContactInterface | ContactInterface;
+    contact: ContactInterface;
     adminLocation: string;
+    nextAdmin?: string;
 }
 
 export interface ChatInterface {
@@ -112,6 +115,7 @@ export interface ChatInterface {
     };
     name: string;
 }
+
 export interface PersonChatInterface extends ChatInterface {
     chatId: DtIdInterface;
     messages: MessageInterface<MessageBodyTypeInterface>[];
@@ -137,4 +141,72 @@ export type IdInterface = string;
 
 export interface WorkspaceInterface extends GroupChatInterface {
     subGroups: GroupChatInterface[];
+}
+
+export enum POST_TYPE {
+    SOCIAL_POST = 'SOCIAL_POST',
+}
+
+export enum POST_ACTIONS {
+    POST_DELETE = 'POST_DELETE',
+}
+
+export interface POST_MODEL {
+    id: string;
+    type: POST_TYPE;
+    body: string;
+    isGroupPost: boolean;
+    createdOn: Date;
+    lastModified: Date;
+}
+
+interface POST_OWNER {
+    id: string;
+    location: string;
+}
+
+export enum MESSAGE_TYPE {
+    COMMENT = 'COMMENT',
+    COMMENT_REPLY = 'COMMENT_REPLY',
+}
+
+interface LIKE_MODEL extends POST_OWNER {}
+interface COMMENT_OWNER extends POST_OWNER {}
+
+interface POST_IMAGE {
+    name: string;
+    data: object;
+    size: number;
+    encoding: string;
+    tempFilePath: string;
+    truncated: boolean;
+    mimetype: string;
+    md5: string;
+    path: string;
+}
+
+export interface COMMENT_MODEL {
+    id: string;
+    body: string;
+    owner: COMMENT_OWNER;
+    post: {
+        id: string;
+        owner: POST_OWNER;
+    };
+    type: MESSAGE_TYPE;
+    replies: COMMENT_MODEL[];
+    createdOn: Date;
+    likes: LIKE_MODEL[];
+    replyTo?: string | undefined;
+    isReplyToComment: boolean;
+}
+
+export interface SOCIAL_POST {
+    post: POST_MODEL;
+    owner: POST_OWNER;
+    likes: LIKE_MODEL[];
+    images: POST_IMAGE[];
+    replies: COMMENT_MODEL[];
+    isTyping?: String[];
+    action?: POST_ACTIONS;
 }
