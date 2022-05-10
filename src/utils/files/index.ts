@@ -1,14 +1,13 @@
+import { UploadedFile } from 'express-fileupload';
+import { lstatSync, ObjectEncodingOptions, promises as FS, rmdirSync, Stats, statSync } from 'fs';
+import * as fse from 'fs-extra';
 import PATH from 'path';
 
-import fs, { ObjectEncodingOptions, promises as FS, Stats, lstatSync, rmdirSync, statSync } from 'fs';
-import { FileSystemError, FileSystemErrorType as ErrorType } from '../../types/errors/fileSystemError';
-import { PathInfo } from '../../types/dtos/fileDto';
 import { config } from '../../config/config';
-import { UploadedFile } from 'express-fileupload';
-import * as fse from 'fs-extra';
-import { updateShareName, updateSharePath } from '../../service/fileShareService';
 import { getShareConfig } from '../../service/dataService';
-
+import { updateSharePath } from '../../service/fileShareService';
+import { PathInfo } from '../../types/dtos/fileDto';
+import { FileSystemError, FileSystemErrorType as ErrorType } from '../../types/errors/fileSystemError';
 
 let baseDir = PATH.join(config.baseDir, config.storage);
 
@@ -16,8 +15,8 @@ export class Path {
     private _path: string;
     private _securedPath: string;
 
-    constructor(path: string, dir?: string, attachment?:boolean) {
-        dir ? (baseDir = dir) : attachment ? (baseDir = '/appdata/attachments') :(baseDir = '/appdata/storage');
+    constructor(path: string, dir?: string, attachment?: boolean) {
+        dir ? (baseDir = dir) : attachment ? (baseDir = '/appdata/attachments') : (baseDir = '/appdata/storage');
         this._path = path;
         this.setSecuredPath();
     }
@@ -82,9 +81,8 @@ export const getFormattedDetails = async (path: Path): Promise<PathInfo> => {
 };
 
 export const pathExists = (path: Path): boolean => {
-
     return fse.existsSync(path.securedPath);
-}
+};
 
 export const createDir = async (path: Path): Promise<PathInfo> => {
     await createDirectory(path);
@@ -94,7 +92,7 @@ export const createDir = async (path: Path): Promise<PathInfo> => {
 export const readDir = async (
     path: Path,
     options: { withFileTypes: true },
-    attachments: boolean = false
+    attachments = false
 ): Promise<PathInfo[]> => {
     const exists = await pathExists(path);
     if (!exists) return [];
@@ -141,7 +139,6 @@ export const saveFileWithRetry = async (path: Path, file: UploadedFile, count = 
     //console.log('->>>> RETRY', path);
     const pathCount = count === 0 ? path : new Path(path.path.insert(path.path.lastIndexOf('.'), ` (${count})`), dir);
 
-
     if (pathExists(pathCount)) return await saveFileWithRetry(path, file, count + 1, dir);
     return await saveUploadedFile(pathCount, file);
 };
@@ -163,10 +160,16 @@ export const moveWithRetry = async (source: Path, destinationDirectory: Path, co
 };
 
 export const saveUploadedFile = async (path: Path, file: UploadedFile) => {
-
     if (file.tempFilePath) return await moveUploadedFile(file, path);
 
     return saveFile(path, file.data);
+};
+
+export const saveTempFile = async (path: Path, file: UploadedFile) => {
+    const tmpFolder = new Path('tmp', '/appdata');
+    if (!pathExists(tmpFolder)) await createDir(tmpFolder);
+
+    await file.mv(path.securedPath);
 };
 
 export const moveUploadedFile = async (file: UploadedFile, path: Path) => {
@@ -194,7 +197,7 @@ export const copy = async (source: Path, destination: Path) => {
 };
 
 export const move = async (source: Path, destination: Path) => {
-    let config = getShareConfig();
+    const config = getShareConfig();
     const share = config.Shared.find(share => share.path == source.path);
 
     if (share) {
@@ -207,7 +210,7 @@ export const move = async (source: Path, destination: Path) => {
 };
 
 export const getFilesRecursive = async (dir: Path, fileList: PathInfo[] = []) => {
-    let files = await readDir(dir, { withFileTypes: true });
+    const files = await readDir(dir, { withFileTypes: true });
     for (const file of files) {
         if (statSync(PATH.join(dir.securedPath, file.fullName)).isDirectory()) {
             fileList.push(file);
@@ -220,7 +223,7 @@ export const getFilesRecursive = async (dir: Path, fileList: PathInfo[] = []) =>
 };
 
 export const filterOnString = async (term: string, fileList: PathInfo[] = []) => {
-    let filteredList = [];
+    const filteredList = [];
     for (const file of fileList) {
         if (file.fullName.toLowerCase().includes(term.toLowerCase())) {
             filteredList.push(file);
@@ -242,7 +245,7 @@ const readDirectory = async (path: Path, options: ObjectEncodingOptions & { with
 };
 
 const writeFile = async (path: Path, file: Buffer) => {
-        return await FS.writeFile(path.securedPath, file);
+    return await FS.writeFile(path.securedPath, file);
 };
 
 export const removeFile = async (path: Path) => {
