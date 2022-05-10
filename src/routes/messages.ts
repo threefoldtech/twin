@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { fromBuffer } from 'file-type';
+import express from 'express';
 
 import { uuidv4 } from '../common';
 import { config } from '../config/config';
@@ -158,7 +159,7 @@ const handleGroupAdmin = async <ResBody, Locals>(
 };
 
 // Should be externally availble
-router.put('/', async (req, res) => {
+router.put('/', async (req: express.Request, res: express.Response) => {
     // @ TODO check if valid
 
     const msg = req.body;
