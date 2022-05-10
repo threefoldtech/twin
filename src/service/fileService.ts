@@ -11,3 +11,8 @@ export const getDocumentBrowserKey = (canWrite: boolean, path: string) => {
         .update(`${canWrite ? 'write' : 'read'}${path}${hex}`)
         .digest('hex');
 };
+
+export const hasSpecialCharacters = (name: string) => {
+    const format = /[`!@#$%^&*()+\=\[\]{};':"\\|,<>\/?~]/;
+    return format.test(name);
+};

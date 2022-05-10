@@ -15,6 +15,7 @@ import Chat from '../models/chat';
 import { StatusCodes } from 'http-status-codes';
 import { POST_ACTIONS, POST_MODEL, SOCIAL_POST } from '../types';
 import { sendPostToApi } from '../service/apiService';
+import { hasSpecialCharacters } from '../service/fileService';
 
 const router = Router();
 
@@ -23,6 +24,8 @@ const socialDirectory = PATH.join(config.baseDir, '/social');
 router.post('/', requiresAuthentication, async (req: express.Request, res: express.Response) => {
     const { id, type, body, isGroupPost, createdOn, lastModified } = req.body;
     let filesToSave = <UploadedFile[]>req?.files.images;
+    if (filesToSave?.length > 10)
+        return res.json({ status: 'Failed to create post. Can not upload more than 10 images' });
 
     if (Object.prototype.toString.call(filesToSave) !== '[object Array]') {
         filesToSave = [].concat(filesToSave);
@@ -36,6 +39,9 @@ router.post('/', requiresAuthentication, async (req: express.Request, res: expre
     const images = [];
 
     for (const file of filesToSave) {
+        if (hasSpecialCharacters(file.name)) {
+            return res.json({ status: 'Failed to create post. No special characters allowed' });
+        }
         if (file?.tempFilePath && file?.mv) {
             file.mv(PATH.join(path, file.name));
             images.push({ ...file, path: PATH.join(path, file.name) });
