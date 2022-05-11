@@ -1,6 +1,5 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import Joi from 'joi';
 
 import config from '../../config/config';
 import { LoggerMiddleware } from '../../middleware/logger.middleware';
@@ -22,16 +21,16 @@ import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
-            validationSchema: Joi.object({
-                PORT: Joi.number().required(),
-                NODE_ENV: Joi.string().required(),
-                BASE_DIR: Joi.string().required(),
-                UPLOAD_DESTINATION: Joi.string().required(),
-                DIGITALTWIN_APPID: Joi.string().required(),
-                USER_ID: Joi.string().required(),
-                SEED_PHRASE: Joi.string().required(),
-                SESSION_SECRET: Joi.string().required(),
-            }),
+            // validationSchema: Joi.object({
+            //     PORT: Joi.number().required(),
+            //     NODE_ENV: Joi.string().required(),
+            //     BASE_DIR: Joi.string().required(),
+            //     UPLOAD_DESTINATION: Joi.string().required(),
+            //     DIGITALTWIN_APPID: Joi.string().required(),
+            //     USER_ID: Joi.string().required(),
+            //     SEED_PHRASE: Joi.string().required(),
+            //     SESSION_SECRET: Joi.string().required(),
+            // }),
             load: [config],
             isGlobal: true,
             cache: true,
