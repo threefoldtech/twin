@@ -16,8 +16,8 @@ export class FileController {
             },
         })
     )
-    async uploadFile(@UploadedFile() file: Express.Multer.File): Promise<string> {
+    async uploadFile(@UploadedFile() file: Express.Multer.File) {
         if (!file) throw new BadRequestException('please provide a valid file');
-        return file.filename;
+        return { id: file.filename };
     }
 }
