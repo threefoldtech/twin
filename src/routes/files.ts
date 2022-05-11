@@ -1,18 +1,17 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
 import { UploadedFile } from 'express-fileupload';
-import express from 'express';
 
 import { config } from '../config/config';
 import Message from '../models/message';
 import { sendMessageToApi } from '../service/apiService';
 import { getChat, persistChat, saveFile } from '../service/dataService';
+import { hasSpecialCharacters } from '../service/fileService';
 import { appendSignatureToMessage } from '../service/keyService';
 import { getMyLocation } from '../service/locationService';
 import { parseMessage } from '../service/messageService';
 import { sendEventToConnectedSockets } from '../service/socketService';
 import { getFullIPv6ApiLocation } from '../service/urlService';
 import { FileMessageType, MessageTypes } from '../types';
-import { hasSpecialCharacters } from '../service/fileService';
 
 const router = Router();
 

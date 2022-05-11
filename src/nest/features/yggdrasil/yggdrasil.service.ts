@@ -5,7 +5,6 @@ import PATH from 'path';
 
 import { EncryptionService } from '../encryption/encryption.service';
 import { FileService } from '../file/file.service';
-import { LocationService } from '../location/location.service';
 import { YggdrasilConfig } from './models/yggdrasil.model';
 
 @Injectable()
@@ -32,7 +31,6 @@ export class YggdrasilService {
     constructor(
         private readonly _configService: ConfigService,
         private readonly _encryptionService: EncryptionService,
-        private readonly _locationService: LocationService,
         private readonly _fileService: FileService
     ) {
         const baseDir = this._configService.get<string>('baseDir');

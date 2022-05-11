@@ -1,15 +1,13 @@
 import { Injectable, mixin, NestInterceptor, Type } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 import { diskStorage } from 'multer';
 
-import { uuidv4 } from '../../../utils/uuid';
+import { uuidv4 } from '../../utils/uuid';
 
 interface LocalFilesInterceptorOptions {
     fieldName: string;
     path?: string;
-    isAvatar?: boolean;
     fileFilter?: MulterOptions['fileFilter'];
     limits?: MulterOptions['limits'];
 }
@@ -18,20 +16,14 @@ export function LocalFilesInterceptor(options: LocalFilesInterceptorOptions): Ty
     @Injectable()
     class Interceptor implements NestInterceptor {
         fileInterceptor: NestInterceptor;
-        constructor(private readonly _configService: ConfigService) {
-            const filesDestination = this._configService.get<string>('baseDir');
-
-            const destination = `${filesDestination}${options.path}`;
-            const avatarId = uuidv4();
+        constructor() {
+            const destination = `${options.path}`;
 
             const multerOptions: MulterOptions = {
                 storage: diskStorage({
                     destination,
-                    filename: (_, file, callback) => {
-                        if (options.isAvatar)
-                            return callback(null, `${this._configService.get<string>('userId')}-avatar-${avatarId}`);
-
-                        return callback(null, file.originalname);
+                    filename: (_req, _file, callback) => {
+                        return callback(null, uuidv4());
                     },
                 }),
                 fileFilter: options.fileFilter,

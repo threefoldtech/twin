@@ -16,8 +16,8 @@ import { createReadStream } from 'fs-extra';
 import { Status, StatusUpdate } from 'types/status.type';
 
 import { AuthGuard } from '../../guards/auth.guard';
-import { imageFileFilter } from '../../utils/image-file-filter';
-import { LocalFilesInterceptor } from '../file/interceptor/local-files.interceptor';
+import { imageFileFilter } from '../../utils/file-filters';
+import { LocalFilesInterceptor } from '../file/file.interceptor';
 import { KeyService } from '../key/key.service';
 import { KeyType } from '../key/models/key.model';
 import { UserGateway } from './user.gateway';
@@ -43,6 +43,7 @@ export class UserController {
     }
 
     @Get('status')
+    @UseGuards(AuthGuard)
     async getStatus(): Promise<Status> {
         const isOnline = (await this._userGateway.getConnections()) > 0 ? true : false;
         const userData = await this._userService.getUserData();
@@ -57,12 +58,14 @@ export class UserController {
     }
 
     @Put('update-status')
+    @UseGuards(AuthGuard)
     async updateContactStatus(@Body() status: StatusUpdate) {
         this._userGateway.emitMessageToConnectedClients('update_status', status);
         return true;
     }
 
     @Get('avatar/:avatarId')
+    @UseGuards(AuthGuard)
     async getAvatar(@Param('avatarId') avatarId: string) {
         let filePath = `${this._configService.get<string>('baseDir')}user/avatar-default`;
         if (avatarId !== 'default') {
@@ -78,7 +81,6 @@ export class UserController {
         LocalFilesInterceptor({
             fieldName: 'file',
             path: 'user',
-            isAvatar: true,
             fileFilter: imageFileFilter,
             limits: {
                 fileSize: Math.pow(2048, 2), // 2MB
