@@ -80,9 +80,9 @@ export class YggdrasilService {
      * @return {YggdrasilConfig} - New replacement keys if replacement was not found.
      */
     private getReplacements(seed: string): string | YggdrasilConfig {
-        if (this._fileService.fileExists(this.jsonPath)) {
+        if (this._fileService.fileExists({ path: this.jsonPath })) {
             console.log('existing replacements for yggdrasil found');
-            return this._fileService.readJSONFile(this.jsonPath);
+            return this._fileService.readJSONFile({ path: this.jsonPath });
         }
         const hash = this._encryptionService.generateHashFromSeed(seed);
         const signKeyPair = this._encryptionService.getKeyPair(hash);

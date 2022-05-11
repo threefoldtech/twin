@@ -1,5 +1,6 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import config from '../../config/config';
 import { LoggerMiddleware } from '../../middleware/logger.middleware';
@@ -35,6 +36,7 @@ import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
             isGlobal: true,
             cache: true,
         }),
+        ScheduleModule.forRoot(),
         DbModule,
         ApiModule,
         AuthModule,
