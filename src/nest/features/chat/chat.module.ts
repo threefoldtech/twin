@@ -2,7 +2,6 @@ import { forwardRef, Module } from '@nestjs/common';
 
 import { ApiModule } from '../api/api.module';
 import { BlockedContactModule } from '../blocked-contact/blocked-contact.module';
-import { ConnectionModule } from '../connection/connection.module';
 import { ContactModule } from '../contact/contact.module';
 import { DbModule } from '../db/db.module';
 import { KeyModule } from '../key/key.module';
@@ -16,7 +15,6 @@ import { ChatService } from './chat.service';
 @Module({
     imports: [
         DbModule,
-        ConnectionModule,
         KeyModule,
         LocationModule,
         ApiModule,
