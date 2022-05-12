@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { ChatFile } from 'types/file-actions.type';
 
-import { FileMessage, FileType, MessageType } from '../../types/message-types';
+import { FileMessage, MessageType } from '../../types/message-types';
 import { ApiService } from '../api/api.service';
 import { ChatGateway } from '../chat/chat.gateway';
 import { ChatService } from '../chat/chat.service';
@@ -36,7 +36,7 @@ export class ChatFileState implements FileState<ChatFile> {
     }
 
     async handle({ fileId, payload }: { fileId: string; payload: ChatFile }) {
-        const { chatId, messageId } = payload;
+        const { chatId, messageId, type } = payload;
         const fromPath = `tmp/${fileId}`;
         const dirPath = join(this.chatDir, chatId, 'files', messageId);
 
@@ -54,7 +54,7 @@ export class ChatFileState implements FileState<ChatFile> {
             from: this._configService.get<string>('userId'),
             to: chatId,
             body: {
-                type: FileType.OTHER,
+                type,
                 filename: fileId,
                 url: `http://[${yggdrasilAddress}]/api/v2/files/chats/${chatId}/${messageId}/${fileId}`,
             },

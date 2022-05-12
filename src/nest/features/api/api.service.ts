@@ -59,8 +59,6 @@ export class ApiService {
 
     async sendStatusUpdate({ location, status }: { location: string; status: StatusUpdate }) {
         try {
-            console.log(`Contact: ${JSON.stringify(location)}`);
-            console.log(`Status: ${JSON.stringify(status)}`);
             return await axios.put(`http://[${location}]/api/v2/user/update-status`, status);
         } catch (error) {
             throw new BadRequestException(`unable to update status: ${error}`);

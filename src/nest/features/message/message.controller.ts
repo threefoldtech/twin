@@ -56,7 +56,6 @@ export class MessageController {
 
     @Put()
     async handleIncomingMessage(@Body() message: CreateMessageDTO<unknown>) {
-        console.log(`REST Message type: ${message.type}`);
         const blockedContacts = await this._blockedContactService.getBlockedContactList();
         const isBlocked = blockedContacts.find(c => c === message.from);
 
