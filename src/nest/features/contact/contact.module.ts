@@ -13,12 +13,12 @@ import { ContactService } from './contact.service';
 @Module({
     imports: [
         DbModule,
-        YggdrasilModule,
-        forwardRef(() => ChatModule),
-        forwardRef(() => MessageModule),
         LocationModule,
         KeyModule,
         ApiModule,
+        forwardRef(() => YggdrasilModule),
+        forwardRef(() => ChatModule),
+        forwardRef(() => MessageModule),
     ],
     controllers: [ContactController],
     providers: [ContactService],

@@ -3,6 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { MessageBody, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 
+import { ApiService } from '../api/api.service';
+import { ChatGateway } from '../chat/chat.gateway';
+import { ChatService } from '../chat/chat.service';
+import { KeyService } from '../key/key.service';
+import { LocationService } from '../location/location.service';
 import { FileService } from './file.service';
 import { ChatFileState, FileAction, FileState } from './file.state';
 
@@ -15,9 +20,28 @@ export class FileGateway implements OnGatewayInit {
 
     private _fileStateHandlers = new Map<FileAction, FileState<unknown>>();
 
-    constructor(private readonly _configService: ConfigService, private readonly _fileService: FileService) {
+    constructor(
+        private readonly _configService: ConfigService,
+        private readonly _fileService: FileService,
+        private readonly _apiService: ApiService,
+        private readonly _locationService: LocationService,
+        private readonly _keyService: KeyService,
+        private readonly _chatService: ChatService,
+        private readonly _chatGateway: ChatGateway
+    ) {
         // handles files being sent in chat
-        this._fileStateHandlers.set(FileAction.ADD_TO_CHAT, new ChatFileState(this._configService, this._fileService));
+        this._fileStateHandlers.set(
+            FileAction.ADD_TO_CHAT,
+            new ChatFileState(
+                this._configService,
+                this._fileService,
+                this._apiService,
+                this._locationService,
+                this._keyService,
+                this._chatService,
+                this._chatGateway
+            )
+        );
     }
 
     afterInit(server: Server) {
@@ -29,6 +53,6 @@ export class FileGateway implements OnGatewayInit {
     async handleUploadedFile(
         @MessageBody() { fileId, payload, action }: { fileId: string; payload: unknown; action: FileAction }
     ) {
-        return await this._fileStateHandlers.get(action).handle({ fileId, payload, action });
+        return await this._fileStateHandlers.get(action).handle({ fileId, payload });
     }
 }

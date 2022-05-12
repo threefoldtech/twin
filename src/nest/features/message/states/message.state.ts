@@ -1,7 +1,13 @@
 import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ContactRequest, GroupUpdate, SystemMessage, SystemMessageType } from '../../../types/message-types';
+import {
+    ContactRequest,
+    FileMessage,
+    GroupUpdate,
+    SystemMessage,
+    SystemMessageType,
+} from '../../../types/message-types';
 import { ApiService } from '../../api/api.service';
 import { ChatGateway } from '../../chat/chat.gateway';
 import { ChatService } from '../../chat/chat.service';
@@ -61,9 +67,17 @@ export class StringMessageState implements MessageState<string> {
 
     async handle({ message, chat }: { message: MessageDTO<string>; chat: Chat }): Promise<string> {
         this._chatGateway.emitMessageToConnectedClients('message', message);
+        return await this._chatService.addMessageToChat({ chat, message });
+    }
+}
+
+export class FileMessageState implements MessageState<FileMessage> {
+    constructor(private readonly _chatService: ChatService, private readonly _chatGateway: ChatGateway) {}
+
+    async handle({ message, chat }: { message: MessageDTO<FileMessage>; chat: Chat }): Promise<string> {
+        this._chatGateway.emitMessageToConnectedClients('message', message);
 
         console.log(`MESSAGE: ${JSON.stringify(message)}`);
-        // await this._apiService.sendMessageToApi({ location: (message.to as unknown as ContactDTO).location, message });
         return await this._chatService.addMessageToChat({ chat, message });
     }
 }

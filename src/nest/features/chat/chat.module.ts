@@ -16,12 +16,12 @@ import { ChatService } from './chat.service';
 @Module({
     imports: [
         DbModule,
-        YggdrasilModule,
         ConnectionModule,
         KeyModule,
         LocationModule,
         ApiModule,
         BlockedContactModule,
+        forwardRef(() => YggdrasilModule),
         forwardRef(() => MessageModule),
         forwardRef(() => ContactModule),
     ],

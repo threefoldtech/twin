@@ -1,5 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { copyFile, existsSync, openSync, readdir, readFileSync, unlink, writeFileSync } from 'fs';
+import {
+    copyFile,
+    existsSync,
+    mkdirSync,
+    openSync,
+    readdir,
+    readFileSync,
+    unlink,
+    WriteFileOptions,
+    writeFileSync,
+} from 'fs';
 import { join } from 'path';
 
 @Injectable()
@@ -10,8 +20,17 @@ export class FileService {
      * @param {string} obj.path - File path.
      * @param {string} obj.content - File contents.
      */
-    writeFile({ path, content }: { path: string; content: string }) {
-        if (!this.fileExists({ path })) writeFileSync(path, content);
+    writeFile({ path, content, flag }: { path: string; content: string; flag?: WriteFileOptions }) {
+        if (!this.fileExists({ path })) writeFileSync(path, content, flag);
+    }
+
+    /**
+     * Creates a directory for given path.
+     * @param {Object} obj - Object.
+     * @param {string} obj.path - Directory path.
+     */
+    makeDirectory({ path }: { path: string; flag?: WriteFileOptions }) {
+        mkdirSync(path);
     }
 
     /**

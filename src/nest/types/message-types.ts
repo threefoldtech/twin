@@ -10,6 +10,17 @@ export interface ContactRequest {
     location: string;
 }
 
+export enum FileType {
+    RECORDING = 'RECORDING',
+    OTHER = 'OTHER',
+}
+
+export interface FileMessage {
+    type: FileType;
+    filename: string;
+    url: string;
+}
+
 export interface SystemMessage {
     type: SystemMessageType;
 }

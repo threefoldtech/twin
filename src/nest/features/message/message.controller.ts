@@ -11,6 +11,7 @@ import { CreateMessageDTO, MessageDTO } from './dtos/message.dto';
 import { MessageService } from './message.service';
 import {
     ContactRequestMessageState,
+    FileMessageState,
     MessageState,
     ReadMessageState,
     StringMessageState,
@@ -47,8 +48,10 @@ export class MessageController {
             MessageType.STRING,
             new StringMessageState(this._chatService, this._chatGateway)
         );
-        // string message handler
+        // GIF message handler
         this._messageStateHandlers.set(MessageType.GIF, new StringMessageState(this._chatService, this._chatGateway));
+        // file message handler
+        this._messageStateHandlers.set(MessageType.FILE, new FileMessageState(this._chatService, this._chatGateway));
     }
 
     @Put()
