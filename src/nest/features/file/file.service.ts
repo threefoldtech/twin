@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import fs from 'fs';
+import { copyFile, existsSync, openSync, readdir, readFileSync, unlink, writeFileSync } from 'fs';
 import { join } from 'path';
 
 @Injectable()
@@ -11,7 +11,7 @@ export class FileService {
      * @param {string} obj.content - File contents.
      */
     writeFile({ path, content }: { path: string; content: string }) {
-        if (!this.fileExists({ path })) fs.writeFileSync(path, content);
+        if (!this.fileExists({ path })) writeFileSync(path, content);
     }
 
     /**
@@ -21,7 +21,7 @@ export class FileService {
      * @return {string} file.
      */
     readJSONFile({ path }: { path: string }): string {
-        return JSON.parse(fs.readFileSync(path, 'utf8'));
+        return JSON.parse(readFileSync(path, 'utf8'));
     }
 
     /**
@@ -32,7 +32,7 @@ export class FileService {
      * @return {number} descriptor.
      */
     openFile({ path, flags }: { path: string; flags: string }): number {
-        return fs.openSync(path, flags);
+        return openSync(path, flags);
     }
 
     /**
@@ -42,7 +42,36 @@ export class FileService {
      * @return {boolean} file exists or not.
      */
     fileExists({ path }: { path: string }): boolean {
-        return fs.existsSync(path);
+        return existsSync(path);
+    }
+
+    /**
+     * Moves a file from to given path.
+     * @param {Object} obj - Object.
+     * @param {string} obj.from - Path to move file from.
+     * @param {string} obj.to - Path to move file to.
+     * @return {boolean} success or not.
+     */
+    moveFile({ from, to }: { from: string; to: string }): boolean {
+        if (!from || !to) throw new Error('please specify a from and a to path to move the file to');
+        if (!this.fileExists({ path: from })) throw new Error('file does not exist');
+        copyFile(from, to, err => {
+            if (err) throw err;
+        });
+        this.deleteFile({ path: from });
+        return true;
+    }
+
+    /**
+     * Deletes a file by given path.
+     * @param {Object} obj - Object.
+     * @param {string} obj.path - Path to delete file from.
+     */
+    deleteFile({ path }: { path: string }): boolean {
+        unlink(path, err => {
+            if (err) throw err;
+        });
+        return true;
     }
 
     /**
@@ -52,11 +81,11 @@ export class FileService {
      * @return {boolean} directory cleared or not.
      */
     clearFolder({ dir }: { dir: string }): boolean {
-        fs.readdir(dir, (err, files) => {
+        readdir(dir, (err, files) => {
             if (err) throw err;
 
             files.forEach(file => {
-                fs.unlink(join(dir, file), err => {
+                unlink(join(dir, file), err => {
                     if (err) throw err;
                 });
             });

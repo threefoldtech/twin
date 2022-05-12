@@ -4,7 +4,7 @@ import { YggdrasilModule } from '../yggdrasil/yggdrasil.module';
 import { FileController } from './file.controller';
 import { FileGateway } from './file.gateway';
 import { FileService } from './file.service';
-import { FileSchedulingService } from './fileScheduling.service';
+import { FileSchedulingService } from './file-scheduling.service';
 
 @Module({
     imports: [forwardRef(() => YggdrasilModule)],
