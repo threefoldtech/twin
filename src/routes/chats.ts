@@ -37,8 +37,7 @@ router.get('/', requiresAuthentication, (req: express.Request, res: express.Resp
     res.json(chats);
 });
 
-//@TODO will need to use this later
-router.get('/chatRequests', requiresAuthentication, (req: express.Request, res: express.Response) => {
+router.get('/chatRequests', requiresAuthentication, (_req: express.Request, res: express.Response) => {
     const returnChats = getChatRequests();
     res.json(returnChats);
 });
