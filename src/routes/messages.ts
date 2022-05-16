@@ -1,5 +1,6 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
 import { fromBuffer } from 'file-type';
+import { StatusCodes } from 'http-status-codes';
 
 import { uuidv4 } from '../common';
 import { config } from '../config/config';
@@ -157,7 +158,7 @@ const handleGroupAdmin = async <ResBody, Locals>(
 };
 
 // Should be externally availble
-router.put('/', async (req, res) => {
+router.put('/', async (req: express.Request, res: express.Response) => {
     // @ TODO check if valid
 
     const msg = req.body;
@@ -225,7 +226,7 @@ router.put('/', async (req, res) => {
         return await handleGroupAdmin(chat, message, res, chatId);
     }
 
-    if (!chat && contactRequests.find(c => c.id == message.from)) {
+    if (!chat && !chat.isGroup && contactRequests.find(c => c.id == message.from)) {
         //@todo maybe 3 messages should be allowed or something
         res.status(403).json({
             status: 'Forbidden',
@@ -284,7 +285,7 @@ router.put('/', async (req, res) => {
             handleIncommingFileShareDelete(message as Message<FileShareDeleteMessageType>);
             res.json({ status: 'success' });
             return;
-        case MessageTypes.DOWNLOAD_ATTACHMENT:
+        case MessageTypes.DOWNLOAD_ATTACHMENT: {
             if (message.from === config.userid) {
                 res.json({
                     status: 'downloading file to your quantum',
@@ -301,6 +302,12 @@ router.put('/', async (req, res) => {
 
             res.set('Content-Type', mime?.mime || null);
             res.send(file);
+            return;
+        }
+        case MessageTypes.POST_DELETE:
+            sendEventToConnectedSockets('post_deleted', message.body);
+            res.status(StatusCodes.OK);
+            res.send();
             return;
     }
 

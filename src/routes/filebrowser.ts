@@ -15,7 +15,7 @@ import Message from '../models/message';
 import { sendMessageToApi } from '../service/apiService';
 import { persistMessage } from '../service/chatService';
 import { getChat, getShareConfig, persistChat } from '../service/dataService';
-import { getDocumentBrowserKey } from '../service/fileService';
+import { getDocumentBrowserKey, hasSpecialCharacters } from '../service/fileService';
 import {
     createShare,
     getShareByPath,
@@ -181,6 +181,10 @@ router.post('/files', requiresAuthentication, async (req: express.Request, res: 
         const results = [] as PathInfo[];
         await Promise.all(
             files.map(async f => {
+                if (hasSpecialCharacters(f.name)) {
+                    res.json({ status: 'Failed to upload file, no special characters allowed.' });
+                    return;
+                }
                 const path = new Path(dto.path);
                 path.appendPath(f.name);
                 const result = await saveFileWithRetry(path, f);
