@@ -12,4 +12,8 @@ export const getContacts = () =>
         .map(chat => {
             return chat.contacts.find(cont => cont.id !== config.userid);
         });
-export const contacts: Array<Contact> = getContacts();
+// TODO: remove this export
+export const contacts: Array<Contact> = [];
+export const initContacts = () => {
+    contacts.push(...getContacts());
+};

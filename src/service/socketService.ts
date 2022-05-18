@@ -4,9 +4,10 @@ import { Socket } from 'socket.io';
 import { config } from '../config/config';
 import Message from '../models/message';
 import { connections } from '../store/connections';
+import { contacts } from '../store/contacts';
 import { updateLastSeen, updateStatus } from '../store/user';
-import { MessageBodyTypeInterface, MessageTypes, StringMessageTypeInterface } from '../types';
-import { sendMessageToApi } from './apiService';
+import { MessageBodyTypeInterface, MessageTypes, StatusUpdate, StringMessageTypeInterface } from '../types';
+import { sendMessageToApi, sendStatusUpdate } from './apiService';
 import { getChatById, persistMessage } from './chatService';
 import { deleteChat, getBlocklist, persistBlocklist } from './dataService';
 import { appendSignatureToMessage } from './keyService';
@@ -27,12 +28,20 @@ export const startSocketIo = (httpServer: http.Server) => {
         console.log(`${socket.id} connected`);
         connections.add(socket.id);
 
+        const status: StatusUpdate = {
+            id: config.userid,
+            isOnline: true,
+        };
+        handleStatusEmit({ status });
+
         socket.on('disconnect', () => {
             console.log(`${socket.id} disconnected`);
             connections.delete(socket.id);
             if (connections.getConnections().length === 0) {
                 updateLastSeen();
             }
+            status.isOnline = false;
+            handleStatusEmit({ status });
         });
 
         socket.on('message', async messageData => {
@@ -101,4 +110,17 @@ export const sendEventToConnectedSockets = (event: string, body: unknown) => {
         io.to(connection).emit(event, body);
         console.log(`send message to ${connection} with event: ${event}`);
     });
+};
+
+/**
+ * Emits your status (on/offline) to all your contacts.
+ * @param {Object} obj - Object.
+ * @param {StatusUpdate} obj.status - Updated status.
+ */
+const handleStatusEmit = ({ status }: { status: StatusUpdate }) => {
+    Promise.all(
+        contacts.map(async c => {
+            await sendStatusUpdate({ location: c.location, status });
+        })
+    );
 };
