@@ -40,9 +40,7 @@ export const sendStatusUpdate = async ({
         return await axios.put(url, status, {
             responseType: responseType || 'json',
         });
-    } catch (error) {
-        // console.error(`could not update status: ${error}`);
-    }
+    } catch (error) {}
 };
 
 export const sendPostToApi = async (location: string, post: SOCIAL_POST) => {

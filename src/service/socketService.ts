@@ -118,9 +118,5 @@ export const sendEventToConnectedSockets = (event: string, body: unknown) => {
  * @param {StatusUpdate} obj.status - Updated status.
  */
 const handleStatusEmit = ({ status }: { status: StatusUpdate }) => {
-    Promise.all(
-        contacts.map(async c => {
-            await sendStatusUpdate({ location: c.location, status });
-        })
-    );
+    contacts.map(c => sendStatusUpdate({ location: c.location, status }));
 };
