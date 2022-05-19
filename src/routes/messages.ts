@@ -137,8 +137,6 @@ const handleGroupAdmin = async <ResBody, Locals>(
         return;
     }
 
-    sendEventToConnectedSockets('message', message);
-
     if (message.type === MessageTypes.READ) {
         handleRead(message as Message<StringMessageTypeInterface>);
         res.json({ status: 'success' });

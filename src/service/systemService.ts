@@ -13,7 +13,7 @@ import { getFullIPv6ApiLocation } from './urlService';
 export const handleSystemMessage = (message: Message<GroupUpdateType>, chat: Chat) => {
     switch (message.body.type) {
         case SystemMessageType.ADDUSER: {
-            if (!chat.isModerator(config.userid)) return;
+            if (!chat.isModerator(message.from)) return;
             const path = getFullIPv6ApiLocation(message.body.contact.location, '/v1/group/invite');
             chat.addContact(message.body.contact);
             chat.messages.push(message);
@@ -22,7 +22,6 @@ export const handleSystemMessage = (message: Message<GroupUpdateType>, chat: Cha
                 axios
                     .put(path, chat)
                     .then(() => {
-                        sendEventToConnectedSockets('chat_updated', chat);
                         sendMessageToApi(message.body.contact.location, message);
                     })
                     .catch(() => {
@@ -31,7 +30,6 @@ export const handleSystemMessage = (message: Message<GroupUpdateType>, chat: Cha
             } catch (e) {
                 console.log('failed to send group request');
             }
-
             break;
         }
         case SystemMessageType.USER_LEFT_GROUP: {
@@ -48,11 +46,10 @@ export const handleSystemMessage = (message: Message<GroupUpdateType>, chat: Cha
             }
             chat.contacts = chat.contacts.filter(c => c.id !== contact);
             chat.messages.push(message);
-            sendEventToConnectedSockets('chat_updated', chat);
             break;
         }
         case SystemMessageType.REMOVEUSER:
-            if (!chat.isModerator(config.userid)) return;
+            if (!chat.isModerator(message.from)) return;
             if (message.body.contact.id === config.userid) {
                 deleteChat(<string>chat.chatId);
                 sendEventToConnectedSockets('chat_removed', chat.chatId);
@@ -60,17 +57,16 @@ export const handleSystemMessage = (message: Message<GroupUpdateType>, chat: Cha
             }
             chat.contacts = chat.contacts.filter(c => c.id !== message.body.contact.id);
             chat.messages.push(message);
-
             sendEventToConnectedSockets('chat_updated', chat);
-            sendMessageToApi(message.body.contact.location, message);
+
+            // sendMessageToApi(message.body.contact.location, message);
             break;
         case SystemMessageType.CHANGE_USER_ROLE: {
-            if (!chat.isAdmin(config.userid)) return;
+            if (!chat.isAdmin(message.from)) return;
             const contact = message.body.contact;
             chat.addContact(contact);
-            persistChat(chat);
-            sendEventToConnectedSockets('chat_updated', chat);
-            return;
+            chat.messages.push(message);
+            break;
         }
         case SystemMessageType.JOINED_VIDEOROOM: {
             persistMessage(chat.chatId, message);

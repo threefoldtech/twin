@@ -1,15 +1,7 @@
-import { ForbiddenException } from '@nestjs/common';
-
 import { config } from '../config/config';
 import Chat from '../models/chat';
 import Contact from '../models/contact';
-import {
-    DtIdInterface,
-    GroupContactInterface,
-    IdInterface,
-    MessageBodyTypeInterface,
-    MessageInterface,
-} from '../types';
+import { DtIdInterface, IdInterface, MessageBodyTypeInterface, MessageInterface } from '../types';
 import { getChatfromAdmin } from './apiService';
 import { getChat, getChatIds, persistChat } from './dataService';
 import { parseMessages } from './messageService';
@@ -99,13 +91,4 @@ export const parseChat = (chat: Chat, messages: Array<MessageInterface<MessageBo
         chat.read,
         chat.draft
     );
-};
-
-export const changeUserRoles = (chatId: string, contact: GroupContactInterface) => {
-    const chat = getChatById(chatId);
-    if (chat.adminId !== config.userid) {
-        throw new ForbiddenException('You are not allowed to change user roles!');
-    }
-    chat.addContact(contact);
-    persistChat(chat);
 };
