@@ -49,6 +49,7 @@ export class ChatFileState implements FileState<ChatFile> {
         }
         // create new message and emit to connected sockets
         const yggdrasilAddress = await this._locationService.getOwnLocation();
+        const destinationUrl = `http://[${yggdrasilAddress}]/api/v2/files/chats/${chatId}/${messageId}/${fileId}`;
         const message: MessageDTO<FileMessage> = {
             id: messageId,
             from: this._configService.get<string>('userId'),
@@ -56,7 +57,7 @@ export class ChatFileState implements FileState<ChatFile> {
             body: {
                 type,
                 filename: fileId,
-                url: `http://[${yggdrasilAddress}]/api/v2/files/chats/${chatId}/${messageId}/${fileId}`,
+                url: destinationUrl,
             },
             timeStamp: new Date(),
             type: MessageType.FILE,
@@ -69,7 +70,7 @@ export class ChatFileState implements FileState<ChatFile> {
         const signedMessage = await this._keyService.appendSignatureToMessage({ message });
         const contacts = chat.parseContacts();
         const location = contacts.find(c => c.id === message.to).location;
-        this._chatService.addMessageToChat({ chat, message });
+        await this._chatService.addMessageToChat({ chat, message });
         await this._apiService.sendMessageToApi({ location, message: <MessageDTO<string>>signedMessage });
         return true;
     }
