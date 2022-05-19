@@ -65,7 +65,6 @@ export class UserController {
     }
 
     @Get('avatar/:avatarId')
-    @UseGuards(AuthGuard)
     async getAvatar(@Param('avatarId') avatarId: string) {
         let filePath = `${this._configService.get<string>('baseDir')}user/avatar-default`;
         if (avatarId !== 'default') {

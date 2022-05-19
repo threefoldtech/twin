@@ -26,7 +26,6 @@ export class FileController {
     }
 
     @Get(':fileId')
-    @UseGuards(AuthGuard)
     downloadFile(@Param('fileId') fileId: string): StreamableFile {
         const path = join(this.storageDir, fileId);
         if (!fileId || !this._fileService.fileExists({ path }))
