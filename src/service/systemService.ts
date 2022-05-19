@@ -2,7 +2,6 @@ import axios from 'axios';
 
 import { config } from '../config/config';
 import Chat from '../models/chat';
-import Contact from '../models/contact';
 import Message from '../models/message';
 import { GroupUpdateType, SystemMessageType } from '../types';
 import { sendMessageToApi } from './apiService';
@@ -12,17 +11,11 @@ import { sendEventToConnectedSockets } from './socketService';
 import { getFullIPv6ApiLocation } from './urlService';
 
 export const handleSystemMessage = (message: Message<GroupUpdateType>, chat: Chat) => {
-    if (
-        [SystemMessageType.ADDUSER, SystemMessageType.REMOVEUSER].includes(message.body.type) &&
-        chat.adminId !== message.from
-    ) {
-        throw Error('not allowed');
-    }
-
     switch (message.body.type) {
         case SystemMessageType.ADDUSER: {
+            if (!chat.isModerator(config.userid)) return;
             const path = getFullIPv6ApiLocation(message.body.contact.location, '/v1/group/invite');
-            chat.contacts.push(message.body.contact);
+            chat.addContact(message.body.contact);
             chat.messages.push(message);
             //@todo send message request to invited 3 bot
             try {
@@ -59,6 +52,7 @@ export const handleSystemMessage = (message: Message<GroupUpdateType>, chat: Cha
             break;
         }
         case SystemMessageType.REMOVEUSER:
+            if (!chat.isModerator(config.userid)) return;
             if (message.body.contact.id === config.userid) {
                 deleteChat(<string>chat.chatId);
                 sendEventToConnectedSockets('chat_removed', chat.chatId);
@@ -70,6 +64,14 @@ export const handleSystemMessage = (message: Message<GroupUpdateType>, chat: Cha
             sendEventToConnectedSockets('chat_updated', chat);
             sendMessageToApi(message.body.contact.location, message);
             break;
+        case SystemMessageType.CHANGE_USER_ROLE: {
+            if (!chat.isAdmin(config.userid)) return;
+            const contact = message.body.contact;
+            chat.addContact(contact);
+            persistChat(chat);
+            sendEventToConnectedSockets('chat_updated', chat);
+            return;
+        }
         case SystemMessageType.JOINED_VIDEOROOM: {
             persistMessage(chat.chatId, message);
             return;

@@ -52,6 +52,7 @@ export enum SystemMessageType {
     JOINED_VIDEOROOM = 'JOINED_VIDEOROOM',
     CONTACT_REQUEST_SEND = 'CONTACT_REQUEST_SEND',
     USER_LEFT_GROUP = 'USER_LEFT_GROUP',
+    CHANGE_USER_ROLE = 'CHANGE_USER_ROLE',
 }
 
 export enum FileTypes {
@@ -102,7 +103,7 @@ export interface SystemMessageInterface extends MessageBodyTypeInterface {
 }
 
 export interface GroupUpdateType extends SystemMessageInterface {
-    contact: ContactInterface;
+    contact: GroupContactInterface;
     adminLocation: string;
     nextAdmin?: string;
 }
