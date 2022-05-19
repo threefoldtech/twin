@@ -10,6 +10,5 @@ export class FileSchedulingService {
     @Interval(60000)
     clearTmpDirectory() {
         this._fileService.clearFolder({ dir: 'tmp' });
-        console.log(`Tmp folder cleared.`);
     }
 }
