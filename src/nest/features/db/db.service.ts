@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Client, Entity, Repository, Schema } from 'redis-om';
 
+// Redis database service
 @Injectable()
 export class DbService {
     private client: Client;

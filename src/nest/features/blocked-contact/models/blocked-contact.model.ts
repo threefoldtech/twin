@@ -1,5 +1,6 @@
 import { Entity, Schema } from 'redis-om';
 
+// Redis model
 export interface BlockedContact {
     id: string;
 }
