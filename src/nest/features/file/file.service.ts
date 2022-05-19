@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
     copyFile,
     existsSync,
+    MakeDirectoryOptions,
     mkdirSync,
     openSync,
     readdir,
@@ -29,8 +30,8 @@ export class FileService {
      * @param {Object} obj - Object.
      * @param {string} obj.path - Directory path.
      */
-    makeDirectory({ path }: { path: string; flag?: WriteFileOptions }) {
-        mkdirSync(path);
+    makeDirectory({ path }: { path: string; flag?: MakeDirectoryOptions }) {
+        mkdirSync(path, { recursive: true });
     }
 
     /**
