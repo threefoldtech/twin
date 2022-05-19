@@ -21,7 +21,7 @@ export abstract class FileState<T> {
 }
 
 export class ChatFileState implements FileState<ChatFile> {
-    private chatDir = '';
+    private storageDir = '';
 
     constructor(
         private readonly _configService: ConfigService,
@@ -32,31 +32,30 @@ export class ChatFileState implements FileState<ChatFile> {
         private readonly _chatService: ChatService,
         private readonly _chatGateway: ChatGateway
     ) {
-        this.chatDir = `${this._configService.get<string>('baseDir')}storage/chats`;
+        this.storageDir = `${this._configService.get<string>('baseDir')}storage`;
     }
 
     async handle({ fileId, payload }: { fileId: string; payload: ChatFile }) {
-        const { chatId, messageId, type } = payload;
+        const { chatId, messageId, type, filename } = payload;
         const fromPath = `tmp/${fileId}`;
-        const dirPath = join(this.chatDir, chatId);
 
         try {
-            this._fileService.makeDirectory({ path: dirPath });
-            this._fileService.moveFile({ from: fromPath, to: join(dirPath, fileId) });
+            this._fileService.makeDirectory({ path: this.storageDir });
+            this._fileService.moveFile({ from: fromPath, to: join(this.storageDir, fileId) });
         } catch (error) {
             console.error(error);
             return false;
         }
         // create new message and emit to connected sockets
         const yggdrasilAddress = await this._locationService.getOwnLocation();
-        const destinationUrl = `http://[${yggdrasilAddress}]/api/v2/files/chats/${chatId}/${messageId}/${fileId}`;
+        const destinationUrl = `http://[${yggdrasilAddress}]/api/v2/files/${fileId}`;
         const message: MessageDTO<FileMessage> = {
             id: messageId,
             from: this._configService.get<string>('userId'),
             to: chatId,
             body: {
                 type,
-                filename: fileId,
+                filename,
                 url: destinationUrl,
             },
             timeStamp: new Date(),

@@ -18,6 +18,6 @@ export class FileController {
     )
     async uploadFile(@UploadedFile() file: Express.Multer.File) {
         if (!file) throw new BadRequestException('please provide a valid file');
-        return { id: file.filename };
+        return { id: file.filename, filename: file.originalname };
     }
 }
