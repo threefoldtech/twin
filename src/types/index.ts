@@ -131,6 +131,10 @@ export interface ContactInterface extends AnonymousContactInterface {
     location: string;
 }
 
+export interface GroupContactInterface extends ContactInterface {
+    roles: ROLES[];
+}
+
 export interface AnonymousContactInterface {
     id: DtIdInterface;
 }
@@ -141,6 +145,12 @@ export type IdInterface = string;
 
 export interface WorkspaceInterface extends GroupChatInterface {
     subGroups: GroupChatInterface[];
+}
+
+export enum ROLES {
+    USER = 'USER',
+    MODERATOR = 'MODERATOR',
+    ADMIN = 'ADMIN',
 }
 
 export enum POST_TYPE {
@@ -207,6 +217,6 @@ export interface SOCIAL_POST {
     likes: LIKE_MODEL[];
     images: POST_IMAGE[];
     replies: COMMENT_MODEL[];
-    isTyping?: String[];
+    isTyping?: string[];
     action?: POST_ACTIONS;
 }

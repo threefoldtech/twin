@@ -5,9 +5,9 @@ import { config } from '../config/config';
 import Message from '../models/message';
 import { connections } from '../store/connections';
 import { updateLastSeen, updateStatus } from '../store/user';
-import { MessageBodyTypeInterface, MessageTypes, StringMessageTypeInterface } from '../types';
+import { GroupContactInterface, MessageBodyTypeInterface, MessageTypes, StringMessageTypeInterface } from '../types';
 import { sendMessageToApi } from './apiService';
-import { getChatById, persistMessage } from './chatService';
+import { changeUserRoles, getChatById, persistMessage } from './chatService';
 import { deleteChat, getBlocklist, persistBlocklist } from './dataService';
 import { appendSignatureToMessage } from './keyService';
 import { editMessage, handleRead, parseMessage } from './messageService';
@@ -92,6 +92,9 @@ export const startSocketIo = (httpServer: http.Server) => {
             blockList.push(id);
             persistBlocklist(blockList);
             sendEventToConnectedSockets('chat_blocked', id);
+        });
+        socket.on('change_role', (data: { contact: GroupContactInterface; chatId: string }) => {
+            changeUserRoles(data.chatId, data.contact);
         });
     });
 };
