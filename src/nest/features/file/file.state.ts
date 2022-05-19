@@ -32,13 +32,13 @@ export class ChatFileState implements FileState<ChatFile> {
         private readonly _chatService: ChatService,
         private readonly _chatGateway: ChatGateway
     ) {
-        this.chatDir = `${this._configService.get<string>('baseDir')}chats`;
+        this.chatDir = `${this._configService.get<string>('baseDir')}storage/chats`;
     }
 
     async handle({ fileId, payload }: { fileId: string; payload: ChatFile }) {
         const { chatId, messageId, type } = payload;
         const fromPath = `tmp/${fileId}`;
-        const dirPath = join(this.chatDir, chatId, 'files', messageId);
+        const dirPath = join(this.chatDir, chatId);
 
         try {
             this._fileService.makeDirectory({ path: dirPath });
@@ -68,8 +68,7 @@ export class ChatFileState implements FileState<ChatFile> {
         this._chatGateway.emitMessageToConnectedClients('message', message);
         const chat = await this._chatService.getChat(chatId);
         const signedMessage = await this._keyService.appendSignatureToMessage({ message });
-        const contacts = chat.parseContacts();
-        const location = contacts.find(c => c.id === message.to).location;
+        const location = chat.parseContacts().find(c => c.id === message.to).location;
         await this._chatService.addMessageToChat({ chat, message });
         await this._apiService.sendMessageToApi({ location, message: <MessageDTO<string>>signedMessage });
         return true;

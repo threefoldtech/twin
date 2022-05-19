@@ -76,8 +76,6 @@ export class FileMessageState implements MessageState<FileMessage> {
 
     async handle({ message, chat }: { message: MessageDTO<FileMessage>; chat: Chat }): Promise<string> {
         this._chatGateway.emitMessageToConnectedClients('message', message);
-
-        console.log(`MESSAGE: ${JSON.stringify(message)}`);
         return await this._chatService.addMessageToChat({ chat, message });
     }
 }
