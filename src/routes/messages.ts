@@ -9,7 +9,7 @@ import Contact from '../models/contact';
 import Message from '../models/message';
 import { sendMessageToApi } from '../service/apiService';
 import { persistMessage, syncNewChatWithAdmin } from '../service/chatService';
-import { getBlocklist, getChat, persistChat } from '../service/dataService';
+import { getBlocklist, getChat, getChatIds, persistChat } from '../service/dataService';
 import {
     handleIncommingFileShare,
     handleIncommingFileShareDelete,
@@ -36,8 +36,10 @@ import { getFile, Path } from '../utils/files';
 const router = Router();
 
 const handleContactRequest = async (message: Message<ContactRequest>) => {
-    contactRequests.push(<Contact>(<unknown>message.body));
     const otherContact = new Contact(<string>message.from, message.body.location);
+    if (getChatIds().find(c => c === otherContact.id)) return;
+
+    contactRequests.push(<Contact>(<unknown>message.body));
     const myLocation = await getMyLocation();
     const myself = new Contact(<string>config.userid, myLocation);
     const requestMsg: Message<StringMessageTypeInterface> = {
