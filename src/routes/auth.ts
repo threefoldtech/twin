@@ -23,6 +23,10 @@ router.get('/signin', async (request, response) => {
     response.redirect(loginUrl);
 });
 
+router.get('/signout', async (request, response) => {
+    response.json({ url: `https://${process.env.DIGITALTWIN_APPID}` });
+});
+
 router.get('/callback', async (request, response) => {
     const callback = await appCallback(request);
 
