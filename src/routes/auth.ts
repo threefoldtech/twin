@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import { yggdrasilIsInitialized } from '../index';
 import { appCallback, getAppLoginUrl } from '../service/authService';
+import { removeYggdrasil } from '../service/yggdrasilService';
 
 const router = Router();
 
@@ -24,6 +25,12 @@ router.get('/signin', async (request, response) => {
 });
 
 router.get('/signout', async (request, response) => {
+    request.session.destroy(err => {
+        if (err) {
+            console.log(err);
+        }
+    });
+    removeYggdrasil();
     response.json({ url: `https://${process.env.DIGITALTWIN_APPID}` });
 });
 

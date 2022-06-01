@@ -1,9 +1,10 @@
-import nacl from 'tweetnacl';
-import { encodeHex } from './encryptionService';
 import { execSync, spawn } from 'child_process';
 import fs from 'fs';
 import PATH from 'path';
+import nacl from 'tweetnacl';
+
 import { config } from '../config/config';
+import { encodeHex } from './encryptionService';
 import { getMyLocation } from './locationService';
 
 export interface YggdrasilConfig {
@@ -99,4 +100,11 @@ export const setupYggdrasil = async (seed: string) => {
     const config = replaceValues(generatedConfig, replacements);
     saveConfigs(config, replacements);
     await runYggdrasil();
+};
+
+export const removeYggdrasil = () => {
+    if (!fs.existsSync(configPath)) return;
+    fs.rmSync(configPath);
+    isInitialized = false;
+    console.log('Yggdrasil removed');
 };
