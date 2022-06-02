@@ -2,7 +2,6 @@ import { Router } from 'express';
 
 import { yggdrasilIsInitialized } from '../index';
 import { appCallback, getAppLoginUrl } from '../service/authService';
-import { removeYggdrasil } from '../service/yggdrasilService';
 
 const router = Router();
 
@@ -30,8 +29,7 @@ router.get('/signout', async (request, response) => {
             console.log(err);
         }
     });
-    removeYggdrasil();
-    response.json({ url: `https://${process.env.DIGITALTWIN_APPID}` });
+    response.json({ success:true });
 });
 
 router.get('/callback', async (request, response) => {
@@ -48,11 +46,19 @@ router.get('/callback', async (request, response) => {
 
 router.get('/authenticated', async (request, response) => {
     const hasSession = !!request?.session?.userId;
-    const isDevelopmentMode = process.env.ENVIRONMENT === 'development';
-    if (!hasSession && (!isDevelopmentMode || !yggdrasilIsInitialized)) {
+    if(!hasSession) {
         response.send('false');
         return;
     }
+
+    const isProduction = process.env.ENVIRONMENT !== 'development';
+    
+    
+    if (isProduction && !yggdrasilIsInitialized) {
+        response.send('false');
+        return;
+    }
+    
     response.send('true');
 });
 
