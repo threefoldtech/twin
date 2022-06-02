@@ -24,12 +24,24 @@ router.get('/signin', async (request, response) => {
 });
 
 router.get('/signout', async (request, response) => {
-    request.session.destroy(err => {
-        if (err) {
-            console.log(err);
-        }
-    });
-    response.json({ success:true });
+    const promise = new Promise((resolve, reject) => {
+        request.session.destroy(err => {
+            if (err) {
+                reject(err)
+                return;
+            }
+            resolve()
+        });
+    })
+
+    try {
+        await promise
+        response.json({ success:true });
+
+    } catch (err) {
+        response.json({ success:false })
+    }
+
 });
 
 router.get('/callback', async (request, response) => {
