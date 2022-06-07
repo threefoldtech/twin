@@ -27,6 +27,7 @@ export const startSocketIo = (httpServer: http.Server) => {
         console.log(`${socket.id} connected`);
         connections.add(socket.id);
 
+        sendEventToConnectedSockets('appID', process.env.DIGITALTWIN_APPID);
         socket.on('disconnect', () => {
             console.log(`${socket.id} disconnected`);
             connections.delete(socket.id);
