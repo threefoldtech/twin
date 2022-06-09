@@ -80,7 +80,10 @@ export const startSocketIo = (httpServer: http.Server) => {
                 return;
             }
 
-            persistMessage(chat.chatId, newMessage);
+            if (newMessage.type !== MessageTypes.SYSTEM) {
+                persistMessage(chat.chatId, newMessage);
+            }
+
             await sendMessageToApi(location, newMessage);
         });
 
