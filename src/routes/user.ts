@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import { uuidv4 } from '../common';
 import { config } from '../config/config';
 import { deleteAvatar, saveAvatar } from '../service/dataService';
+import { sendEventToConnectedSockets } from '../service/socketService';
 import { connections } from '../store/connections';
 import { getPublicKey } from '../store/keyStore';
 import { getAvatar, getImage, getLastSeen, getStatus, updateAvatar } from '../store/user';
@@ -55,6 +56,15 @@ router.post('/avatar', async (req, resp) => {
     updateAvatar(avatarId);
     const newUrl = await getAvatar();
     resp.status(200).json(newUrl);
+});
+
+/**
+ * Sends incoming updated status to frontend via sockets.
+ */
+router.put('/update-status', async (req, res) => {
+    const { body } = req;
+    sendEventToConnectedSockets('update_status', body);
+    return res.status(200);
 });
 
 export default router;

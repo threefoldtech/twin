@@ -1,7 +1,7 @@
 import axios, { ResponseType } from 'axios';
 
 import Message from '../models/message';
-import { MessageBodyTypeInterface, SOCIAL_POST } from '../types';
+import { MessageBodyTypeInterface, SOCIAL_POST, StatusUpdate } from '../types';
 import { parseFullChat } from './chatService';
 import { getFullIPv6ApiLocation } from './urlService';
 
@@ -18,6 +18,29 @@ export const sendMessageToApi = async (
     } catch (e) {
         // console.error(`couldn't send message ${url}`, e);
     }
+};
+
+/**
+ * Sends your status (on/offline) to given location.
+ * @param {Object} obj - Object.
+ * @param {string} obj.location - Location to send status to.
+ * @param {StatusUpdate} obj.status - Updated status.
+ */
+export const sendStatusUpdate = async ({
+    location,
+    status,
+    responseType,
+}: {
+    location: string;
+    status: StatusUpdate;
+    responseType?: ResponseType;
+}) => {
+    const url = getFullIPv6ApiLocation(location, '/v1/user/update-status');
+    try {
+        return await axios.put(url, status, {
+            responseType: responseType || 'json',
+        });
+    } catch (error) {}
 };
 
 export const sendPostToApi = async (location: string, post: SOCIAL_POST) => {

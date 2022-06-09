@@ -23,6 +23,27 @@ router.get('/signin', async (request, response) => {
     response.redirect(loginUrl);
 });
 
+router.get('/signout', async (request, response) => {
+    const promise = new Promise((resolve, reject) => {
+        request.session.destroy(err => {
+            if (err) {
+                reject(err)
+                return;
+            }
+            resolve()
+        });
+    })
+
+    try {
+        await promise
+        response.json({ success:true });
+
+    } catch (err) {
+        response.json({ success:false })
+    }
+
+});
+
 router.get('/callback', async (request, response) => {
     const callback = await appCallback(request);
 
@@ -37,11 +58,19 @@ router.get('/callback', async (request, response) => {
 
 router.get('/authenticated', async (request, response) => {
     const hasSession = !!request?.session?.userId;
-    const isDevelopmentMode = process.env.ENVIRONMENT === 'development';
-    if (!hasSession && (!isDevelopmentMode || !yggdrasilIsInitialized)) {
+    if(!hasSession) {
         response.send('false');
         return;
     }
+
+    const isProduction = process.env.ENVIRONMENT !== 'development';
+    
+    
+    if (isProduction && !yggdrasilIsInitialized) {
+        response.send('false');
+        return;
+    }
+    
     response.send('true');
 });
 

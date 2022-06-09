@@ -1,6 +1,6 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
 import { fromBuffer } from 'file-type';
-import express from 'express';
+import { StatusCodes } from 'http-status-codes';
 
 import { uuidv4 } from '../common';
 import { config } from '../config/config';
@@ -9,7 +9,7 @@ import Contact from '../models/contact';
 import Message from '../models/message';
 import { sendMessageToApi } from '../service/apiService';
 import { persistMessage, syncNewChatWithAdmin } from '../service/chatService';
-import { getBlocklist, getChat, persistChat } from '../service/dataService';
+import { getBlocklist, getChat, getChatIds, persistChat } from '../service/dataService';
 import {
     handleIncommingFileShare,
     handleIncommingFileShareDelete,
@@ -32,13 +32,14 @@ import {
     StringMessageTypeInterface,
 } from '../types';
 import { getFile, Path } from '../utils/files';
-import { StatusCodes } from 'http-status-codes';
 
 const router = Router();
 
 const handleContactRequest = async (message: Message<ContactRequest>) => {
-    contactRequests.push(<Contact>(<unknown>message.body));
     const otherContact = new Contact(<string>message.from, message.body.location);
+    if (getChatIds().find(c => c === otherContact.id)) return;
+
+    contactRequests.push(<Contact>(<unknown>message.body));
     const myLocation = await getMyLocation();
     const myself = new Contact(<string>config.userid, myLocation);
     const requestMsg: Message<StringMessageTypeInterface> = {
@@ -227,7 +228,7 @@ router.put('/', async (req: express.Request, res: express.Response) => {
         return await handleGroupAdmin(chat, message, res, chatId);
     }
 
-    if (!chat && contactRequests.find(c => c.id == message.from)) {
+    if (!chat && !chat.isGroup && contactRequests.find(c => c.id == message.from)) {
         //@todo maybe 3 messages should be allowed or something
         res.status(403).json({
             status: 'Forbidden',
@@ -286,7 +287,7 @@ router.put('/', async (req: express.Request, res: express.Response) => {
             handleIncommingFileShareDelete(message as Message<FileShareDeleteMessageType>);
             res.json({ status: 'success' });
             return;
-        case MessageTypes.DOWNLOAD_ATTACHMENT:
+        case MessageTypes.DOWNLOAD_ATTACHMENT: {
             if (message.from === config.userid) {
                 res.json({
                     status: 'downloading file to your quantum',
@@ -304,6 +305,7 @@ router.put('/', async (req: express.Request, res: express.Response) => {
             res.set('Content-Type', mime?.mime || null);
             res.send(file);
             return;
+        }
         case MessageTypes.POST_DELETE:
             sendEventToConnectedSockets('post_deleted', message.body);
             res.status(StatusCodes.OK);
