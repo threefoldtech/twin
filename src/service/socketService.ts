@@ -29,6 +29,7 @@ export const startSocketIo = (httpServer: http.Server) => {
         console.log(`${socket.id} connected`);
         connections.add(socket.id);
 
+        sendEventToConnectedSockets('appID', process.env.DIGITALTWIN_APPID);
         const myLocation = await getMyLocation();
         sendEventToConnectedSockets('yggdrasil', myLocation);
         sendEventToConnectedSockets('blocked_contacts', getBlocklist());

@@ -24,24 +24,22 @@ router.get('/signin', async (request, response) => {
 });
 
 router.get('/signout', async (request, response) => {
-    const promise = new Promise((resolve, reject) => {
+    const promise = new Promise<void>((resolve, reject) => {
         request.session.destroy(err => {
             if (err) {
-                reject(err)
+                reject(err);
                 return;
             }
-            resolve()
+            resolve();
         });
-    })
+    });
 
     try {
-        await promise
-        response.json({ success:true });
-
+        await promise;
+        response.json({ success: true });
     } catch (err) {
-        response.json({ success:false })
+        response.json({ success: false });
     }
-
 });
 
 router.get('/callback', async (request, response) => {
@@ -58,19 +56,18 @@ router.get('/callback', async (request, response) => {
 
 router.get('/authenticated', async (request, response) => {
     const hasSession = !!request?.session?.userId;
-    if(!hasSession) {
+    if (!hasSession) {
         response.send('false');
         return;
     }
 
     const isProduction = process.env.ENVIRONMENT !== 'development';
-    
-    
+
     if (isProduction && !yggdrasilIsInitialized) {
         response.send('false');
         return;
     }
-    
+
     response.send('true');
 });
 
