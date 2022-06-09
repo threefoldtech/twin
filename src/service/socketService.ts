@@ -4,12 +4,14 @@ import { Socket } from 'socket.io';
 import { config } from '../config/config';
 import Message from '../models/message';
 import { connections } from '../store/connections';
+import { contacts } from '../store/contacts';
 import { updateLastSeen, updateStatus } from '../store/user';
-import { MessageBodyTypeInterface, MessageTypes, StringMessageTypeInterface } from '../types';
-import { sendMessageToApi } from './apiService';
+import { MessageBodyTypeInterface, MessageTypes, StatusUpdate, StringMessageTypeInterface } from '../types';
+import { sendMessageToApi, sendStatusUpdate } from './apiService';
 import { getChatById, persistMessage } from './chatService';
-import { deleteChat, getBlocklist, persistBlocklist } from './dataService';
+import { deleteChat, getAllUsers, getBlocklist, persistBlocklist } from './dataService';
 import { appendSignatureToMessage } from './keyService';
+import { getMyLocation } from './locationService';
 import { editMessage, handleRead, parseMessage } from './messageService';
 
 const socketio = require('socket.io');
@@ -23,17 +25,32 @@ export const startSocketIo = (httpServer: http.Server) => {
         },
     });
 
-    io.on('connection', (socket: Socket) => {
+    io.on('connection', async (socket: Socket) => {
         console.log(`${socket.id} connected`);
         connections.add(socket.id);
 
         sendEventToConnectedSockets('appID', process.env.DIGITALTWIN_APPID);
+        const myLocation = await getMyLocation();
+        sendEventToConnectedSockets('yggdrasil', myLocation);
+        sendEventToConnectedSockets('blocked_contacts', getBlocklist());
+
+        const users = await getAllUsers();
+        sendEventToConnectedSockets('users_loaded', users);
+
+        const status: StatusUpdate = {
+            id: config.userid,
+            isOnline: true,
+        };
+        handleStatusEmit({ status });
+
         socket.on('disconnect', () => {
             console.log(`${socket.id} disconnected`);
             connections.delete(socket.id);
             if (connections.getConnections().length === 0) {
                 updateLastSeen();
             }
+            status.isOnline = false;
+            handleStatusEmit({ status });
         });
 
         socket.on('message', async messageData => {
@@ -94,6 +111,9 @@ export const startSocketIo = (httpServer: http.Server) => {
             persistBlocklist(blockList);
             sendEventToConnectedSockets('chat_blocked', id);
         });
+        socket.on('unblock_chat', (name: string) => {
+            persistBlocklist(getBlocklist().filter(b => b != name));
+        });
     });
 };
 
@@ -102,4 +122,13 @@ export const sendEventToConnectedSockets = (event: string, body: unknown) => {
         io.to(connection).emit(event, body);
         console.log(`send message to ${connection} with event: ${event}`);
     });
+};
+
+/**
+ * Emits your status (on/offline) to all your contacts.
+ * @param {Object} obj - Object.
+ * @param {StatusUpdate} obj.status - Updated status.
+ */
+const handleStatusEmit = ({ status }: { status: StatusUpdate }) => {
+    contacts.map(c => sendStatusUpdate({ location: c.location, status }));
 };
