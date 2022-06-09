@@ -9,8 +9,9 @@ import { updateLastSeen, updateStatus } from '../store/user';
 import { MessageBodyTypeInterface, MessageTypes, StatusUpdate, StringMessageTypeInterface } from '../types';
 import { sendMessageToApi, sendStatusUpdate } from './apiService';
 import { getChatById, persistMessage } from './chatService';
-import { deleteChat, getBlocklist, persistBlocklist } from './dataService';
+import { deleteChat, getAllUsers, getBlocklist, persistBlocklist } from './dataService';
 import { appendSignatureToMessage } from './keyService';
+import { getMyLocation } from './locationService';
 import { editMessage, handleRead, parseMessage } from './messageService';
 
 const socketio = require('socket.io');
@@ -24,9 +25,16 @@ export const startSocketIo = (httpServer: http.Server) => {
         },
     });
 
-    io.on('connection', (socket: Socket) => {
+    io.on('connection', async (socket: Socket) => {
         console.log(`${socket.id} connected`);
         connections.add(socket.id);
+
+        const myLocation = await getMyLocation();
+        sendEventToConnectedSockets('yggdrasil', myLocation);
+        sendEventToConnectedSockets('blocked_contacts', getBlocklist());
+
+        const users = await getAllUsers();
+        sendEventToConnectedSockets('users_loaded', users);
 
         const status: StatusUpdate = {
             id: config.userid,
@@ -101,6 +109,9 @@ export const startSocketIo = (httpServer: http.Server) => {
             blockList.push(id);
             persistBlocklist(blockList);
             sendEventToConnectedSockets('chat_blocked', id);
+        });
+        socket.on('unblock_chat', (name: string) => {
+            persistBlocklist(getBlocklist().filter(b => b != name));
         });
     });
 };
