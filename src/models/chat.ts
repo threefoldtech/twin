@@ -57,12 +57,4 @@ export default class Chat implements ChatInterface {
         if (!contact) return false;
         return contact.roles?.includes(ROLES.ADMIN);
     }
-
-    makeAdmin(userId: string) {
-        const contact = this.contacts.find(c => c.id === userId);
-        if (!contact) return false;
-        contact.roles = [ROLES.USER, ROLES.MODERATOR, ROLES.ADMIN];
-        this.adminId = userId;
-        return true;
-    }
 }
