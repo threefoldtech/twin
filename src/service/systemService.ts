@@ -35,9 +35,7 @@ export const handleSystemMessage = (message: Message<GroupUpdateType>, chat: Cha
         case SystemMessageType.USER_LEFT_GROUP: {
             const contact = message.body.contact.id;
             if (contact === chat.adminId && chat.contacts.length > 1) {
-                let newAdmin = chat.contacts.find(c => c.id === message.body.nextAdmin);
-                if (!newAdmin) newAdmin = chat.contacts.filter(c => c.id !== contact)[0];
-                chat.adminId = newAdmin.id;
+                chat.makeAdmin(message.body.nextAdmin);
             }
             if (contact === config.userid) {
                 deleteChat(chat.chatId);
