@@ -45,7 +45,7 @@ export const appCallback = async (request: Request): Promise<string> => {
     const derivedSeed: string = <string>profileData.derivedSeed;
     const userId = doubleName.replace('.3bot', '');
 
-    if (userId !== config.userid || !derivedSeed) return '/unauthorized';
+    if (userId.toLowerCase() !== config.userid.toLowerCase() || !derivedSeed) return '/unauthorized';
 
     const keyPair = getKeyPair(derivedSeed);
     if (!keyPair) return '/unauthorized';
