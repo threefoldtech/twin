@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import { yggdrasilIsInitialized } from '../index';
 import { appCallback, getAppLoginUrl } from '../service/authService';
+import { initYggdrasil } from '../service/yggdrasilService';
 
 const router = Router();
 
@@ -59,6 +60,10 @@ router.get('/authenticated', async (request, response) => {
     if (!hasSession) {
         response.send('false');
         return;
+    }
+
+    if (!yggdrasilIsInitialized) {
+        initYggdrasil();
     }
 
     const isProduction = process.env.ENVIRONMENT !== 'development';
