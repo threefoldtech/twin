@@ -34,3 +34,6 @@ publisher/greenlock.d/config.json*
 *.log
 *.lock
 tmp
+
+## Appdata
+appdata_*
