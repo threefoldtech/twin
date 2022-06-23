@@ -285,9 +285,7 @@ router.post('/internal/files', async (req: express.Request, res: express.Respons
         throw new HttpError(StatusCodes.UNAUTHORIZED, 'No permission for reading file');
 
     if (!payload.data.file || !body.url) throw new HttpError(StatusCodes.BAD_REQUEST, 'File not found');
-    const url = new URL(body.url);
-    url.hostname = 'documentserver.digitaltwin-test.jimbertesting.be';
-    url.protocol = 'https:';
+    const url = new URL(config.documentServerLocation);
     const fileResponse = syncRequest('GET', url);
     const fileBuffer = <Buffer>fileResponse.body;
     await saveFile(new Path(payload.data.file), fileBuffer);

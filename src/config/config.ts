@@ -8,6 +8,10 @@ export const config = {
     node_env: process.env.NODE_ENV || 'development',
     appBackend: environment === 'production' ? 'https://login.threefold.me' : 'https://login.staging.jimber.io',
     kycBackend: environment === 'production' ? 'https://openkyc.live' : 'http://openkyc.staging.jimber.org',
+    documentServerLocation:
+        environment === 'production'
+            ? 'https://documentserver.digitaltwin.jimbertesting.be/'
+            : 'https://documentserver.digitaltwin-test.jimbertesting.be/',
     appId: `${userid}.${appId}`,
     seedPhrase:
         'calm science teach foil burst until next mango hole sponsor fold bottom cousin push focus track truly tornado turtle over tornado teach large fiscal',
